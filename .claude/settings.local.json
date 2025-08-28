@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mvnw.cmd clean:*)",
+      "Bash(./mvnw.cmd spring-boot:run:*)",
+      "Bash(taskkill:*)",
+      "Bash(curl:*)",
+      "Bash(ng serve)",
+      "Bash(ng version)",
+      "Bash(ng serve:*)",
+      "Bash(npm install:*)",
+      "Bash(ng build:*)",
+      "Bash(.mvnw.cmd clean compile)",
+      "Bash(start-backend.bat)",
+      "Bash(cmd /c:*)",
+      "Bash(powershell:*)",
+      "Bash(timeout:*)",
+      "Bash(cat:*)",
+      "Bash(./mvnw:*)",
+      "Read(/C:\\c\\Users\\user\\OneDrive\\Bureau\\projetPI\\backend\\microservice/**)",
+      "Read(/C:\\c\\Users\\user\\OneDrive\\Bureau\\projetPI\\backend\\microservice/**)",
+      "Read(/C:\\c\\Users\\user\\OneDrive\\Bureau\\projetPI\\backend\\microservice/**)",
+      "Bash(.mvnw.cmd spring-boot:run)",
+      "Bash(mvnw.cmd spring-boot:*)"
+    ],
+    "deny": [],
+    "ask": [],
+    "additionalDirectories": [
+      "C:\\c\\Users\\user\\OneDrive\\Bureau\\projetPI\\backend\\microservice"
+    ]
+  }
+}

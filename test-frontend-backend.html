@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Communication Frontend-Backend</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test { margin: 10px 0; padding: 10px; border: 1px solid #ddd; }
+        .success { background-color: #d4edda; }
+        .error { background-color: #f8d7da; }
+        .info { background-color: #d1ecf1; }
+        button { padding: 10px 15px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Communication Frontend-Backend</h1>
+    
+    <div class="test info">
+        <h3>Backend URL: http://localhost:8080</h3>
+        <button onclick="testHealth()">🔍 Test Santé Backend</button>
+        <div id="healthResult"></div>
+    </div>
+
+    <div class="test info">
+        <h3>Test Inscription (avec données de test)</h3>
+        <button onclick="testRegister()">📝 Test Inscription</button>
+        <div id="registerResult"></div>
+    </div>
+
+    <div class="test info">
+        <h3>Test CORS</h3>
+        <button onclick="testCors()">🌐 Test CORS</button>
+        <div id="corsResult"></div>
+    </div>
+
+    <script>
+        async function testHealth() {
+            const result = document.getElementById('healthResult');
+            result.innerHTML = '⏳ Test en cours...';
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/health');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    result.innerHTML = `<div class="success">✅ Backend opérationnel !<br><pre>${JSON.stringify(data, null, 2)}</pre></div>`;
+                } else {
+                    result.innerHTML = `<div class="error">❌ Erreur: ${response.status}</div>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Erreur de connexion: ${error.message}</div>`;
+            }
+        }
+
+        async function testRegister() {
+            const result = document.getElementById('registerResult');
+            result.innerHTML = '⏳ Test en cours...';
+            
+            const testData = {
+                nom: 'TestUser',
+                prenom: 'Frontend',
+                email: 'frontend-test@example.com',
+                motDePasse: 'password123',
+                telephone: '12345678',
+                adresse: '123 Test Street',
+                userType: 'UTILISATEUR'
+            };
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    result.innerHTML = `<div class="success">✅ Inscription réussie !<br><pre>${JSON.stringify(data, null, 2)}</pre></div>`;
+                } else {
+                    result.innerHTML = `<div class="error">❌ Erreur d'inscription:<br><pre>${JSON.stringify(data, null, 2)}</pre></div>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Erreur de connexion: ${error.message}</div>`;
+            }
+        }
+
+        async function testCors() {
+            const result = document.getElementById('corsResult');
+            result.innerHTML = '⏳ Test CORS en cours...';
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/health', {
+                    method: 'GET',
+                    headers: {
+                        'Origin': 'http://localhost:4200',
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (response.ok) {
+                    result.innerHTML = `<div class="success">✅ CORS configuré correctement !</div>`;
+                } else {
+                    result.innerHTML = `<div class="error">❌ Problème CORS: ${response.status}</div>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Erreur CORS: ${error.message}</div>`;
+            }
+        }
+
+        // Test automatique au chargement de la page
+        window.onload = function() {
+            testHealth();
+        };
+    </script>
+</body>
+</html>
