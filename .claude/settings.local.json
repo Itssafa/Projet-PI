@@ -21,12 +21,17 @@
       "Read(/C:\\c\\Users\\user\\OneDrive\\Bureau\\projetPI\\backend\\microservice/**)",
       "Read(/C:\\c\\Users\\user\\OneDrive\\Bureau\\projetPI\\backend\\microservice/**)",
       "Bash(.mvnw.cmd spring-boot:run)",
-      "Bash(mvnw.cmd spring-boot:*)"
+      "Bash(mvnw.cmd spring-boot:*)",
+      "Bash(dir:*)",
+      "Bash(ng new:*)",
+      "Bash(npx @angular/cli@16 new:*)",
+      "Read(C:\\Users\\user\\OneDrive\\Bureau\\projetPI\\backend\\microservice\\User\\src/**)"
     ],
     "deny": [],
     "ask": [],
     "additionalDirectories": [
-      "C:\\c\\Users\\user\\OneDrive\\Bureau\\projetPI\\backend\\microservice"
+      "C:\\c\\Users\\user\\OneDrive\\Bureau\\projetPI\\backend\\microservice",
+      "C:\\"
     ]
   }
 }
