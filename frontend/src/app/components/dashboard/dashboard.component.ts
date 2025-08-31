@@ -1,0 +1,428 @@
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router, ActivatedRoute } from '@angular/router';
+import { Subscription, combineLatest } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
+import { 
+  AuthUser, 
+  UserType, 
+  DashboardStats,
+  UserStats,
+  PlatformStats,
+  VisitStats,
+  ClientAbonne,
+  AgenceImmobiliere,
+  Administrateur
+} from '../../core/models';
+
+@Component({
+  selector: 'app-dashboard',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './dashboard.component.html',
+  styleUrls: ['./dashboard.component.scss']
+})
+export class DashboardComponent implements OnInit, OnDestroy {
+  // User and authentication
+  currentUser: AuthUser | null = null;
+  userType: UserType | null = null;
+  isLoading = true;
+  
+  // Dashboard state
+  activeSection = 'overview';
+  dashboardStats: DashboardStats | null = null;
+  userStats: UserStats | null = null;
+  platformStats: PlatformStats | null = null;
+  visitStats: VisitStats | null = null;
+  
+  // Sidebar and navigation
+  sidebarCollapsed = false;
+  
+  // Subscriptions
+  private subscriptions: Subscription[] = [];
+
+  // Navigation items for different user types
+  navigationItems = {
+    UTILISATEUR: [
+      { section: 'overview', label: 'Vue d\'ensemble', icon: 'dashboard', description: 'Aperçu de votre compte' },
+      { section: 'profile', label: 'Mon Profil', icon: 'person', description: 'Gérer vos informations' },
+      { section: 'upgrade', label: 'Passer Premium', icon: 'star', description: 'Découvrir les fonctionnalités premium' }
+    ],
+    CLIENT_ABONNE: [
+      { section: 'overview', label: 'Vue d\'ensemble', icon: 'dashboard', description: 'Tableau de bord principal' },
+      { section: 'subscription', label: 'Mon Abonnement', icon: 'star', description: 'Gérer votre abonnement' },
+      { section: 'searches', label: 'Mes Recherches', icon: 'search', description: 'Historique et alertes' },
+      { section: 'analytics', label: 'Mes Statistiques', icon: 'analytics', description: 'Analyse de vos activités' },
+      { section: 'profile', label: 'Mon Profil', icon: 'person', description: 'Informations personnelles' }
+    ],
+    AGENCE_IMMOBILIERE: [
+      { section: 'overview', label: 'Vue d\'ensemble', icon: 'dashboard', description: 'Tableau de bord agence' },
+      { section: 'properties', label: 'Mes Biens', icon: 'home', description: 'Gestion du portefeuille' },
+      { section: 'clients', label: 'CRM Clients', icon: 'people', description: 'Relation client' },
+      { section: 'team', label: 'Mon Équipe', icon: 'group', description: 'Gestion des collaborateurs' },
+      { section: 'analytics', label: 'Analytics', icon: 'analytics', description: 'Performance et rapports' },
+      { section: 'verification', label: 'Vérification', icon: 'verified', description: 'Statut de vérification' },
+      { section: 'profile', label: 'Profil Agence', icon: 'business', description: 'Informations de l\'agence' }
+    ],
+    ADMINISTRATEUR: [
+      { section: 'overview', label: 'Vue d\'ensemble', icon: 'dashboard', description: 'Dashboard administrateur' },
+      { section: 'users', label: 'Gestion Utilisateurs', icon: 'people', description: 'Administration des comptes' },
+      { section: 'agencies', label: 'Vérification Agences', icon: 'business', description: 'Processus de vérification' },
+      { section: 'statistics', label: 'Statistiques Globales', icon: 'analytics', description: 'Analytics de la plateforme' },
+      { section: 'visits', label: 'Trafic & Visites', icon: 'visibility', description: 'Analyse du trafic' },
+      { section: 'system', label: 'Administration', icon: 'settings', description: 'Configuration système' },
+      { section: 'profile', label: 'Mon Profil', icon: 'admin_panel_settings', description: 'Profil administrateur' }
+    ]
+  };
+
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private route: ActivatedRoute
+  ) {}
+
+  ngOnInit(): void {
+    this.initializeDashboard();
+    this.loadDashboardData();
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+
+  private initializeDashboard(): void {
+    // Subscribe to user changes
+    const userSub = this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+      this.userType = user?.userType || null;
+      
+      if (user) {
+        this.setupDefaultSection();
+        this.loadRoleSpecificData();
+      } else {
+        this.router.navigate(['/login']);
+      }
+    });
+
+    // Subscribe to loading state
+    const loadingSub = this.authService.isLoading$.subscribe(loading => {
+      this.isLoading = loading;
+    });
+
+    this.subscriptions.push(userSub, loadingSub);
+  }
+
+  private setupDefaultSection(): void {
+    // Set section based on current route
+    const urlSegments = this.router.url.split('/');
+    
+    if (urlSegments.includes('admin')) {
+      // Admin routes: /admin/dashboard, /admin/users, /admin/agencies, etc.
+      const adminSection = urlSegments[urlSegments.indexOf('admin') + 1];
+      this.activeSection = adminSection === 'dashboard' ? 'overview' : adminSection || 'overview';
+    } else if (urlSegments.includes('agency')) {
+      // Agency routes: /agency/dashboard, /agency/properties, /agency/clients, etc.
+      const agencySection = urlSegments[urlSegments.indexOf('agency') + 1];
+      this.activeSection = agencySection === 'dashboard' ? 'overview' : agencySection || 'overview';
+    } else if (urlSegments.includes('client')) {
+      // Client routes: /client/dashboard, /client/subscription, /client/searches, etc.
+      const clientSection = urlSegments[urlSegments.indexOf('client') + 1];
+      this.activeSection = clientSection === 'dashboard' ? 'overview' : clientSection || 'overview';
+    } else if (urlSegments.includes('profile')) {
+      this.activeSection = 'profile';
+    } else {
+      this.activeSection = 'overview';
+    }
+    
+    // Load section-specific data
+    this.loadSectionData(this.activeSection);
+  }
+
+  private loadDashboardData(): void {
+    if (!this.authService.isAuthenticated) return;
+
+    // Load user-specific dashboard stats
+    const dashboardSub = this.authService.getUserStats().subscribe({
+      next: (stats) => {
+        this.dashboardStats = stats;
+      },
+      error: (error) => {
+        console.error('Error loading dashboard stats:', error);
+      }
+    });
+
+    this.subscriptions.push(dashboardSub);
+  }
+
+  private loadRoleSpecificData(): void {
+    if (!this.userType) return;
+
+    switch (this.userType) {
+      case 'ADMINISTRATEUR':
+        this.loadAdminData();
+        break;
+      case 'AGENCE_IMMOBILIERE':
+        this.loadAgencyData();
+        break;
+      case 'CLIENT_ABONNE':
+        this.loadClientData();
+        break;
+      default:
+        break;
+    }
+  }
+
+  private loadAdminData(): void {
+    // Load admin-specific statistics
+    const adminSub = combineLatest([
+      this.authService.getAdminStatistics(),
+      this.authService.getVisitStats(),
+      this.authService.getPlatformStatistics()
+    ]).subscribe({
+      next: ([adminStats, visitStats, platformStats]) => {
+        this.userStats = adminStats;
+        this.visitStats = visitStats;
+        this.platformStats = platformStats;
+      },
+      error: (error) => {
+        console.error('Error loading admin data:', error);
+      }
+    });
+
+    this.subscriptions.push(adminSub);
+  }
+
+  private loadAgencyData(): void {
+    // Agency-specific data loading will be implemented when needed
+    console.log('Loading agency-specific data...');
+  }
+
+  private loadClientData(): void {
+    // Client-specific data loading will be implemented when needed
+    console.log('Loading client-specific data...');
+  }
+
+  // Navigation and UI methods
+  toggleSidebar(): void {
+    this.sidebarCollapsed = !this.sidebarCollapsed;
+  }
+
+  setActiveSection(section: string, event?: Event): void {
+    if (event) {
+      event.preventDefault();
+    }
+    
+    // Navigate to appropriate route based on user type and section
+    this.navigateToSection(section);
+  }
+
+  private navigateToSection(section: string): void {
+    const userType = this.userType;
+    let routePath = '';
+
+    switch (userType) {
+      case 'ADMINISTRATEUR':
+        routePath = section === 'overview' ? '/admin/dashboard' : `/admin/${section}`;
+        break;
+      case 'AGENCE_IMMOBILIERE':
+        routePath = section === 'overview' ? '/agency/dashboard' : `/agency/${section}`;
+        break;
+      case 'CLIENT_ABONNE':
+        routePath = section === 'overview' ? '/client/dashboard' : `/client/${section}`;
+        break;
+      case 'UTILISATEUR':
+      default:
+        routePath = section === 'overview' ? '/dashboard' : `/${section}`;
+        break;
+    }
+
+    // Navigate to the route
+    this.router.navigate([routePath]);
+  }
+
+  private loadSectionData(section: string): void {
+    switch (section) {
+      case 'statistics':
+        if (this.userType === 'ADMINISTRATEUR') {
+          this.loadAdminData();
+        }
+        break;
+      case 'visits':
+        if (this.userType === 'ADMINISTRATEUR') {
+          this.loadVisitData();
+        }
+        break;
+      default:
+        break;
+    }
+  }
+
+  private loadVisitData(): void {
+    const visitSub = this.authService.getVisitStats().subscribe({
+      next: (stats) => {
+        this.visitStats = stats;
+      },
+      error: (error) => {
+        console.error('Error loading visit stats:', error);
+      }
+    });
+
+    this.subscriptions.push(visitSub);
+  }
+
+  // User role and permissions
+  hasAccessTo(feature: string): boolean {
+    return this.authService.hasAnyRole([
+      'CLIENT_ABONNE', 
+      'AGENCE_IMMOBILIERE', 
+      'ADMINISTRATEUR'
+    ]) && this.checkFeatureAccess(feature);
+  }
+
+  private checkFeatureAccess(feature: string): boolean {
+    if (!this.userType) return false;
+
+    switch (feature) {
+      case 'properties':
+        return ['AGENCE_IMMOBILIERE', 'ADMINISTRATEUR'].includes(this.userType);
+      case 'clients':
+        return ['CLIENT_ABONNE', 'AGENCE_IMMOBILIERE', 'ADMINISTRATEUR'].includes(this.userType);
+      case 'analytics':
+        return ['CLIENT_ABONNE', 'AGENCE_IMMOBILIERE', 'ADMINISTRATEUR'].includes(this.userType);
+      case 'team':
+        return ['AGENCE_IMMOBILIERE', 'ADMINISTRATEUR'].includes(this.userType);
+      case 'admin':
+        return this.userType === 'ADMINISTRATEUR';
+      case 'verification':
+        return this.userType === 'AGENCE_IMMOBILIERE';
+      case 'subscription':
+        return this.userType === 'CLIENT_ABONNE';
+      default:
+        return true;
+    }
+  }
+
+  // User information getters
+  getUserDisplayName(): string {
+    return this.authService.getUserDisplayName();
+  }
+
+  getUserRoleDisplay(): string {
+    return this.authService.getUserRoleDisplayName();
+  }
+
+  getCurrentNavigationItems() {
+    return this.userType ? this.navigationItems[this.userType] || [] : [];
+  }
+
+  getSectionInfo(section: string) {
+    const items = this.getCurrentNavigationItems();
+    return items.find(item => item.section === section) || {
+      section,
+      label: 'Section',
+      icon: 'dashboard',
+      description: 'Description'
+    };
+  }
+
+  // User type specific getters
+  isRegularUser(): boolean {
+    return this.userType === 'UTILISATEUR';
+  }
+
+  isClientAbonne(): boolean {
+    return this.userType === 'CLIENT_ABONNE';
+  }
+
+  isAgency(): boolean {
+    return this.userType === 'AGENCE_IMMOBILIERE';
+  }
+
+  isAdmin(): boolean {
+    return this.userType === 'ADMINISTRATEUR';
+  }
+
+  // Agency specific methods
+  isAgencyVerified(): boolean {
+    return this.authService.isAgencyVerified();
+  }
+
+  getAgencyInfo(): AgenceImmobiliere | null {
+    return this.isAgency() ? (this.currentUser as AgenceImmobiliere) : null;
+  }
+
+  // Client specific methods
+  getClientInfo(): ClientAbonne | null {
+    return this.isClientAbonne() ? (this.currentUser as ClientAbonne) : null;
+  }
+
+  getSubscriptionInfo() {
+    const clientInfo = this.getClientInfo();
+    return clientInfo ? {
+      type: clientInfo.subscriptionType,
+      searchLimit: clientInfo.searchLimit,
+      startDate: clientInfo.subscriptionStartDate,
+      endDate: clientInfo.subscriptionEndDate
+    } : null;
+  }
+
+  // Admin specific methods
+  getAdminInfo(): Administrateur | null {
+    return this.isAdmin() ? (this.currentUser as Administrateur) : null;
+  }
+
+  canManageUsers(): boolean {
+    const adminInfo = this.getAdminInfo();
+    return adminInfo?.canManageUsers === true;
+  }
+
+  canVerifyAgencies(): boolean {
+    const adminInfo = this.getAdminInfo();
+    return adminInfo?.canVerifyAgencies === true;
+  }
+
+  // Statistics getters
+  getTotalUsers(): number {
+    return this.userStats?.totalUsers || 0;
+  }
+
+  getActiveUsers(): number {
+    return this.userStats?.activeUsers || 0;
+  }
+
+  getTotalVisits(): number {
+    return this.visitStats?.totalVisits || 0;
+  }
+
+  getUniqueVisitors(): number {
+    return this.visitStats?.uniqueVisitors || 0;
+  }
+
+  getPlatformGrowth() {
+    return this.platformStats?.userGrowth || [];
+  }
+
+  // Actions
+  refreshData(): void {
+    this.loadDashboardData();
+    this.loadRoleSpecificData();
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
+
+  goToProfile(): void {
+    this.navigateToSection('profile');
+  }
+
+  // Email verification check
+  needsEmailVerification(): boolean {
+    return this.authService.isEmailVerificationRequired();
+  }
+
+  needsAgencyVerification(): boolean {
+    return this.authService.isAgencyVerificationRequired();
+  }
+}

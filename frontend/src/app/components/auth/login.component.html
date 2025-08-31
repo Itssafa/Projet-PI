@@ -1,0 +1,46 @@
+<div class="auth-overlay">
+  <div class="auth-modal">
+    <div class="auth-card">
+      <h1>Connexion</h1>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="field">
+          <label>Email</label>
+          <input 
+            type="email" 
+            formControlName="email" 
+            placeholder="exemple@domaine.com"
+            class="form-input" />
+          <small *ngIf="f.email.touched && f.email.errors?.['required']" class="error-text">Email requis</small>
+          <small *ngIf="f.email.touched && f.email.errors?.['email']" class="error-text">Email invalide</small>
+        </div>
+
+        <div class="field">
+          <label>Mot de passe</label>
+          <input 
+            type="password" 
+            formControlName="motDePasse" 
+            placeholder="••••••••"
+            class="form-input" />
+          <small *ngIf="f.motDePasse.touched && f.motDePasse.errors?.['required']" class="error-text">Mot de passe requis</small>
+          <small *ngIf="f.motDePasse.touched && f.motDePasse.errors?.['minlength']" class="error-text">
+            Minimum {{ f.motDePasse.errors?.['minlength'].requiredLength }} caractères
+          </small>
+        </div>
+
+        <div class="error-message" *ngIf="serverError">{{ serverError }}</div>
+
+        <button 
+          class="btn btn-primary btn-lg" 
+          type="submit" 
+          [disabled]="loading">
+          {{ loading ? 'Connexion…' : 'Se connecter' }}
+        </button>
+
+        <div class="auth-links">
+          Pas de compte ? <a routerLink="/register" class="link">Créer un compte</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

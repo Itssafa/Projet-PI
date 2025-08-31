@@ -1,0 +1,143 @@
+<!-- Landing Page Content - Only shown when not logged in -->
+<div *ngIf="showLandingPage">
+  <!-- Professional Real Estate Platform -->
+  <nav class="navbar">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center">
+        <a class="navbar-brand" href="/">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2L2 7v2h20V7l-10-5zm0 2.618L19.382 9H4.618L12 4.618zM4 11v9h16v-9H4zm2 2h3v2H6v-2zm5 0h3v2h-3v-2zm5 0h2v2h-2v-2zM6 15h3v2H6v-2zm5 0h3v2h-3v-2zm5 0h2v2h-2v-2z"/>
+          </svg>
+          Plateforme Immobiliere
+        </a>
+        
+        <div class="d-flex align-items-center">
+          <button class="btn btn-outline me-2" (click)="openLogin()">Connexion</button>
+          <button class="btn btn-primary" (click)="openRegister()">Inscription</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section with Background -->
+  <section class="hero-section">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-6 fade-in">
+          <h1 class="hero-title">Plateforme Immobilière Professionnelle</h1>
+          <p class="hero-subtitle">Gérez vos biens, clients et statistiques avec la solution la plus avancée du marché</p>
+          <div class="hero-buttons">
+            <button class="btn btn-primary btn-lg me-3" (click)="openRegister()">Commencer maintenant</button>
+            <button class="btn btn-secondary btn-lg" (click)="openLogin()">Se connecter</button>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="hero-image">
+            <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                 alt="Modern Real Estate" 
+                 class="img-fluid rounded-lg shadow-lg">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main class="container mt-5">
+    <!-- Features Section -->
+    <section class="features-section">
+      <div class="text-center mb-5">
+        <h2 class="section-title">Fonctionnalités Avancées</h2>
+        <p class="section-subtitle">Découvrez tous les outils dont vous avez besoin pour réussir dans l'immobilier</p>
+      </div>
+      
+      <div class="row">
+        <div class="col-md-4 mb-4">
+          <div class="feature-card">
+            <div class="feature-image">
+              <img src="https://images.unsplash.com/photo-1560520653-9e0e4c89eb11?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
+                   alt="Gestion des Biens" class="img-fluid">
+            </div>
+            <div class="feature-content">
+              <div class="feature-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="var(--primary-500)">
+                  <path d="M12 2L2 7v2h20V7l-10-5zm0 2.618L19.382 9H4.618L12 4.618zM4 11v9h16v-9H4zm2 2h3v2H6v-2zm5 0h3v2h-3v-2zm5 0h2v2h-2v-2zM6 15h3v2H6v-2zm5 0h3v2h-3v-2zm5 0h2v2h-2v-2z"/>
+                </svg>
+              </div>
+              <h5>Gestion des Biens</h5>
+              <p class="text-muted">Cataloguez, organisez et gérez tous vos biens immobiliers avec des outils professionnels</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+          <div class="feature-card">
+            <div class="feature-image">
+              <img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
+                   alt="Gestion des Clients" class="img-fluid">
+            </div>
+            <div class="feature-content">
+              <div class="feature-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="var(--primary-500)">
+                  <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 8H16c-.8 0-1.54.37-2.01 1l-2.41 3.19c-.32.42-.26 1.02.15 1.36l2.27 1.9V20h2zm-7.5-10.5c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5S11 7.67 11 8.5s.67 1.5 1.5 1.5zM5.5 6c1.11 0 2-.89 2-2s-.89-2-2-2-2 .89-2 2 .89 2 2 2zm2 16v-7H9v-2c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v2h1.5V22h3z"/>
+                </svg>
+              </div>
+              <h5>CRM Client</h5>
+              <p class="text-muted">Suivez vos prospects, gérez vos rendez-vous et maintenez des relations client durables</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+          <div class="feature-card">
+            <div class="feature-image">
+              <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
+                   alt="Analytics" class="img-fluid">
+            </div>
+            <div class="feature-content">
+              <div class="feature-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="var(--primary-500)">
+                  <path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99l1.5 1.5z"/>
+                </svg>
+              </div>
+              <h5>Analytics Avancées</h5>
+              <p class="text-muted">Analysez vos performances avec des rapports détaillés et des graphiques interactifs</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section mt-5">
+      <div class="row text-center">
+        <div class="col-md-3 mb-4">
+          <div class="stat-item">
+            <h3 class="stat-number">500+</h3>
+            <p class="stat-label">Agences Partenaires</p>
+          </div>
+        </div>
+        <div class="col-md-3 mb-4">
+          <div class="stat-item">
+            <h3 class="stat-number">50K+</h3>
+            <p class="stat-label">Biens Gérés</p>
+          </div>
+        </div>
+        <div class="col-md-3 mb-4">
+          <div class="stat-item">
+            <h3 class="stat-number">98%</h3>
+            <p class="stat-label">Satisfaction Client</p>
+          </div>
+        </div>
+        <div class="col-md-3 mb-4">
+          <div class="stat-item">
+            <h3 class="stat-number">24/7</h3>
+            <p class="stat-label">Support Technique</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Router Outlet for Dashboard/Auth Components -->
+<router-outlet />

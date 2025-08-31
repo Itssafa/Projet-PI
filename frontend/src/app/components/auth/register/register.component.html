@@ -1,0 +1,397 @@
+<div class="register-container">
+  <div class="register-card">
+    <!-- Header -->
+    <div class="register-header">
+      <div class="logo">
+        <span class="logo-icon">🏠</span>
+        <h1>ImmoConnect</h1>
+      </div>
+      <p class="register-subtitle">Créez votre compte professionnel</p>
+    </div>
+
+    <!-- Progress Indicator -->
+    <div class="progress-container">
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="getProgressPercentage()"></div>
+      </div>
+      <div class="step-indicators">
+        <div class="step-indicator" 
+             *ngFor="let step of [1, 2, 3, 4]; let i = index"
+             [class.active]="currentStep === step"
+             [class.completed]="currentStep > step"
+             [class.accessible]="isStepAccessible(step)"
+             (click)="goToStep(step)">
+          <span class="step-number">{{ step }}</span>
+          <span class="step-label">
+            {{ step === 1 ? 'Informations' : 
+               step === 2 ? 'Contact' : 
+               step === 3 ? 'Type de compte' : 
+               'Détails' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Steps -->
+    <div class="form-container">
+
+      <!-- Step 1: Basic Information -->
+      <div class="step-content" *ngIf="currentStep === 1">
+        <div class="step-header">
+          <h2>Informations personnelles</h2>
+          <p>Commençons par vos informations de base</p>
+        </div>
+
+        <form [formGroup]="step1Form" class="step-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="prenom">Prénom *</label>
+              <input 
+                type="text" 
+                id="prenom"
+                formControlName="prenom"
+                [class.error]="isFieldInvalid(step1Form, 'prenom')"
+                placeholder="Votre prénom">
+              <div class="error-message" *ngIf="isFieldInvalid(step1Form, 'prenom')">
+                {{ getFieldError(step1Form, 'prenom') }}
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="nom">Nom *</label>
+              <input 
+                type="text" 
+                id="nom"
+                formControlName="nom"
+                [class.error]="isFieldInvalid(step1Form, 'nom')"
+                placeholder="Votre nom">
+              <div class="error-message" *ngIf="isFieldInvalid(step1Form, 'nom')">
+                {{ getFieldError(step1Form, 'nom') }}
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email *</label>
+            <input 
+              type="email" 
+              id="email"
+              formControlName="email"
+              [class.error]="isFieldInvalid(step1Form, 'email')"
+              placeholder="votre.email@exemple.com">
+            <div class="error-message" *ngIf="isFieldInvalid(step1Form, 'email')">
+              {{ getFieldError(step1Form, 'email') }}
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="motDePasse">Mot de passe *</label>
+              <input 
+                type="password" 
+                id="motDePasse"
+                formControlName="motDePasse"
+                [class.error]="isFieldInvalid(step1Form, 'motDePasse')"
+                placeholder="********">
+              <div class="password-requirements">
+                <small>8+ caractères, majuscule, minuscule, chiffre et caractère spécial</small>
+              </div>
+              <div class="error-message" *ngIf="isFieldInvalid(step1Form, 'motDePasse')">
+                {{ getFieldError(step1Form, 'motDePasse') }}
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="confirmPassword">Confirmer le mot de passe *</label>
+              <input 
+                type="password" 
+                id="confirmPassword"
+                formControlName="confirmPassword"
+                [class.error]="isFieldInvalid(step1Form, 'confirmPassword')"
+                placeholder="********">
+              <div class="error-message" *ngIf="isFieldInvalid(step1Form, 'confirmPassword')">
+                {{ getFieldError(step1Form, 'confirmPassword') }}
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Step 2: Contact Information -->
+      <div class="step-content" *ngIf="currentStep === 2">
+        <div class="step-header">
+          <h2>Informations de contact</h2>
+          <p>Comment pouvons-nous vous joindre ?</p>
+        </div>
+
+        <form [formGroup]="step2Form" class="step-form">
+          <div class="form-group">
+            <label for="telephone">Numéro de téléphone *</label>
+            <input 
+              type="tel" 
+              id="telephone"
+              formControlName="telephone"
+              [class.error]="isFieldInvalid(step2Form, 'telephone')"
+              placeholder="12345678"
+              maxlength="8">
+            <small class="field-hint">Format: 8 chiffres (ex: 12345678)</small>
+            <div class="error-message" *ngIf="isFieldInvalid(step2Form, 'telephone')">
+              {{ getFieldError(step2Form, 'telephone') }}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="adresse">Adresse complète *</label>
+            <textarea 
+              id="adresse"
+              formControlName="adresse"
+              [class.error]="isFieldInvalid(step2Form, 'adresse')"
+              placeholder="Rue, ville, code postal..."
+              rows="3"></textarea>
+            <div class="error-message" *ngIf="isFieldInvalid(step2Form, 'adresse')">
+              {{ getFieldError(step2Form, 'adresse') }}
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Step 3: User Type Selection -->
+      <div class="step-content" *ngIf="currentStep === 3">
+        <div class="step-header">
+          <h2>Type de compte</h2>
+          <p>Choisissez le type de compte qui correspond à vos besoins</p>
+        </div>
+
+        <form [formGroup]="step3Form" class="step-form">
+          <div class="user-type-grid">
+            <div class="user-type-card" 
+                 *ngFor="let option of userTypeOptions"
+                 [class.selected]="selectedUserType === option.value"
+                 (click)="selectUserType(option.value)">
+              <div class="user-type-header">
+                <span class="user-type-icon material-icons">{{ option.icon }}</span>
+                <h3>{{ option.label }}</h3>
+              </div>
+              <p class="user-type-description">{{ option.description }}</p>
+              <ul class="user-type-features">
+                <li *ngFor="let feature of option.features">{{ feature }}</li>
+              </ul>
+              <div class="selection-indicator">
+                <span class="material-icons">{{ selectedUserType === option.value ? 'radio_button_checked' : 'radio_button_unchecked' }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="error-message" *ngIf="isFieldInvalid(step3Form, 'userType')">
+            Veuillez sélectionner un type de compte.
+          </div>
+        </form>
+      </div>
+
+      <!-- Step 4: Role-specific Details -->
+      <div class="step-content" *ngIf="currentStep === 4">
+        <div class="step-header">
+          <h2>Informations spécifiques</h2>
+          <p>Détails pour votre type de compte: {{ getUserTypeOption(selectedUserType!)?.label }}</p>
+        </div>
+
+        <form [formGroup]="step4Form" class="step-form">
+          
+          <!-- Agency Details -->
+          <div *ngIf="selectedUserType === 'AGENCE_IMMOBILIERE'">
+            <div class="form-group">
+              <label for="nomAgence">Nom de l'agence *</label>
+              <input 
+                type="text" 
+                id="nomAgence"
+                formControlName="nomAgence"
+                [class.error]="isFieldInvalid(step4Form, 'nomAgence')"
+                placeholder="Ex: Immobilier Excellence">
+              <div class="error-message" *ngIf="isFieldInvalid(step4Form, 'nomAgence')">
+                {{ getFieldError(step4Form, 'nomAgence') }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="numeroLicence">Numéro de licence *</label>
+              <input 
+                type="text" 
+                id="numeroLicence"
+                formControlName="numeroLicence"
+                [class.error]="isFieldInvalid(step4Form, 'numeroLicence')"
+                placeholder="Ex: LIC-2024-001">
+              <small class="field-hint">Numéro de licence professionnelle requis</small>
+              <div class="error-message" *ngIf="isFieldInvalid(step4Form, 'numeroLicence')">
+                {{ getFieldError(step4Form, 'numeroLicence') }}
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="siteWeb">Site Web</label>
+                <input 
+                  type="url" 
+                  id="siteWeb"
+                  formControlName="siteWeb"
+                  [class.error]="isFieldInvalid(step4Form, 'siteWeb')"
+                  placeholder="https://www.votre-agence.com">
+                <div class="error-message" *ngIf="isFieldInvalid(step4Form, 'siteWeb')">
+                  {{ getFieldError(step4Form, 'siteWeb') }}
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="nombreEmployes">Nombre d'employés</label>
+                <input 
+                  type="number" 
+                  id="nombreEmployes"
+                  formControlName="nombreEmployes"
+                  [class.error]="isFieldInvalid(step4Form, 'nombreEmployes')"
+                  placeholder="Ex: 10"
+                  min="1">
+                <div class="error-message" *ngIf="isFieldInvalid(step4Form, 'nombreEmployes')">
+                  {{ getFieldError(step4Form, 'nombreEmployes') }}
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="zonesCouverture">Zones de couverture</label>
+              <textarea 
+                id="zonesCouverture"
+                formControlName="zonesCouverture"
+                [class.error]="isFieldInvalid(step4Form, 'zonesCouverture')"
+                placeholder="Ex: Tunis, Sfax, Sousse..."
+                rows="2"></textarea>
+              <small class="field-hint">Zones géographiques où vous opérez (optionnel)</small>
+            </div>
+          </div>
+
+          <!-- Client Subscription -->
+          <div *ngIf="selectedUserType === 'CLIENT_ABONNE'">
+            <div class="form-group">
+              <label>Type d'abonnement *</label>
+              <div class="subscription-options">
+                <div class="subscription-card" 
+                     *ngFor="let sub of subscriptionOptions"
+                     [class.selected]="step4Form.get('subscriptionType')?.value === sub"
+                     (click)="step4Form.patchValue({subscriptionType: sub})">
+                  <h4>{{ getSubscriptionDisplayName(sub) }}</h4>
+                  <div class="subscription-features">
+                    <div *ngIf="sub === 'BASIC'">
+                      <p>Fonctionnalités de base</p>
+                      <ul>
+                        <li>Recherche standard</li>
+                        <li>10 alertes par mois</li>
+                        <li>Support email</li>
+                      </ul>
+                    </div>
+                    <div *ngIf="sub === 'PREMIUM'">
+                      <p>Fonctionnalités avancées</p>
+                      <ul>
+                        <li>Recherche avancée</li>
+                        <li>50 alertes par mois</li>
+                        <li>Support prioritaire</li>
+                        <li>Statistiques détaillées</li>
+                      </ul>
+                    </div>
+                    <div *ngIf="sub === 'VIP'">
+                      <p>Accès complet</p>
+                      <ul>
+                        <li>Recherche illimitée</li>
+                        <li>Alertes illimitées</li>
+                        <li>Support 24/7</li>
+                        <li>Conseiller dédié</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Admin Level -->
+          <div *ngIf="selectedUserType === 'ADMINISTRATEUR'">
+            <div class="form-group">
+              <label for="adminLevel">Niveau d'administration *</label>
+              <select 
+                id="adminLevel"
+                formControlName="adminLevel"
+                [class.error]="isFieldInvalid(step4Form, 'adminLevel')">
+                <option value="" disabled>Sélectionner un niveau</option>
+                <option *ngFor="let level of adminLevels" [value]="level">
+                  {{ getAdminLevelDisplayName(level) }}
+                </option>
+              </select>
+              <small class="field-hint">Le niveau détermine vos permissions d'administration</small>
+              <div class="error-message" *ngIf="isFieldInvalid(step4Form, 'adminLevel')">
+                {{ getFieldError(step4Form, 'adminLevel') }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Basic User (no additional fields) -->
+          <div *ngIf="selectedUserType === 'UTILISATEUR'" class="completion-message">
+            <div class="success-icon">✓</div>
+            <h3>Configuration terminée !</h3>
+            <p>Votre compte utilisateur standard est prêt à être créé.</p>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Error/Success Messages -->
+    <div class="message-container">
+      <div class="error-alert" *ngIf="error">
+        <span class="material-icons">error</span>
+        {{ error }}
+      </div>
+      
+      <div class="success-alert" *ngIf="success">
+        <span class="material-icons">check_circle</span>
+        {{ success }}
+      </div>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="form-actions">
+      <button 
+        type="button" 
+        class="btn btn-secondary" 
+        *ngIf="currentStep > 1"
+        (click)="prevStep()"
+        [disabled]="isLoading">
+        <span class="material-icons">arrow_back</span>
+        Précédent
+      </button>
+
+      <button 
+        type="button" 
+        class="btn btn-primary" 
+        *ngIf="currentStep < totalSteps"
+        (click)="nextStep()"
+        [disabled]="isLoading || !isCurrentStepValid()">
+        Suivant
+        <span class="material-icons">arrow_forward</span>
+      </button>
+
+      <button 
+        type="button" 
+        class="btn btn-success" 
+        *ngIf="currentStep === totalSteps"
+        (click)="onSubmit()"
+        [disabled]="isLoading || !areAllFormsValid()">
+        <span class="material-icons" *ngIf="!isLoading">person_add</span>
+        <span class="spinner" *ngIf="isLoading"></span>
+        {{ isLoading ? 'Création en cours...' : 'Créer le compte' }}
+      </button>
+    </div>
+
+    <!-- Login Link -->
+    <div class="auth-footer">
+      <p>Vous avez déjà un compte ? 
+        <a routerLink="/login" class="auth-link">Se connecter</a>
+      </p>
+    </div>
+  </div>
+</div>

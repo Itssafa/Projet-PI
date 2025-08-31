@@ -1,0 +1,103 @@
+<div class="auth-overlay">
+  <div class="auth-modal">
+    <div class="auth-card">
+      <h1>Créer un compte</h1>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="grid">
+          <div class="field">
+            <label>Nom</label>
+            <input formControlName="nom" placeholder="Nom" class="form-input" />
+            <small *ngIf="f.nom.touched && f.nom.errors?.['required']" class="error-text">Requis</small>
+          </div>
+
+          <div class="field">
+            <label>Prénom</label>
+            <input formControlName="prenom" placeholder="Prénom" class="form-input" />
+            <small *ngIf="f.prenom.touched && f.prenom.errors?.['required']" class="error-text">Requis</small>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Email</label>
+          <input type="email" formControlName="email" placeholder="exemple@domaine.com" class="form-input" />
+          <small *ngIf="f.email.touched && f.email.errors?.['required']" class="error-text">Requis</small>
+          <small *ngIf="f.email.touched && f.email.errors?.['email']" class="error-text">Email invalide</small>
+        </div>
+
+        <div class="field">
+          <label>Mot de passe</label>
+          <input type="password" formControlName="motDePasse" placeholder="••••••••" class="form-input" />
+          <small *ngIf="f.motDePasse.touched && f.motDePasse.errors?.['required']" class="error-text">Requis</small>
+          <small *ngIf="f.motDePasse.touched && f.motDePasse.errors?.['minlength']" class="error-text">
+            Minimum {{ f.motDePasse.errors?.['minlength'].requiredLength }} caractères
+          </small>
+        </div>
+
+        <div class="field">
+          <label>Téléphone (8 chiffres)</label>
+          <input formControlName="telephone" placeholder="12345678" class="form-input" />
+          <small *ngIf="f.telephone.touched && f.telephone.errors?.['required']" class="error-text">Requis</small>
+          <small *ngIf="f.telephone.touched && f.telephone.errors?.['phone8']" class="error-text">Format 8 chiffres</small>
+        </div>
+
+        <div class="field">
+          <label>Adresse</label>
+          <input formControlName="adresse" placeholder="Adresse complète" class="form-input" />
+          <small *ngIf="f.adresse.touched && f.adresse.errors?.['required']" class="error-text">Requis</small>
+        </div>
+
+        <div class="field">
+          <label>Type d'utilisateur</label>
+          <select formControlName="userType" class="form-input">
+            <option value="UTILISATEUR">Utilisateur</option>
+            <option value="CLIENT_ABONNE">Client Abonné</option>
+            <option value="AGENCE_IMMOBILIERE">Agence Immobilière</option>
+            <option value="ADMINISTRATEUR">Administrateur</option>
+          </select>
+        </div>
+
+        <div class="agency-fields" *ngIf="form.value.userType === 'AGENCE_IMMOBILIERE'">
+          <div class="grid">
+            <div class="field">
+              <label>Nom de l'agence</label>
+              <input formControlName="nomAgence" placeholder="Nom de l'agence" class="form-input" />
+              <small *ngIf="f.nomAgence.touched && f.nomAgence.errors?.['required']" class="error-text">Requis</small>
+            </div>
+            <div class="field">
+              <label>Numéro de licence</label>
+              <input formControlName="numeroLicence" placeholder="Licence" class="form-input" />
+              <small *ngIf="f.numeroLicence.touched && f.numeroLicence.errors?.['required']" class="error-text">Requis</small>
+            </div>
+          </div>
+
+          <div class="grid">
+            <div class="field">
+              <label>Site Web</label>
+              <input formControlName="siteWeb" placeholder="https://…" class="form-input" />
+            </div>
+            <div class="field">
+              <label>Nombre d'employés</label>
+              <input type="number" min="1" formControlName="nombreEmployes" placeholder="Ex. 10" class="form-input" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Zones de couverture</label>
+            <input formControlName="zonesCouverture" placeholder="Ex. Tunis, Ariana…" class="form-input" />
+          </div>
+        </div>
+
+        <div class="error-message" *ngIf="serverError">{{ serverError }}</div>
+
+        <button class="btn btn-primary btn-lg" type="submit" [disabled]="loading">
+          {{ loading ? 'Inscription…' : 'Créer le compte' }}
+        </button>
+
+        <div class="auth-links">
+          Déjà inscrit ? <a routerLink="/login" class="link">Se connecter</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

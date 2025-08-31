@@ -1,0 +1,2282 @@
+<div class="dashboard-layout" [class.sidebar-collapsed]="sidebarCollapsed">
+  <!-- Email Verification Alert -->
+  <div class="verification-alert error" *ngIf="needsEmailVerification()">
+    <div class="alert-content">
+      <span class="material-icons">warning</span>
+      <div class="alert-text">
+        <strong>Vérification d'email requise</strong>
+        <p>Veuillez vérifier votre adresse email pour accéder à toutes les fonctionnalités.</p>
+      </div>
+      <button class="btn btn-sm btn-primary" routerLink="/verify-email">
+        Vérifier maintenant
+      </button>
+    </div>
+  </div>
+
+  <!-- Agency Verification Alert -->
+  <div class="verification-alert warning" *ngIf="needsAgencyVerification()">
+    <div class="alert-content">
+      <span class="material-icons">business</span>
+      <div class="alert-text">
+        <strong>Vérification d'agence en attente</strong>
+        <p>Votre agence est en cours de vérification. Certaines fonctionnalités sont limitées.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" [class.collapsed]="sidebarCollapsed">
+    <!-- Sidebar Header -->
+    <div class="sidebar-header">
+      <div class="logo">
+        <span class="logo-icon">🏠</span>
+        <span class="logo-text" *ngIf="!sidebarCollapsed">ImmoConnect</span>
+      </div>
+      <button class="sidebar-toggle" (click)="toggleSidebar()">
+        <span class="material-icons">
+          {{ sidebarCollapsed ? 'menu' : 'close' }}
+        </span>
+      </button>
+    </div>
+
+    <!-- User Profile Section -->
+    <div class="sidebar-user" *ngIf="currentUser && !sidebarCollapsed">
+      <div class="user-avatar">
+        {{ currentUser.prenom.charAt(0) }}{{ currentUser.nom.charAt(0) }}
+      </div>
+      <div class="user-info">
+        <div class="user-name">{{ getUserDisplayName() }}</div>
+        <div class="user-role">{{ getUserRoleDisplay() }}</div>
+        <div class="user-status" *ngIf="isAgency()">
+          <span class="status-badge" [class]="isAgencyVerified() ? 'verified' : 'pending'">
+            <span class="material-icons">{{ isAgencyVerified() ? 'verified' : 'schedule' }}</span>
+            {{ isAgencyVerified() ? 'Vérifiée' : 'En attente' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar-nav">
+      <div class="nav-section" *ngFor="let item of getCurrentNavigationItems()">
+        <button class="nav-item" 
+                [class.active]="activeSection === item.section"
+                (click)="setActiveSection(item.section, $event)"
+                [attr.title]="sidebarCollapsed ? item.label : ''"
+                type="button">
+          <span class="nav-icon material-icons">{{ item.icon }}</span>
+          <div class="nav-content" *ngIf="!sidebarCollapsed">
+            <span class="nav-label">{{ item.label }}</span>
+            <span class="nav-description">{{ item.description }}</span>
+          </div>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+      <button class="logout-btn" (click)="logout()" type="button">
+        <span class="nav-icon material-icons">logout</span>
+        <span class="logout-text" *ngIf="!sidebarCollapsed">Déconnexion</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="page-title">
+        <h1>{{ getSectionInfo(activeSection).label }}</h1>
+        <p>{{ getSectionInfo(activeSection).description }}</p>
+      </div>
+      <div class="top-actions">
+        <button class="btn btn-outline" (click)="refreshData()" [disabled]="isLoading">
+          <span class="material-icons">refresh</span>
+          <span *ngIf="!sidebarCollapsed">Actualiser</span>
+        </button>
+        <button class="btn btn-primary" (click)="goToProfile()">
+          <span class="material-icons">person</span>
+          <span *ngIf="!sidebarCollapsed">Profil</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="content-area">
+      <div class="loading-overlay" *ngIf="isLoading">
+        <div class="loading-spinner"></div>
+        <p>Chargement en cours...</p>
+      </div>
+
+      <!-- UTILISATEUR Dashboard -->
+      <div *ngIf="isRegularUser()" class="dashboard-content">
+        <!-- Overview Section -->
+        <div *ngIf="activeSection === 'overview'" class="section-content">
+          <div class="welcome-card">
+            <div class="card-content">
+              <h2>Bienvenue sur ImmoConnect !</h2>
+              <p>Découvrez notre plateforme immobilière professionnelle</p>
+              <div class="features-list">
+                <div class="feature-item">
+                  <span class="material-icons">search</span>
+                  <span>Recherche de biens immobiliers</span>
+                </div>
+                <div class="feature-item">
+                  <span class="material-icons">favorite</span>
+                  <span>Sauvegarde de favoris</span>
+                </div>
+                <div class="feature-item">
+                  <span class="material-icons">contact_mail</span>
+                  <span>Contact direct avec les agences</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="upgrade-section">
+            <div class="upgrade-card">
+              <div class="upgrade-content">
+                <h3>Passez à Premium</h3>
+                <p>Débloquez toutes les fonctionnalités avancées</p>
+                <ul class="premium-features">
+                  <li>Recherche avancée et filtres personnalisés</li>
+                  <li>Alertes automatiques par email</li>
+                  <li>Accès prioritaire aux nouvelles annonces</li>
+                  <li>Support client dédié</li>
+                </ul>
+                <button class="btn btn-premium">
+                  <span class="material-icons">star</span>
+                  Passer à Premium
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profile Section -->
+        <div *ngIf="activeSection === 'profile'" class="section-content">
+          <div class="profile-card">
+            <h3>Mes Informations</h3>
+            <div class="profile-info">
+              <div class="info-item">
+                <label>Nom complet</label>
+                <span>{{ currentUser?.prenom }} {{ currentUser?.nom }}</span>
+              </div>
+              <div class="info-item">
+                <label>Email</label>
+                <span>{{ currentUser?.email }}</span>
+              </div>
+              <div class="info-item">
+                <label>Téléphone</label>
+                <span>{{ currentUser?.telephone }}</span>
+              </div>
+              <div class="info-item">
+                <label>Adresse</label>
+                <span>{{ currentUser?.adresse }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Upgrade Section -->
+        <div *ngIf="activeSection === 'upgrade'" class="section-content">
+          <div class="subscription-plans">
+            <div class="plan-card basic">
+              <h3>Basic</h3>
+              <div class="price">Gratuit</div>
+              <ul class="plan-features">
+                <li>Recherche de base</li>
+                <li>5 favoris maximum</li>
+                <li>Support email</li>
+              </ul>
+              <button class="btn btn-outline" disabled>Actuel</button>
+            </div>
+            
+            <div class="plan-card premium">
+              <h3>Premium</h3>
+              <div class="price">29€<span>/mois</span></div>
+              <ul class="plan-features">
+                <li>Recherche avancée</li>
+                <li>50 alertes par mois</li>
+                <li>Support prioritaire</li>
+                <li>Statistiques détaillées</li>
+              </ul>
+              <button class="btn btn-premium">
+                <span class="material-icons">star</span>
+                Choisir Premium
+              </button>
+            </div>
+            
+            <div class="plan-card vip">
+              <h3>VIP</h3>
+              <div class="price">99€<span>/mois</span></div>
+              <ul class="plan-features">
+                <li>Accès illimité</li>
+                <li>Alertes illimitées</li>
+                <li>Conseiller dédié</li>
+                <li>Support 24/7</li>
+              </ul>
+              <button class="btn btn-vip">
+                <span class="material-icons">diamond</span>
+                Choisir VIP
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CLIENT_ABONNE Dashboard -->
+      <div *ngIf="isClientAbonne()" class="dashboard-content">
+        <!-- Overview Section -->
+        <div *ngIf="activeSection === 'overview'" class="section-content">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon">
+                <span class="material-icons">search</span>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">{{ getSubscriptionInfo()?.searchLimit || 0 }}</div>
+                <div class="stat-label">Recherches restantes</div>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon">
+                <span class="material-icons">star</span>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">{{ getSubscriptionInfo()?.type }}</div>
+                <div class="stat-label">Abonnement</div>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon">
+                <span class="material-icons">favorite</span>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">12</div>
+                <div class="stat-label">Biens favoris</div>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon">
+                <span class="material-icons">notifications</span>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">3</div>
+                <div class="stat-label">Alertes actives</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="recent-activity">
+            <h3>Activité récente</h3>
+            <div class="activity-list">
+              <div class="activity-item">
+                <span class="activity-icon material-icons">search</span>
+                <div class="activity-content">
+                  <div class="activity-text">Recherche "Appartement Tunis"</div>
+                  <div class="activity-time">Il y a 2 heures</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <span class="activity-icon material-icons">favorite</span>
+                <div class="activity-content">
+                  <div class="activity-text">Bien ajouté aux favoris</div>
+                  <div class="activity-time">Hier</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subscription Section -->
+        <div *ngIf="activeSection === 'subscription'" class="section-content">
+          <div class="subscription-header">
+            <h2>Gestion de l'Abonnement</h2>
+            <p>Gérez votre abonnement et découvrez les fonctionnalités disponibles</p>
+          </div>
+
+          <div class="subscription-card current">
+            <div class="subscription-header-card">
+              <div class="subscription-icon">
+                <span class="material-icons">{{ getSubscriptionInfo()?.type === 'VIP' ? 'diamond' : 'star' }}</span>
+              </div>
+              <div class="subscription-info">
+                <h3>Abonnement {{ getSubscriptionInfo()?.type }}</h3>
+                <p class="subscription-status active">Actif</p>
+              </div>
+              <div class="subscription-actions">
+                <button class="btn btn-outline">Modifier</button>
+                <button class="btn btn-secondary">Facturation</button>
+              </div>
+            </div>
+            
+            <div class="subscription-details-grid">
+              <div class="detail-card">
+                <span class="material-icons">search</span>
+                <div class="detail-content">
+                  <div class="detail-number">{{ getSubscriptionInfo()?.searchLimit || 'Illimitées' }}</div>
+                  <div class="detail-label">Recherches / mois</div>
+                </div>
+              </div>
+              <div class="detail-card">
+                <span class="material-icons">event</span>
+                <div class="detail-content">
+                  <div class="detail-number">{{ getSubscriptionInfo()?.endDate | date:'dd/MM' || '--' }}</div>
+                  <div class="detail-label">Prochain renouvellement</div>
+                </div>
+              </div>
+              <div class="detail-card">
+                <span class="material-icons">euro</span>
+                <div class="detail-content">
+                  <div class="detail-number">{{ getSubscriptionInfo()?.type === 'VIP' ? '99€' : '29€' }}</div>
+                  <div class="detail-label">Prix mensuel</div>
+                </div>
+              </div>
+              <div class="detail-card">
+                <span class="material-icons">support</span>
+                <div class="detail-content">
+                  <div class="detail-number">{{ getSubscriptionInfo()?.type === 'VIP' ? '24/7' : 'Email' }}</div>
+                  <div class="detail-label">Support</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Subscription Plans Upgrade -->
+          <div class="upgrade-plans">
+            <h3>Upgrader votre abonnement</h3>
+            <div class="plans-comparison">
+              <div class="plan-card premium" [class.current]="getSubscriptionInfo()?.type === 'PREMIUM'">
+                <div class="plan-header">
+                  <h4>Premium</h4>
+                  <div class="plan-price">29€<span>/mois</span></div>
+                </div>
+                <ul class="plan-features">
+                  <li><span class="material-icons">check</span>50 recherches par mois</li>
+                  <li><span class="material-icons">check</span>Alertes personnalisées</li>
+                  <li><span class="material-icons">check</span>Favoris illimités</li>
+                  <li><span class="material-icons">check</span>Support email</li>
+                  <li><span class="material-icons">check</span>Statistiques de recherche</li>
+                </ul>
+                <button class="btn" [class]="getSubscriptionInfo()?.type === 'PREMIUM' ? 'btn-current' : 'btn-premium'" 
+                        [disabled]="getSubscriptionInfo()?.type === 'PREMIUM'">
+                  {{ getSubscriptionInfo()?.type === 'PREMIUM' ? 'Actuel' : 'Passer à Premium' }}
+                </button>
+              </div>
+
+              <div class="plan-card vip" [class.current]="getSubscriptionInfo()?.type === 'VIP'">
+                <div class="plan-header">
+                  <div class="popular-badge">Plus populaire</div>
+                  <h4>VIP</h4>
+                  <div class="plan-price">99€<span>/mois</span></div>
+                </div>
+                <ul class="plan-features">
+                  <li><span class="material-icons">check</span>Recherches illimitées</li>
+                  <li><span class="material-icons">check</span>Alertes en temps réel</li>
+                  <li><span class="material-icons">check</span>Accès prioritaire aux nouveautés</li>
+                  <li><span class="material-icons">check</span>Conseiller personnel dédié</li>
+                  <li><span class="material-icons">check</span>Support téléphonique 24/7</li>
+                  <li><span class="material-icons">check</span>Analytics avancées</li>
+                </ul>
+                <button class="btn" [class]="getSubscriptionInfo()?.type === 'VIP' ? 'btn-current' : 'btn-vip'"
+                        [disabled]="getSubscriptionInfo()?.type === 'VIP'">
+                  {{ getSubscriptionInfo()?.type === 'VIP' ? 'Actuel' : 'Passer à VIP' }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Usage Statistics -->
+          <div class="usage-stats">
+            <h3>Utilisation ce mois</h3>
+            <div class="usage-grid">
+              <div class="usage-item">
+                <div class="usage-bar">
+                  <div class="usage-progress" style="width: 60%"></div>
+                </div>
+                <div class="usage-info">
+                  <span class="usage-label">Recherches utilisées</span>
+                  <span class="usage-value">30 / {{ getSubscriptionInfo()?.searchLimit || '50' }}</span>
+                </div>
+              </div>
+              <div class="usage-item">
+                <div class="usage-bar">
+                  <div class="usage-progress" style="width: 80%"></div>
+                </div>
+                <div class="usage-info">
+                  <span class="usage-label">Alertes actives</span>
+                  <span class="usage-value">8 / 10</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Searches Section -->
+        <div *ngIf="activeSection === 'searches'" class="section-content">
+          <div class="searches-header">
+            <h2>Mes Recherches & Alertes</h2>
+            <button class="btn btn-primary">
+              <span class="material-icons">add</span>
+              Nouvelle recherche
+            </button>
+          </div>
+
+          <!-- Search History -->
+          <div class="search-history">
+            <h3>Historique des recherches</h3>
+            <div class="search-list">
+              <div class="search-item">
+                <div class="search-info">
+                  <div class="search-title">Appartement 3 pièces - Tunis Centre</div>
+                  <div class="search-details">
+                    <span class="search-criteria">Budget: 150k-250k • 3 pièces • Tunis</span>
+                    <span class="search-date">Recherché le 28/01/2025</span>
+                  </div>
+                </div>
+                <div class="search-actions">
+                  <button class="btn btn-sm btn-outline">
+                    <span class="material-icons">refresh</span>
+                    Relancer
+                  </button>
+                  <button class="btn btn-sm btn-primary">
+                    <span class="material-icons">notifications</span>
+                    Créer une alerte
+                  </button>
+                </div>
+              </div>
+
+              <div class="search-item">
+                <div class="search-info">
+                  <div class="search-title">Villa avec jardin - Sousse</div>
+                  <div class="search-details">
+                    <span class="search-criteria">Budget: 300k-500k • Villa • Sousse</span>
+                    <span class="search-date">Recherché le 25/01/2025</span>
+                  </div>
+                </div>
+                <div class="search-actions">
+                  <button class="btn btn-sm btn-outline">
+                    <span class="material-icons">refresh</span>
+                    Relancer
+                  </button>
+                  <button class="btn btn-sm btn-primary">
+                    <span class="material-icons">notifications</span>
+                    Créer une alerte
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Alerts -->
+          <div class="active-alerts">
+            <h3>Alertes actives <span class="alert-count">3</span></h3>
+            <div class="alert-list">
+              <div class="alert-item">
+                <div class="alert-info">
+                  <div class="alert-title">Appartements Tunis Centre</div>
+                  <div class="alert-criteria">Budget: 100k-200k • 2-3 pièces</div>
+                  <div class="alert-stats">
+                    <span class="alert-matches">5 nouveaux biens cette semaine</span>
+                    <span class="alert-created">Créée le 20/01/2025</span>
+                  </div>
+                </div>
+                <div class="alert-actions">
+                  <button class="btn btn-sm btn-outline">Modifier</button>
+                  <button class="btn btn-sm btn-secondary">Suspendre</button>
+                  <button class="btn btn-sm btn-danger">Supprimer</button>
+                </div>
+              </div>
+
+              <div class="alert-item">
+                <div class="alert-info">
+                  <div class="alert-title">Maisons Sfax</div>
+                  <div class="alert-criteria">Budget: 200k-350k • Maison individuelle</div>
+                  <div class="alert-stats">
+                    <span class="alert-matches">2 nouveaux biens cette semaine</span>
+                    <span class="alert-created">Créée le 18/01/2025</span>
+                  </div>
+                </div>
+                <div class="alert-actions">
+                  <button class="btn btn-sm btn-outline">Modifier</button>
+                  <button class="btn btn-sm btn-secondary">Suspendre</button>
+                  <button class="btn btn-sm btn-danger">Supprimer</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Saved Searches -->
+          <div class="saved-searches">
+            <h3>Recherches sauvegardées</h3>
+            <div class="saved-list">
+              <div class="saved-item">
+                <span class="material-icons">bookmark</span>
+                <div class="saved-content">
+                  <div class="saved-title">Mon premier achat</div>
+                  <div class="saved-criteria">Appartement • Tunis • 80-120k</div>
+                </div>
+                <button class="btn btn-sm btn-primary">Rechercher</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analytics Section -->
+        <div *ngIf="activeSection === 'analytics'" class="section-content">
+          <div class="analytics-header">
+            <h2>Mes Statistiques</h2>
+            <p>Analysez votre activité sur la plateforme</p>
+          </div>
+
+          <!-- Key Metrics -->
+          <div class="analytics-metrics">
+            <div class="metric-card">
+              <div class="metric-icon">
+                <span class="material-icons">search</span>
+              </div>
+              <div class="metric-content">
+                <div class="metric-number">47</div>
+                <div class="metric-label">Recherches ce mois</div>
+                <div class="metric-trend positive">+23% vs mois dernier</div>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon">
+                <span class="material-icons">visibility</span>
+              </div>
+              <div class="metric-content">
+                <div class="metric-number">156</div>
+                <div class="metric-label">Biens consultés</div>
+                <div class="metric-trend positive">+15% vs mois dernier</div>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon">
+                <span class="material-icons">contact_phone</span>
+              </div>
+              <div class="metric-content">
+                <div class="metric-number">12</div>
+                <div class="metric-label">Agences contactées</div>
+                <div class="metric-trend neutral">Stable</div>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon">
+                <span class="material-icons">schedule</span>
+              </div>
+              <div class="metric-content">
+                <div class="metric-number">2h 45m</div>
+                <div class="metric-label">Temps moyen par session</div>
+                <div class="metric-trend positive">+8% vs mois dernier</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts Placeholder -->
+          <div class="analytics-charts">
+            <div class="chart-container">
+              <h3>Activité de recherche</h3>
+              <div class="chart-placeholder">
+                <span class="material-icons">trending_up</span>
+                <p>Graphique d'activité disponible avec l'intégration Chart.js</p>
+              </div>
+            </div>
+
+            <div class="chart-container">
+              <h3>Types de biens recherchés</h3>
+              <div class="chart-placeholder">
+                <span class="material-icons">pie_chart</span>
+                <p>Répartition par type de bien</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Preferences Analysis -->
+          <div class="preferences-analysis">
+            <h3>Analyse de vos préférences</h3>
+            <div class="preference-list">
+              <div class="preference-item">
+                <span class="preference-label">Budget moyen recherché</span>
+                <span class="preference-value">180 000 €</span>
+              </div>
+              <div class="preference-item">
+                <span class="preference-label">Type de bien préféré</span>
+                <span class="preference-value">Appartement (68%)</span>
+              </div>
+              <div class="preference-item">
+                <span class="preference-label">Ville la plus recherchée</span>
+                <span class="preference-value">Tunis</span>
+              </div>
+              <div class="preference-item">
+                <span class="preference-label">Taille idéale</span>
+                <span class="preference-value">3 pièces</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AGENCE_IMMOBILIERE Dashboard -->
+      <div *ngIf="isAgency()" class="dashboard-content">
+        <!-- Overview Section -->
+        <div *ngIf="activeSection === 'overview'" class="section-content">
+          <div class="agency-header">
+            <h2>{{ getAgencyInfo()?.nomAgence }}</h2>
+            <div class="agency-status">
+              <span class="status-badge" [class]="isAgencyVerified() ? 'verified' : 'pending'">
+                <span class="material-icons">{{ isAgencyVerified() ? 'verified' : 'schedule' }}</span>
+                {{ isAgencyVerified() ? 'Agence Vérifiée' : 'Vérification en attente' }}
+              </span>
+            </div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon">
+                <span class="material-icons">home</span>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">127</div>
+                <div class="stat-label">Biens gérés</div>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon">
+                <span class="material-icons">people</span>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">89</div>
+                <div class="stat-label">Clients actifs</div>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon">
+                <span class="material-icons">euro</span>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">45.6k€</div>
+                <div class="stat-label">CA mensuel</div>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon">
+                <span class="material-icons">group</span>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">{{ getAgencyInfo()?.nombreEmployes || 0 }}</div>
+                <div class="stat-label">Employés</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Properties Section -->
+        <div *ngIf="activeSection === 'properties'" class="section-content">
+          <div class="properties-header">
+            <h2>Gestion des Biens</h2>
+            <button class="btn btn-primary">
+              <span class="material-icons">add</span>
+              Ajouter un bien
+            </button>
+          </div>
+
+          <!-- Properties Stats -->
+          <div class="properties-stats">
+            <div class="stat-row">
+              <div class="stat-item">
+                <span class="stat-number">127</span>
+                <span class="stat-label">Total biens</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">89</span>
+                <span class="stat-label">Disponibles</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">23</span>
+                <span class="stat-label">En négociation</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">15</span>
+                <span class="stat-label">Vendus ce mois</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Properties List -->
+          <div class="properties-list">
+            <div class="property-item">
+              <div class="property-image">
+                <div class="property-placeholder">
+                  <span class="material-icons">home</span>
+                </div>
+              </div>
+              <div class="property-details">
+                <h4>Appartement 3 pièces - Tunis Centre</h4>
+                <p class="property-description">Bel appartement refait à neuf, proche commodités</p>
+                <div class="property-specs">
+                  <span class="spec">3 pièces</span>
+                  <span class="spec">85m²</span>
+                  <span class="spec">2ème étage</span>
+                </div>
+                <div class="property-location">
+                  <span class="material-icons">location_on</span>
+                  Tunis Centre
+                </div>
+              </div>
+              <div class="property-price">
+                <div class="price-main">180 000 €</div>
+                <div class="price-per-m2">2,118 €/m²</div>
+              </div>
+              <div class="property-status">
+                <span class="status-badge available">Disponible</span>
+              </div>
+              <div class="property-actions">
+                <button class="btn btn-sm btn-outline">Modifier</button>
+                <button class="btn btn-sm btn-primary">Voir détails</button>
+              </div>
+            </div>
+
+            <div class="property-item">
+              <div class="property-image">
+                <div class="property-placeholder">
+                  <span class="material-icons">villa</span>
+                </div>
+              </div>
+              <div class="property-details">
+                <h4>Villa avec jardin - Sousse</h4>
+                <p class="property-description">Villa moderne avec piscine et grand jardin</p>
+                <div class="property-specs">
+                  <span class="spec">5 pièces</span>
+                  <span class="spec">200m²</span>
+                  <span class="spec">Jardin 400m²</span>
+                </div>
+                <div class="property-location">
+                  <span class="material-icons">location_on</span>
+                  Sousse
+                </div>
+              </div>
+              <div class="property-price">
+                <div class="price-main">450 000 €</div>
+                <div class="price-per-m2">2,250 €/m²</div>
+              </div>
+              <div class="property-status">
+                <span class="status-badge negotiation">En négociation</span>
+              </div>
+              <div class="property-actions">
+                <button class="btn btn-sm btn-outline">Modifier</button>
+                <button class="btn btn-sm btn-primary">Voir détails</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Clients CRM Section -->
+        <div *ngIf="activeSection === 'clients'" class="section-content">
+          <div class="clients-header">
+            <h2>CRM Clients</h2>
+            <button class="btn btn-primary">
+              <span class="material-icons">person_add</span>
+              Nouveau client
+            </button>
+          </div>
+
+          <!-- Clients Stats -->
+          <div class="clients-stats">
+            <div class="stat-card">
+              <div class="stat-icon">
+                <span class="material-icons">people</span>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">156</div>
+                <div class="stat-label">Total clients</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">
+                <span class="material-icons">trending_up</span>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">23</div>
+                <div class="stat-label">Nouveaux ce mois</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">
+                <span class="material-icons">handshake</span>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">12</div>
+                <div class="stat-label">Transactions closes</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">
+                <span class="material-icons">schedule</span>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">8</div>
+                <div class="stat-label">RDV cette semaine</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Clients -->
+          <div class="clients-list">
+            <h3>Clients récents</h3>
+            <div class="client-item">
+              <div class="client-avatar">
+                <span class="material-icons">person</span>
+              </div>
+              <div class="client-info">
+                <h4>Marie Dupont</h4>
+                <p class="client-interest">Cherche appartement 3 pièces - Budget: 200k€</p>
+                <div class="client-meta">
+                  <span class="client-date">Ajouté le 28/01/2025</span>
+                  <span class="client-status active">Actif</span>
+                </div>
+              </div>
+              <div class="client-actions">
+                <button class="btn btn-sm btn-outline">
+                  <span class="material-icons">event</span>
+                  RDV
+                </button>
+                <button class="btn btn-sm btn-primary">
+                  <span class="material-icons">message</span>
+                  Contact
+                </button>
+              </div>
+            </div>
+
+            <div class="client-item">
+              <div class="client-avatar">
+                <span class="material-icons">person</span>
+              </div>
+              <div class="client-info">
+                <h4>Ahmed Ben Ali</h4>
+                <p class="client-interest">Vente villa Sfax - Estimé: 380k€</p>
+                <div class="client-meta">
+                  <span class="client-date">Ajouté le 25/01/2025</span>
+                  <span class="client-status potential">Prospect</span>
+                </div>
+              </div>
+              <div class="client-actions">
+                <button class="btn btn-sm btn-outline">
+                  <span class="material-icons">event</span>
+                  RDV
+                </button>
+                <button class="btn btn-sm btn-primary">
+                  <span class="material-icons">message</span>
+                  Contact
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pipeline -->
+          <div class="sales-pipeline">
+            <h3>Pipeline de ventes</h3>
+            <div class="pipeline-stages">
+              <div class="pipeline-stage">
+                <h4>Prospects <span class="stage-count">12</span></h4>
+                <div class="stage-value">€ 2.4M</div>
+              </div>
+              <div class="pipeline-stage">
+                <h4>Qualification <span class="stage-count">8</span></h4>
+                <div class="stage-value">€ 1.8M</div>
+              </div>
+              <div class="pipeline-stage">
+                <h4>Négociation <span class="stage-count">5</span></h4>
+                <div class="stage-value">€ 1.1M</div>
+              </div>
+              <div class="pipeline-stage">
+                <h4>Signature <span class="stage-count">3</span></h4>
+                <div class="stage-value">€ 650k</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Team Management Section -->
+        <div *ngIf="activeSection === 'team'" class="section-content">
+          <div class="team-header">
+            <h2>Gestion d'Équipe</h2>
+            <button class="btn btn-primary">
+              <span class="material-icons">person_add</span>
+              Inviter un membre
+            </button>
+          </div>
+
+          <!-- Team Stats -->
+          <div class="team-stats">
+            <div class="stat-card">
+              <div class="stat-icon">
+                <span class="material-icons">group</span>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">{{ getAgencyInfo()?.nombreEmployes || 8 }}</div>
+                <div class="stat-label">Membres d'équipe</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">
+                <span class="material-icons">star</span>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">4.8</div>
+                <div class="stat-label">Note moyenne équipe</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">
+                <span class="material-icons">trending_up</span>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">89%</div>
+                <div class="stat-label">Objectifs atteints</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Team Members -->
+          <div class="team-members">
+            <h3>Membres de l'équipe</h3>
+            <div class="member-item">
+              <div class="member-avatar">
+                <span>JD</span>
+              </div>
+              <div class="member-info">
+                <h4>Jean Durand</h4>
+                <p class="member-role">Directeur Commercial</p>
+                <div class="member-stats">
+                  <span class="stat">15 ventes ce mois</span>
+                  <span class="stat">€2.1M CA</span>
+                </div>
+              </div>
+              <div class="member-status">
+                <span class="status-badge online">En ligne</span>
+              </div>
+              <div class="member-actions">
+                <button class="btn btn-sm btn-outline">Profil</button>
+                <button class="btn btn-sm btn-primary">Message</button>
+              </div>
+            </div>
+
+            <div class="member-item">
+              <div class="member-avatar">
+                <span>SM</span>
+              </div>
+              <div class="member-info">
+                <h4>Sophie Martin</h4>
+                <p class="member-role">Négociatrice</p>
+                <div class="member-stats">
+                  <span class="stat">12 ventes ce mois</span>
+                  <span class="stat">€1.8M CA</span>
+                </div>
+              </div>
+              <div class="member-status">
+                <span class="status-badge away">Absent</span>
+              </div>
+              <div class="member-actions">
+                <button class="btn btn-sm btn-outline">Profil</button>
+                <button class="btn btn-sm btn-primary">Message</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Performance Chart -->
+          <div class="team-performance">
+            <h3>Performance d'équipe</h3>
+            <div class="performance-chart">
+              <div class="chart-placeholder">
+                <span class="material-icons">bar_chart</span>
+                <p>Graphique de performance d'équipe disponible avec Chart.js</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analytics Section -->
+        <div *ngIf="activeSection === 'analytics'" class="section-content">
+          <div class="agency-analytics-header">
+            <h2>Analytics Agence</h2>
+            <div class="analytics-filters">
+              <select class="form-select">
+                <option>Ce mois</option>
+                <option>3 derniers mois</option>
+                <option>Cette année</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Key Performance Indicators -->
+          <div class="kpi-grid">
+            <div class="kpi-card revenue">
+              <div class="kpi-icon">
+                <span class="material-icons">euro</span>
+              </div>
+              <div class="kpi-content">
+                <div class="kpi-number">€ 127,500</div>
+                <div class="kpi-label">Chiffre d'affaires</div>
+                <div class="kpi-trend positive">+18% vs mois dernier</div>
+              </div>
+            </div>
+
+            <div class="kpi-card transactions">
+              <div class="kpi-icon">
+                <span class="material-icons">handshake</span>
+              </div>
+              <div class="kpi-content">
+                <div class="kpi-number">23</div>
+                <div class="kpi-label">Transactions closes</div>
+                <div class="kpi-trend positive">+12% vs mois dernier</div>
+              </div>
+            </div>
+
+            <div class="kpi-card conversion">
+              <div class="kpi-icon">
+                <span class="material-icons">trending_up</span>
+              </div>
+              <div class="kpi-content">
+                <div class="kpi-number">15.8%</div>
+                <div class="kpi-label">Taux de conversion</div>
+                <div class="kpi-trend positive">+2.3pts vs mois dernier</div>
+              </div>
+            </div>
+
+            <div class="kpi-card avg-price">
+              <div class="kpi-icon">
+                <span class="material-icons">home</span>
+              </div>
+              <div class="kpi-content">
+                <div class="kpi-number">€ 285k</div>
+                <div class="kpi-label">Prix moyen</div>
+                <div class="kpi-trend neutral">Stable</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts -->
+          <div class="analytics-charts">
+            <div class="chart-section">
+              <h3>Évolution du chiffre d'affaires</h3>
+              <div class="chart-container">
+                <div class="chart-placeholder">
+                  <span class="material-icons">trending_up</span>
+                  <p>Graphique CA mensuel disponible avec Chart.js</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="chart-section">
+              <h3>Répartition des biens vendus</h3>
+              <div class="chart-container">
+                <div class="chart-placeholder">
+                  <span class="material-icons">donut_large</span>
+                  <p>Graphique en secteurs par type de bien</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Market Analysis -->
+          <div class="market-analysis">
+            <h3>Analyse de marché</h3>
+            <div class="market-insights">
+              <div class="insight-item">
+                <span class="insight-label">Prix m² moyen secteur</span>
+                <span class="insight-value">2,450€</span>
+                <span class="insight-change positive">+3.2%</span>
+              </div>
+              <div class="insight-item">
+                <span class="insight-label">Temps de vente moyen</span>
+                <span class="insight-value">67 jours</span>
+                <span class="insight-change positive">-8 jours</span>
+              </div>
+              <div class="insight-item">
+                <span class="insight-label">Concurrence directe</span>
+                <span class="insight-value">12 agences</span>
+                <span class="insight-change neutral">Stable</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Verification Section -->
+        <div *ngIf="activeSection === 'verification'" class="section-content">
+          <div class="verification-status">
+            <div class="verification-card" [class]="isAgencyVerified() ? 'verified' : 'pending'">
+              <div class="verification-icon">
+                <span class="material-icons">
+                  {{ isAgencyVerified() ? 'verified' : 'schedule' }}
+                </span>
+              </div>
+              <div class="verification-content">
+                <h3>{{ isAgencyVerified() ? 'Agence Vérifiée' : 'Vérification en Cours' }}</h3>
+                <p *ngIf="!isAgencyVerified()">
+                  Votre demande de vérification est en cours de traitement. 
+                  Vous recevrez une notification par email une fois le processus terminé.
+                </p>
+                <p *ngIf="isAgencyVerified()">
+                  Félicitations ! Votre agence a été vérifiée avec succès. 
+                  Vous avez maintenant accès à toutes les fonctionnalités professionnelles.
+                </p>
+                
+                <!-- Required Documents -->
+                <div class="verification-documents" *ngIf="!isAgencyVerified()">
+                  <h4>Documents requis</h4>
+                  <div class="document-list">
+                    <div class="document-item completed">
+                      <span class="material-icons">check_circle</span>
+                      <span>Carte professionnelle</span>
+                    </div>
+                    <div class="document-item completed">
+                      <span class="material-icons">check_circle</span>
+                      <span>Justificatif d'assurance</span>
+                    </div>
+                    <div class="document-item pending">
+                      <span class="material-icons">schedule</span>
+                      <span>Attestation FNAIM (en cours)</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Benefits -->
+                <div class="verification-benefits" *ngIf="isAgencyVerified()">
+                  <h4>Avantages débloqués</h4>
+                  <div class="benefit-list">
+                    <div class="benefit-item">
+                      <span class="material-icons">verified</span>
+                      <span>Badge de confiance affiché</span>
+                    </div>
+                    <div class="benefit-item">
+                      <span class="material-icons">priority_high</span>
+                      <span>Annonces prioritaires</span>
+                    </div>
+                    <div class="benefit-item">
+                      <span class="material-icons">analytics</span>
+                      <span>Statistiques avancées</span>
+                    </div>
+                    <div class="benefit-item">
+                      <span class="material-icons">support</span>
+                      <span>Support dédié</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profile Section -->
+        <div *ngIf="activeSection === 'profile'" class="section-content">
+          <div class="agency-profile">
+            <h2>Profil de l'Agence</h2>
+            
+            <div class="profile-sections">
+              <!-- Basic Info -->
+              <div class="profile-section">
+                <h3>Informations générales</h3>
+                <div class="profile-grid">
+                  <div class="profile-item">
+                    <label>Nom de l'agence</label>
+                    <span>{{ getAgencyInfo()?.nomAgence }}</span>
+                  </div>
+                  <div class="profile-item">
+                    <label>Numéro de licence</label>
+                    <span>{{ getAgencyInfo()?.numeroLicence }}</span>
+                  </div>
+                  <div class="profile-item">
+                    <label>Site web</label>
+                    <span>{{ getAgencyInfo()?.siteWeb }}</span>
+                  </div>
+                  <div class="profile-item">
+                    <label>Nombre d'employés</label>
+                    <span>{{ getAgencyInfo()?.nombreEmployes }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Contact Info -->
+              <div class="profile-section">
+                <h3>Coordonnées</h3>
+                <div class="profile-grid">
+                  <div class="profile-item">
+                    <label>Email principal</label>
+                    <span>{{ currentUser?.email }}</span>
+                  </div>
+                  <div class="profile-item">
+                    <label>Téléphone</label>
+                    <span>{{ currentUser?.telephone }}</span>
+                  </div>
+                  <div class="profile-item">
+                    <label>Adresse</label>
+                    <span>{{ currentUser?.adresse }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Coverage Areas -->
+              <div class="profile-section">
+                <h3>Zones de couverture</h3>
+                <div class="coverage-areas">
+                  <div class="area-tags">
+                    <span class="area-tag">Tunis</span>
+                    <span class="area-tag">Ariana</span>
+                    <span class="area-tag">Ben Arous</span>
+                    <span class="area-tag">Manouba</span>
+                  </div>
+                  <button class="btn btn-outline">
+                    <span class="material-icons">edit</span>
+                    Modifier les zones
+                  </button>
+                </div>
+              </div>
+
+              <!-- Settings -->
+              <div class="profile-section">
+                <h3>Paramètres</h3>
+                <div class="settings-list">
+                  <div class="setting-item">
+                    <div class="setting-info">
+                      <span class="setting-label">Notifications par email</span>
+                      <span class="setting-desc">Recevoir les notifications importantes</span>
+                    </div>
+                    <div class="setting-control">
+                      <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="setting-item">
+                    <div class="setting-info">
+                      <span class="setting-label">Profil public</span>
+                      <span class="setting-desc">Votre agence est visible dans l'annuaire</span>
+                    </div>
+                    <div class="setting-control">
+                      <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="profile-actions">
+              <button class="btn btn-primary">
+                <span class="material-icons">save</span>
+                Enregistrer les modifications
+              </button>
+              <button class="btn btn-outline">
+                <span class="material-icons">lock</span>
+                Changer le mot de passe
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADMINISTRATEUR Dashboard -->
+      <div *ngIf="isAdmin()" class="dashboard-content">
+        <!-- Overview Section -->
+        <div *ngIf="activeSection === 'overview'" class="section-content">
+          <div class="admin-welcome">
+            <h2>Tableau de bord administrateur</h2>
+            <p>Gérez la plateforme ImmoConnect</p>
+          </div>
+
+          <div class="stats-grid large">
+            <div class="stat-card">
+              <div class="stat-icon primary">
+                <span class="material-icons">people</span>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">{{ getTotalUsers() }}</div>
+                <div class="stat-label">Total Utilisateurs</div>
+                <div class="stat-trend positive">+12% ce mois</div>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon success">
+                <span class="material-icons">verified_user</span>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">{{ getActiveUsers() }}</div>
+                <div class="stat-label">Utilisateurs Actifs</div>
+                <div class="stat-trend positive">+8% ce mois</div>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon warning">
+                <span class="material-icons">business</span>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">{{ userStats?.pendingVerifications || 0 }}</div>
+                <div class="stat-label">Vérifications en attente</div>
+                <div class="stat-trend neutral">Action requise</div>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon info">
+                <span class="material-icons">visibility</span>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">{{ getTotalVisits() }}</div>
+                <div class="stat-label">Visites Total</div>
+                <div class="stat-trend positive">+15% ce mois</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="admin-quick-actions">
+            <h3>Actions rapides</h3>
+            <div class="action-cards">
+              <div class="action-card" (click)="setActiveSection('users')">
+                <span class="material-icons">people</span>
+                <span>Gérer les utilisateurs</span>
+              </div>
+              <div class="action-card" (click)="setActiveSection('agencies')">
+                <span class="material-icons">business</span>
+                <span>Vérifier les agences</span>
+              </div>
+              <div class="action-card" (click)="setActiveSection('statistics')">
+                <span class="material-icons">analytics</span>
+                <span>Voir les statistiques</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Users Management Section -->
+        <div *ngIf="activeSection === 'users'" class="section-content">
+          <div class="users-header">
+            <h2>Gestion des Utilisateurs</h2>
+            <div class="users-actions">
+              <input type="text" class="search-input" placeholder="Rechercher un utilisateur...">
+              <select class="filter-select">
+                <option value="">Tous les types</option>
+                <option value="UTILISATEUR">Utilisateur Standard</option>
+                <option value="CLIENT_ABONNE">Client Abonné</option>
+                <option value="AGENCE_IMMOBILIERE">Agence Immobilière</option>
+                <option value="ADMINISTRATEUR">Administrateur</option>
+              </select>
+              <button class="btn btn-primary">
+                <span class="material-icons">person_add</span>
+                Nouvel utilisateur
+              </button>
+            </div>
+          </div>
+
+          <!-- Users Stats -->
+          <div class="users-stats">
+            <div class="stat-card">
+              <div class="stat-icon">
+                <span class="material-icons">people</span>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">1,247</div>
+                <div class="stat-label">Total utilisateurs</div>
+                <div class="stat-change positive">+18 cette semaine</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">
+                <span class="material-icons">person</span>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">892</div>
+                <div class="stat-label">Utilisateurs Standard</div>
+                <div class="stat-change positive">+12</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">
+                <span class="material-icons">star</span>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">284</div>
+                <div class="stat-label">Clients Abonnés</div>
+                <div class="stat-change positive">+5</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">
+                <span class="material-icons">business</span>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">67</div>
+                <div class="stat-label">Agences</div>
+                <div class="stat-change positive">+1</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">
+                <span class="material-icons">admin_panel_settings</span>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">4</div>
+                <div class="stat-label">Administrateurs</div>
+                <div class="stat-change neutral">Stable</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Users Table -->
+          <div class="users-table">
+            <div class="table-header">
+              <h3>Liste des utilisateurs</h3>
+              <div class="table-actions">
+                <button class="btn btn-sm btn-outline">
+                  <span class="material-icons">download</span>
+                  Exporter
+                </button>
+                <button class="btn btn-sm btn-secondary">
+                  <span class="material-icons">filter_list</span>
+                  Filtres avancés
+                </button>
+              </div>
+            </div>
+
+            <div class="table-content">
+              <div class="user-row header">
+                <div class="user-col">Utilisateur</div>
+                <div class="user-col">Type</div>
+                <div class="user-col">Status</div>
+                <div class="user-col">Dernière connexion</div>
+                <div class="user-col">Actions</div>
+              </div>
+
+              <div class="user-row">
+                <div class="user-col user-info">
+                  <div class="user-avatar">MD</div>
+                  <div class="user-details">
+                    <div class="user-name">Marie Dupont</div>
+                    <div class="user-email">marie.dupont@email.com</div>
+                  </div>
+                </div>
+                <div class="user-col">
+                  <span class="type-badge client-abonne">Client Abonné</span>
+                </div>
+                <div class="user-col">
+                  <span class="status-badge active">
+                    <span class="material-icons">verified</span>
+                    Actif
+                  </span>
+                </div>
+                <div class="user-col">Il y a 2 heures</div>
+                <div class="user-col actions">
+                  <button class="btn btn-sm btn-outline" title="Voir le profil">
+                    <span class="material-icons">visibility</span>
+                  </button>
+                  <button class="btn btn-sm btn-secondary" title="Modifier">
+                    <span class="material-icons">edit</span>
+                  </button>
+                  <button class="btn btn-sm btn-danger" title="Suspendre">
+                    <span class="material-icons">block</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="user-row">
+                <div class="user-col user-info">
+                  <div class="user-avatar">AI</div>
+                  <div class="user-details">
+                    <div class="user-name">Agence ImmoPlus</div>
+                    <div class="user-email">contact@immoplus.tn</div>
+                  </div>
+                </div>
+                <div class="user-col">
+                  <span class="type-badge agency">Agence</span>
+                </div>
+                <div class="user-col">
+                  <span class="status-badge pending">
+                    <span class="material-icons">schedule</span>
+                    En attente
+                  </span>
+                </div>
+                <div class="user-col">Il y a 1 jour</div>
+                <div class="user-col actions">
+                  <button class="btn btn-sm btn-outline" title="Voir le profil">
+                    <span class="material-icons">visibility</span>
+                  </button>
+                  <button class="btn btn-sm btn-primary" title="Vérifier">
+                    <span class="material-icons">verified</span>
+                  </button>
+                  <button class="btn btn-sm btn-danger" title="Rejeter">
+                    <span class="material-icons">close</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="user-row">
+                <div class="user-col user-info">
+                  <div class="user-avatar">JM</div>
+                  <div class="user-details">
+                    <div class="user-name">Jean Martin</div>
+                    <div class="user-email">jean.martin@email.com</div>
+                  </div>
+                </div>
+                <div class="user-col">
+                  <span class="type-badge utilisateur">Standard</span>
+                </div>
+                <div class="user-col">
+                  <span class="status-badge active">
+                    <span class="material-icons">verified</span>
+                    Actif
+                  </span>
+                </div>
+                <div class="user-col">Il y a 3 jours</div>
+                <div class="user-col actions">
+                  <button class="btn btn-sm btn-outline" title="Voir le profil">
+                    <span class="material-icons">visibility</span>
+                  </button>
+                  <button class="btn btn-sm btn-secondary" title="Modifier">
+                    <span class="material-icons">edit</span>
+                  </button>
+                  <button class="btn btn-sm btn-warning" title="Promouvoir">
+                    <span class="material-icons">upgrade</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="table-pagination">
+              <div class="pagination-info">
+                Affichage 1-25 sur 1,247 utilisateurs
+              </div>
+              <div class="pagination-controls">
+                <button class="btn btn-sm btn-outline" disabled>
+                  <span class="material-icons">chevron_left</span>
+                </button>
+                <span class="page-numbers">
+                  <button class="btn btn-sm active">1</button>
+                  <button class="btn btn-sm">2</button>
+                  <button class="btn btn-sm">3</button>
+                  <span>...</span>
+                  <button class="btn btn-sm">50</button>
+                </span>
+                <button class="btn btn-sm btn-outline">
+                  <span class="material-icons">chevron_right</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Agencies Management Section -->
+        <div *ngIf="activeSection === 'agencies'" class="section-content">
+          <div class="agencies-header">
+            <h2>Vérification des Agences</h2>
+            <div class="agencies-stats-summary">
+              <span class="stat-item">
+                <strong>12</strong> en attente
+              </span>
+              <span class="stat-item">
+                <strong>67</strong> vérifiées
+              </span>
+              <span class="stat-item">
+                <strong>5</strong> rejetées
+              </span>
+            </div>
+          </div>
+
+          <!-- Verification Queue -->
+          <div class="verification-queue">
+            <h3>File d'attente de vérification</h3>
+            <div class="queue-item urgent">
+              <div class="agency-info">
+                <div class="agency-avatar">IP</div>
+                <div class="agency-details">
+                  <h4>ImmoPlus Tunis</h4>
+                  <p class="agency-email">contact@immoplus.tn</p>
+                  <p class="agency-license">Licence: #TN-2024-0156</p>
+                </div>
+              </div>
+              <div class="submission-date">
+                <span class="date-label">Demande soumise</span>
+                <span class="date-value">Il y a 5 jours</span>
+                <span class="urgency-badge urgent">Urgent</span>
+              </div>
+              <div class="documents-status">
+                <div class="doc-item complete">
+                  <span class="material-icons">check_circle</span>
+                  <span>Carte professionnelle</span>
+                </div>
+                <div class="doc-item complete">
+                  <span class="material-icons">check_circle</span>
+                  <span>Assurance RC</span>
+                </div>
+                <div class="doc-item complete">
+                  <span class="material-icons">check_circle</span>
+                  <span>Garantie financière</span>
+                </div>
+              </div>
+              <div class="verification-actions">
+                <button class="btn btn-sm btn-outline">
+                  <span class="material-icons">visibility</span>
+                  Examiner
+                </button>
+                <button class="btn btn-sm btn-success">
+                  <span class="material-icons">verified</span>
+                  Approuver
+                </button>
+                <button class="btn btn-sm btn-danger">
+                  <span class="material-icons">close</span>
+                  Rejeter
+                </button>
+              </div>
+            </div>
+
+            <div class="queue-item">
+              <div class="agency-info">
+                <div class="agency-avatar">PP</div>
+                <div class="agency-details">
+                  <h4>Prestige Properties</h4>
+                  <p class="agency-email">info@prestige-prop.tn</p>
+                  <p class="agency-license">Licence: #TN-2024-0157</p>
+                </div>
+              </div>
+              <div class="submission-date">
+                <span class="date-label">Demande soumise</span>
+                <span class="date-value">Il y a 3 jours</span>
+                <span class="urgency-badge normal">Normal</span>
+              </div>
+              <div class="documents-status">
+                <div class="doc-item complete">
+                  <span class="material-icons">check_circle</span>
+                  <span>Carte professionnelle</span>
+                </div>
+                <div class="doc-item pending">
+                  <span class="material-icons">schedule</span>
+                  <span>Assurance RC (manquant)</span>
+                </div>
+                <div class="doc-item complete">
+                  <span class="material-icons">check_circle</span>
+                  <span>Garantie financière</span>
+                </div>
+              </div>
+              <div class="verification-actions">
+                <button class="btn btn-sm btn-outline">
+                  <span class="material-icons">visibility</span>
+                  Examiner
+                </button>
+                <button class="btn btn-sm btn-warning">
+                  <span class="material-icons">request_quote</span>
+                  Demander docs
+                </button>
+                <button class="btn btn-sm btn-danger">
+                  <span class="material-icons">close</span>
+                  Rejeter
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Verified Agencies -->
+          <div class="verified-agencies">
+            <h3>Agences vérifiées récemment</h3>
+            <div class="verified-list">
+              <div class="verified-item">
+                <div class="agency-info">
+                  <div class="agency-avatar verified">EP</div>
+                  <div class="agency-details">
+                    <h4>Elite Properties</h4>
+                    <p class="verification-date">Vérifiée le 28/01/2025</p>
+                  </div>
+                </div>
+                <div class="agency-performance">
+                  <span class="performance-metric">47 biens</span>
+                  <span class="performance-metric">€2.1M CA</span>
+                  <span class="performance-rating">
+                    <span class="material-icons">star</span>
+                    4.8
+                  </span>
+                </div>
+                <div class="agency-actions">
+                  <button class="btn btn-sm btn-outline">
+                    <span class="material-icons">visibility</span>
+                    Voir détails
+                  </button>
+                  <button class="btn btn-sm btn-warning">
+                    <span class="material-icons">pause</span>
+                    Suspendre
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Verification Guidelines -->
+          <div class="verification-guidelines">
+            <h3>Critères de vérification</h3>
+            <div class="guidelines-grid">
+              <div class="guideline-item">
+                <span class="material-icons">badge</span>
+                <div class="guideline-content">
+                  <h4>Carte professionnelle</h4>
+                  <p>Carte T ou carte de transaction immobilière valide</p>
+                </div>
+              </div>
+              <div class="guideline-item">
+                <span class="material-icons">security</span>
+                <div class="guideline-content">
+                  <h4>Assurance RC</h4>
+                  <p>Responsabilité civile professionnelle en cours</p>
+                </div>
+              </div>
+              <div class="guideline-item">
+                <span class="material-icons">account_balance</span>
+                <div class="guideline-content">
+                  <h4>Garantie financière</h4>
+                  <p>Garantie bancaire ou caution professionnelle</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Statistics Section -->
+        <div *ngIf="activeSection === 'statistics'" class="section-content">
+          <div class="admin-statistics">
+            <h2>Statistiques de la Plateforme</h2>
+            
+            <!-- Global KPIs -->
+            <div class="global-kpis">
+              <div class="kpi-card primary">
+                <div class="kpi-header">
+                  <span class="material-icons">people</span>
+                  <h3>Utilisateurs</h3>
+                </div>
+                <div class="kpi-metrics">
+                  <div class="metric">
+                    <span class="metric-value">{{ getTotalUsers() }}</span>
+                    <span class="metric-label">Total</span>
+                  </div>
+                  <div class="metric">
+                    <span class="metric-value">{{ getActiveUsers() }}</span>
+                    <span class="metric-label">Actifs (30j)</span>
+                  </div>
+                  <div class="metric">
+                    <span class="metric-value">+18</span>
+                    <span class="metric-label">Cette semaine</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="kpi-card success">
+                <div class="kpi-header">
+                  <span class="material-icons">euro</span>
+                  <h3>Revenue</h3>
+                </div>
+                <div class="kpi-metrics">
+                  <div class="metric">
+                    <span class="metric-value">€47,650</span>
+                    <span class="metric-label">Ce mois</span>
+                  </div>
+                  <div class="metric">
+                    <span class="metric-value">€142,300</span>
+                    <span class="metric-label">Trimestre</span>
+                  </div>
+                  <div class="metric">
+                    <span class="metric-value">+23%</span>
+                    <span class="metric-label">Croissance</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="kpi-card info">
+                <div class="kpi-header">
+                  <span class="material-icons">visibility</span>
+                  <h3>Trafic</h3>
+                </div>
+                <div class="kpi-metrics">
+                  <div class="metric">
+                    <span class="metric-value">{{ getTotalVisits() }}</span>
+                    <span class="metric-label">Visites totales</span>
+                  </div>
+                  <div class="metric">
+                    <span class="metric-value">{{ getUniqueVisitors() }}</span>
+                    <span class="metric-label">Visiteurs uniques</span>
+                  </div>
+                  <div class="metric">
+                    <span class="metric-value">2.4</span>
+                    <span class="metric-label">Pages/session</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="kpi-card warning">
+                <div class="kpi-header">
+                  <span class="material-icons">business</span>
+                  <h3>Agences</h3>
+                </div>
+                <div class="kpi-metrics">
+                  <div class="metric">
+                    <span class="metric-value">67</span>
+                    <span class="metric-label">Vérifiées</span>
+                  </div>
+                  <div class="metric">
+                    <span class="metric-value">12</span>
+                    <span class="metric-label">En attente</span>
+                  </div>
+                  <div class="metric">
+                    <span class="metric-value">94%</span>
+                    <span class="metric-label">Taux approbation</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="charts-section">
+              <div class="chart-container large">
+                <h3>Croissance des utilisateurs (6 derniers mois)</h3>
+                <div class="chart-placeholder">
+                  <span class="material-icons">trending_up</span>
+                  <p>Graphique de croissance mensuelle - Intégration Chart.js</p>
+                  <div class="sample-data">
+                    <span class="data-point">Août: 1,180</span>
+                    <span class="data-point">Sept: 1,205</span>
+                    <span class="data-point">Oct: 1,198</span>
+                    <span class="data-point">Nov: 1,235</span>
+                    <span class="data-point">Déc: 1,241</span>
+                    <span class="data-point">Jan: 1,247</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="chart-container">
+                <h3>Répartition par type d'utilisateur</h3>
+                <div class="chart-placeholder">
+                  <span class="material-icons">donut_large</span>
+                  <p>Graphique en secteurs</p>
+                  <div class="sample-breakdown">
+                    <div class="breakdown-item">
+                      <span class="color-indicator standard"></span>
+                      <span>Standard: 892 (71.5%)</span>
+                    </div>
+                    <div class="breakdown-item">
+                      <span class="color-indicator premium"></span>
+                      <span>Premium: 284 (22.8%)</span>
+                    </div>
+                    <div class="breakdown-item">
+                      <span class="color-indicator agency"></span>
+                      <span>Agences: 67 (5.4%)</span>
+                    </div>
+                    <div class="breakdown-item">
+                      <span class="color-indicator admin"></span>
+                      <span>Admin: 4 (0.3%)</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="chart-container">
+                <h3>Revenus mensuels</h3>
+                <div class="chart-placeholder">
+                  <span class="material-icons">bar_chart</span>
+                  <p>Graphique des revenus par abonnement</p>
+                  <div class="revenue-summary">
+                    <div class="revenue-item">
+                      <span class="revenue-type">Premium (29€)</span>
+                      <span class="revenue-amount">€8,236</span>
+                    </div>
+                    <div class="revenue-item">
+                      <span class="revenue-type">VIP (99€)</span>
+                      <span class="revenue-amount">€39,414</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Detailed Reports -->
+            <div class="reports-section">
+              <h3>Rapports détaillés</h3>
+              <div class="reports-grid">
+                <div class="report-card">
+                  <div class="report-header">
+                    <span class="material-icons">assessment</span>
+                    <h4>Rapport mensuel</h4>
+                  </div>
+                  <p>Analyse complète des performances de la plateforme</p>
+                  <button class="btn btn-primary">
+                    <span class="material-icons">download</span>
+                    Télécharger PDF
+                  </button>
+                </div>
+                <div class="report-card">
+                  <div class="report-header">
+                    <span class="material-icons">table_chart</span>
+                    <h4>Export utilisateurs</h4>
+                  </div>
+                  <p>Liste complète des utilisateurs avec détails</p>
+                  <button class="btn btn-outline">
+                    <span class="material-icons">download</span>
+                    Export Excel
+                  </button>
+                </div>
+                <div class="report-card">
+                  <div class="report-header">
+                    <span class="material-icons">insights</span>
+                    <h4>Analytics avancés</h4>
+                  </div>
+                  <p>Métriques détaillées et insights business</p>
+                  <button class="btn btn-secondary">
+                    <span class="material-icons">open_in_new</span>
+                    Voir dashboard
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Visits Section -->
+        <div *ngIf="activeSection === 'visits'" class="section-content">
+          <div class="visits-analytics">
+            <h2>Trafic & Visites</h2>
+
+            <!-- Traffic Overview -->
+            <div class="traffic-overview">
+              <div class="traffic-stat">
+                <div class="stat-icon">
+                  <span class="material-icons">visibility</span>
+                </div>
+                <div class="stat-content">
+                  <div class="stat-number">{{ getTotalVisits() }}</div>
+                  <div class="stat-label">Visites totales</div>
+                  <div class="stat-period">Ce mois</div>
+                </div>
+              </div>
+              <div class="traffic-stat">
+                <div class="stat-icon">
+                  <span class="material-icons">people</span>
+                </div>
+                <div class="stat-content">
+                  <div class="stat-number">{{ getUniqueVisitors() }}</div>
+                  <div class="stat-label">Visiteurs uniques</div>
+                  <div class="stat-period">Ce mois</div>
+                </div>
+              </div>
+              <div class="traffic-stat">
+                <div class="stat-icon">
+                  <span class="material-icons">schedule</span>
+                </div>
+                <div class="stat-content">
+                  <div class="stat-number">3m 42s</div>
+                  <div class="stat-label">Durée moyenne session</div>
+                  <div class="stat-period">Moyenne</div>
+                </div>
+              </div>
+              <div class="traffic-stat">
+                <div class="stat-icon">
+                  <span class="material-icons">trending_up</span>
+                </div>
+                <div class="stat-content">
+                  <div class="stat-number">68%</div>
+                  <div class="stat-label">Taux de rebond</div>
+                  <div class="stat-period">Amélioration +5%</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Traffic Chart -->
+            <div class="traffic-chart">
+              <h3>Évolution du trafic (7 derniers jours)</h3>
+              <div class="chart-placeholder">
+                <span class="material-icons">timeline</span>
+                <p>Graphique temporel des visites - Chart.js</p>
+                <div class="daily-stats">
+                  <span class="day-stat">Lun: 1,234</span>
+                  <span class="day-stat">Mar: 1,456</span>
+                  <span class="day-stat">Mer: 1,389</span>
+                  <span class="day-stat">Jeu: 1,567</span>
+                  <span class="day-stat">Ven: 1,789</span>
+                  <span class="day-stat">Sam: 1,234</span>
+                  <span class="day-stat">Dim: 1,123</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Geographic Distribution -->
+            <div class="geographic-stats">
+              <h3>Répartition géographique</h3>
+              <div class="geo-list">
+                <div class="geo-item">
+                  <div class="country-info">
+                    <span class="country-flag">🇹🇳</span>
+                    <span class="country-name">Tunisie</span>
+                  </div>
+                  <div class="country-stats">
+                    <span class="visitor-count">8,456 visiteurs</span>
+                    <div class="progress-bar">
+                      <div class="progress-fill" style="width: 85%"></div>
+                    </div>
+                    <span class="percentage">85%</span>
+                  </div>
+                </div>
+                <div class="geo-item">
+                  <div class="country-info">
+                    <span class="country-flag">🇫🇷</span>
+                    <span class="country-name">France</span>
+                  </div>
+                  <div class="country-stats">
+                    <span class="visitor-count">1,234 visiteurs</span>
+                    <div class="progress-bar">
+                      <div class="progress-fill" style="width: 12%"></div>
+                    </div>
+                    <span class="percentage">12%</span>
+                  </div>
+                </div>
+                <div class="geo-item">
+                  <div class="country-info">
+                    <span class="country-flag">🇩🇪</span>
+                    <span class="country-name">Allemagne</span>
+                  </div>
+                  <div class="country-stats">
+                    <span class="visitor-count">298 visiteurs</span>
+                    <div class="progress-bar">
+                      <div class="progress-fill" style="width: 3%"></div>
+                    </div>
+                    <span class="percentage">3%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Top Pages -->
+            <div class="top-pages">
+              <h3>Pages les plus visitées</h3>
+              <div class="pages-list">
+                <div class="page-item">
+                  <div class="page-info">
+                    <span class="page-path">/dashboard</span>
+                    <span class="page-title">Tableau de bord</span>
+                  </div>
+                  <div class="page-stats">
+                    <span class="page-views">3,456 vues</span>
+                    <span class="page-percentage">34%</span>
+                  </div>
+                </div>
+                <div class="page-item">
+                  <div class="page-info">
+                    <span class="page-path">/login</span>
+                    <span class="page-title">Connexion</span>
+                  </div>
+                  <div class="page-stats">
+                    <span class="page-views">2,789 vues</span>
+                    <span class="page-percentage">28%</span>
+                  </div>
+                </div>
+                <div class="page-item">
+                  <div class="page-info">
+                    <span class="page-path">/register</span>
+                    <span class="page-title">Inscription</span>
+                  </div>
+                  <div class="page-stats">
+                    <span class="page-views">1,567 vues</span>
+                    <span class="page-percentage">16%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- System Administration Section -->
+        <div *ngIf="activeSection === 'system'" class="section-content">
+          <div class="system-admin">
+            <h2>Administration Système</h2>
+
+            <!-- System Health -->
+            <div class="system-health">
+              <h3>État du système</h3>
+              <div class="health-grid">
+                <div class="health-item healthy">
+                  <div class="health-icon">
+                    <span class="material-icons">cloud</span>
+                  </div>
+                  <div class="health-info">
+                    <div class="health-label">Serveur Web</div>
+                    <div class="health-status">Opérationnel</div>
+                    <div class="health-uptime">99.9% uptime</div>
+                  </div>
+                </div>
+                <div class="health-item healthy">
+                  <div class="health-icon">
+                    <span class="material-icons">storage</span>
+                  </div>
+                  <div class="health-info">
+                    <div class="health-label">Base de données</div>
+                    <div class="health-status">Opérationnel</div>
+                    <div class="health-uptime">Connexions: 45/100</div>
+                  </div>
+                </div>
+                <div class="health-item warning">
+                  <div class="health-icon">
+                    <span class="material-icons">email</span>
+                  </div>
+                  <div class="health-info">
+                    <div class="health-label">Service Email</div>
+                    <div class="health-status">Surveillance</div>
+                    <div class="health-uptime">Queue: 23 emails</div>
+                  </div>
+                </div>
+                <div class="health-item healthy">
+                  <div class="health-icon">
+                    <span class="material-icons">backup</span>
+                  </div>
+                  <div class="health-info">
+                    <div class="health-label">Sauvegardes</div>
+                    <div class="health-status">À jour</div>
+                    <div class="health-uptime">Dernière: il y a 2h</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- System Configuration -->
+            <div class="system-config">
+              <h3>Configuration</h3>
+              <div class="config-sections">
+                <div class="config-section">
+                  <h4>Paramètres généraux</h4>
+                  <div class="config-list">
+                    <div class="config-item">
+                      <span class="config-label">Mode maintenance</span>
+                      <div class="config-control">
+                        <label class="switch">
+                          <input type="checkbox">
+                          <span class="slider"></span>
+                        </label>
+                      </div>
+                    </div>
+                    <div class="config-item">
+                      <span class="config-label">Nouvelles inscriptions</span>
+                      <div class="config-control">
+                        <label class="switch">
+                          <input type="checkbox" checked>
+                          <span class="slider"></span>
+                        </label>
+                      </div>
+                    </div>
+                    <div class="config-item">
+                      <span class="config-label">Logs de débogage</span>
+                      <div class="config-control">
+                        <label class="switch">
+                          <input type="checkbox">
+                          <span class="slider"></span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="config-section">
+                  <h4>Sécurité</h4>
+                  <div class="config-list">
+                    <div class="config-item">
+                      <span class="config-label">Authentification 2FA</span>
+                      <div class="config-control">
+                        <label class="switch">
+                          <input type="checkbox" checked>
+                          <span class="slider"></span>
+                        </label>
+                      </div>
+                    </div>
+                    <div class="config-item">
+                      <span class="config-label">Sessions sécurisées</span>
+                      <div class="config-control">
+                        <label class="switch">
+                          <input type="checkbox" checked>
+                          <span class="slider"></span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent Activities -->
+            <div class="system-activities">
+              <h3>Activités système récentes</h3>
+              <div class="activity-log">
+                <div class="log-item info">
+                  <div class="log-time">Il y a 15 min</div>
+                  <div class="log-message">Sauvegarde automatique effectuée avec succès</div>
+                  <div class="log-category">Système</div>
+                </div>
+                <div class="log-item warning">
+                  <div class="log-time">Il y a 1h</div>
+                  <div class="log-message">Tentative de connexion échouée (IP: 192.168.1.100)</div>
+                  <div class="log-category">Sécurité</div>
+                </div>
+                <div class="log-item success">
+                  <div class="log-time">Il y a 2h</div>
+                  <div class="log-message">Nouvel utilisateur inscrit: marie.dupont@email.com</div>
+                  <div class="log-category">Utilisateur</div>
+                </div>
+                <div class="log-item info">
+                  <div class="log-time">Il y a 3h</div>
+                  <div class="log-message">Mise à jour des statistiques terminée</div>
+                  <div class="log-category">Système</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="system-actions">
+              <h3>Actions rapides</h3>
+              <div class="action-buttons">
+                <button class="btn btn-primary">
+                  <span class="material-icons">backup</span>
+                  Lancer sauvegarde
+                </button>
+                <button class="btn btn-secondary">
+                  <span class="material-icons">refresh</span>
+                  Vider le cache
+                </button>
+                <button class="btn btn-warning">
+                  <span class="material-icons">build</span>
+                  Mode maintenance
+                </button>
+                <button class="btn btn-outline">
+                  <span class="material-icons">download</span>
+                  Export logs
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Default/Loading State -->
+      <div *ngIf="!currentUser" class="dashboard-content">
+        <div class="loading-state">
+          <div class="loading-spinner"></div>
+          <p>Chargement de votre tableau de bord...</p>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
