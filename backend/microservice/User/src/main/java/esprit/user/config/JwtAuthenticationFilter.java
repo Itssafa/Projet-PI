@@ -56,12 +56,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         jwt = authHeader.substring(7);
         try {
+            log.debug("Processing JWT token for path: {}", path);
             userEmail = jwtService.extractUsername(jwt);
+            log.debug("Extracted username from JWT: {}", userEmail);
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
             if (userEmail != null && authentication == null) {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+                log.debug("Loaded user details for: {}", userEmail);
 
                 if (jwtService.isTokenValid(jwt, userDetails)) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
@@ -73,10 +76,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             new WebAuthenticationDetailsSource().buildDetails(request)
                     );
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                    log.debug("Successfully authenticated user: {}", userEmail);
+                } else {
+                    log.warn("JWT token is not valid for user: {}", userEmail);
                 }
             }
         } catch (Exception e) {
-            log.error("Erreur lors de la validation du token JWT: {}", e.getMessage());
+            log.error("Erreur lors de la validation du token JWT: {}", e.getMessage(), e);
         }
 
         filterChain.doFilter(request, response);

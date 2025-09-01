@@ -19,12 +19,13 @@ This is a real estate platform microservice project with user management and rep
 
 **Workflow for API Integration**:
 
-1. **When Claude encounters frontend-backend connection tasks** (API calls, HTTP services, data fetching):
-   - Claude should create a `api-prompt.md` file
-   - This file contains detailed context and requirements for the integration task
+1. **When Claude encounters frontend-backend connection tasks, and implementation Process as well** (API calls, HTTP services, data fetching):
+   - Claude should Edit or create the `instructions.md` file
+   - This file contains detailed context and requirements for the integration task, it's a direct conversation to chatgpt.
    - User takes this prompt to ChatGPT for specific implementation details
+   - User will upload that file with ChatGPT response in the next conversation, so that claude reads again the `instructions.md` and follows the instructions.
 
-2. **Prompt File Structure** (`api-prompt.md`):
+2. **Prompt File Structure** (`instructions.md`):
    ```markdown
    ## API Integration Task
    
@@ -45,18 +46,13 @@ This is a real estate platform microservice project with user management and rep
    - [What specific code/implementation is needed]
    ```
 
-3. **Implementation Process**:
-   - User provides ChatGPT's response in `instructions.md`
-   - Claude implements the solution based on the provided instructions
-   - Claude focuses on integrating the solution seamlessly with existing code architecture
-
-### When to Use This Workflow
-- HTTP service method implementations
-- API endpoint consumption
-- Data fetching and error handling
-- Authentication header management
-- Request/response mapping
-- Async operations and observables
+   ## When to Use This Workflow
+   - HTTP service method implementations
+   - API endpoint consumption
+   - Data fetching and error handling
+   - Authentication header management
+   - Request/response mapping
+   - Async operations and observables
 
 ## Development Commands
 
@@ -80,27 +76,17 @@ mvnw.cmd clean package
 ### Frontend (Angular)
 ```bash
 # Start frontend server
-start-frontend.bat
-#I personally, usually run the frontend using ```ng serve``` 
+ng serve
 
 # Manual startup
 cd frontend
-npm install --legacy-peer-deps 
+npm install --legacy-peer-deps already done!
 npm start
 
 # Build for production
 ng build
 
-# Run tests
-ng test
-```
 
-### Utility Scripts
-- `diagnose.bat` - Diagnose system configuration
-- `verify-all.bat` - Verify complete system setup
-- `test-api.bat` - Test API endpoints
-- `generate-components.bat` - Generate missing Angular components
-- Various CORS testing scripts
 
 ## Architecture & Structure
 

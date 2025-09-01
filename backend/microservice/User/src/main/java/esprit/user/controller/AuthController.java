@@ -150,4 +150,32 @@ public class AuthController {
                 .body(Map.of("error", "Erreur interne du serveur"));
         }
     }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@Valid @RequestBody PasswordChangeRequest passwordRequest, 
+                                          Authentication authentication) {
+        try {
+            String email = authentication.getName();
+            userService.changePassword(email, passwordRequest.getCurrentPassword(), passwordRequest.getNewPassword());
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Mot de passe changé avec succès"
+            ));
+        } catch (RuntimeException e) {
+            log.error("Erreur lors du changement de mot de passe: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                .body(Map.of(
+                    "success", false,
+                    "error", e.getMessage()
+                ));
+        } catch (Exception e) {
+            log.error("Erreur interne lors du changement de mot de passe: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of(
+                    "success", false,
+                    "error", "Erreur interne du serveur"
+                ));
+        }
+    }
 }

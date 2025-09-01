@@ -14,11 +14,13 @@ import {
   AgenceImmobiliere,
   Administrateur
 } from '../../core/models';
+import { ProfileViewComponent } from '../profile/profile-view.component';
+import { ProfileEditComponent } from '../profile/profile-edit.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ProfileViewComponent, ProfileEditComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
@@ -34,6 +36,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   userStats: UserStats | null = null;
   platformStats: PlatformStats | null = null;
   visitStats: VisitStats | null = null;
+  
+  // Profile editing state
+  isEditingProfile = false;
   
   // Sidebar and navigation
   sidebarCollapsed = false;
@@ -117,25 +122,32 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const urlSegments = this.router.url.split('/');
     
     if (urlSegments.includes('admin')) {
-      // Admin routes: /admin/dashboard, /admin/users, /admin/agencies, etc.
+      // Admin routes: /admin/dashboard, /admin/users, /admin/agencies, /admin/profile, etc.
       const adminSection = urlSegments[urlSegments.indexOf('admin') + 1];
       this.activeSection = adminSection === 'dashboard' ? 'overview' : adminSection || 'overview';
     } else if (urlSegments.includes('agency')) {
-      // Agency routes: /agency/dashboard, /agency/properties, /agency/clients, etc.
+      // Agency routes: /agency/dashboard, /agency/properties, /agency/clients, /agency/profile, etc.
       const agencySection = urlSegments[urlSegments.indexOf('agency') + 1];
       this.activeSection = agencySection === 'dashboard' ? 'overview' : agencySection || 'overview';
     } else if (urlSegments.includes('client')) {
-      // Client routes: /client/dashboard, /client/subscription, /client/searches, etc.
+      // Client routes: /client/dashboard, /client/subscription, /client/searches, /client/profile, etc.
       const clientSection = urlSegments[urlSegments.indexOf('client') + 1];
       this.activeSection = clientSection === 'dashboard' ? 'overview' : clientSection || 'overview';
     } else if (urlSegments.includes('profile')) {
+      // Regular user profile: /profile
       this.activeSection = 'profile';
+    } else if (urlSegments.includes('dashboard')) {
+      // Regular user dashboard: /dashboard
+      this.activeSection = 'overview';
     } else {
       this.activeSection = 'overview';
     }
     
-    // Load section-specific data
-    this.loadSectionData(this.activeSection);
+    
+    // Load section-specific data (skip for profile - it handles its own data loading)
+    if (this.activeSection !== 'profile') {
+      this.loadSectionData(this.activeSection);
+    }
   }
 
   private loadDashboardData(): void {
@@ -214,9 +226,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
     
     // Navigate to appropriate route based on user type and section
     this.navigateToSection(section);
+    
+    // Don't load section data for profile - it handles its own data loading
+    if (section !== 'profile') {
+      this.loadSectionData(section);
+    }
   }
 
   private navigateToSection(section: string): void {
+    // For all sections including profile, use role-based routing
     const userType = this.userType;
     let routePath = '';
 
@@ -408,6 +426,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.loadRoleSpecificData();
   }
 
+
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
@@ -424,5 +443,21 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   needsAgencyVerification(): boolean {
     return this.authService.isAgencyVerificationRequired();
+  }
+
+  // Profile editing methods
+  startEditProfile(): void {
+    this.isEditingProfile = true;
+  }
+
+  cancelEditProfile(): void {
+    this.isEditingProfile = false;
+  }
+
+  onProfileSaved(updatedUser: AuthUser): void {
+    this.currentUser = updatedUser;
+    this.isEditingProfile = false;
+    // Update the auth service with the new user data
+    this.authService.updateCurrentUser(updatedUser);
   }
 }

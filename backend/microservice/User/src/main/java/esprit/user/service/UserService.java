@@ -202,6 +202,67 @@ public class UserService {
         agenceImmobiliereRepository.save(agence);
     }
 
+    public User updateCurrentUser(String email, UserUpdateRequest updateRequest) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+        // Update basic fields only if provided (partial update)
+        if (updateRequest.getNom() != null) {
+            user.setNom(updateRequest.getNom());
+        }
+        if (updateRequest.getPrenom() != null) {
+            user.setPrenom(updateRequest.getPrenom());
+        }
+        if (updateRequest.getEmail() != null && !updateRequest.getEmail().equalsIgnoreCase(user.getEmail())) {
+            // Check if new email is unique
+            if (userRepository.existsByEmail(updateRequest.getEmail())) {
+                throw new RuntimeException("Cet email est déjà utilisé");
+            }
+            user.setEmail(updateRequest.getEmail());
+        }
+        if (updateRequest.getTelephone() != null) {
+            user.setTelephone(updateRequest.getTelephone());
+        }
+        if (updateRequest.getAdresse() != null) {
+            user.setAdresse(updateRequest.getAdresse());
+        }
+
+        // Update role-specific fields
+        if (user instanceof AgenceImmobiliere agence) {
+            if (updateRequest.getNomAgence() != null) {
+                agence.setNomAgence(updateRequest.getNomAgence());
+            }
+            if (updateRequest.getNumeroLicence() != null) {
+                agence.setNumeroLicence(updateRequest.getNumeroLicence());
+            }
+            if (updateRequest.getSiteWeb() != null) {
+                agence.setSiteWeb(updateRequest.getSiteWeb());
+            }
+            if (updateRequest.getNombreEmployes() != null) {
+                agence.setNombreEmployes(updateRequest.getNombreEmployes());
+            }
+            if (updateRequest.getZonesCouverture() != null) {
+                agence.setZonesCouverture(updateRequest.getZonesCouverture());
+            }
+        }
+
+        if (user instanceof ClientAbonne client) {
+            if (updateRequest.getSubscriptionType() != null) {
+                client.setSubscriptionType(SubscriptionType.valueOf(updateRequest.getSubscriptionType()));
+            }
+        }
+
+        if (user instanceof Administrateur admin) {
+            if (updateRequest.getAdminLevel() != null) {
+                admin.setAdminLevel(AdminLevel.valueOf(updateRequest.getAdminLevel()));
+            }
+            if (updateRequest.getDepartment() != null) {
+                admin.setDepartment(updateRequest.getDepartment());
+            }
+        }
+
+        return userRepository.save(user);
+    }
 
     public UserResponseDto convertToDto(User user) {
         UserResponseDto dto = new UserResponseDto();
@@ -217,5 +278,26 @@ public class UserService {
         dto.setCreatedAt(user.getCreatedAt());
         dto.setLastLogin(user.getLastLogin());
         return dto;
+    }
+
+    public void changePassword(String email, String currentPassword, String newPassword) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+        // Verify current password
+        if (!passwordEncoder.matches(currentPassword, user.getMotDePasse())) {
+            throw new RuntimeException("Mot de passe actuel incorrect");
+        }
+
+        // Check if new password is different from current
+        if (passwordEncoder.matches(newPassword, user.getMotDePasse())) {
+            throw new RuntimeException("Le nouveau mot de passe doit être différent de l'ancien");
+        }
+
+        // Update password
+        user.setMotDePasse(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        
+        log.info("Mot de passe changé avec succès pour l'utilisateur: {}", email);
     }
 }

@@ -74,8 +74,20 @@ export class AuthService {
     try {
       const payload = this.decodeToken(token);
       const now = Math.floor(Date.now() / 1000);
-      return payload.exp > now;
-    } catch {
+      const isValid = payload.exp > now;
+      
+      // Debug: Log token validity
+      console.log('Token validation:', {
+        tokenExists: !!token,
+        expiresAt: new Date(payload.exp * 1000),
+        currentTime: new Date(),
+        isValid: isValid,
+        timeUntilExpiry: payload.exp - now
+      });
+      
+      return isValid;
+    } catch (error) {
+      console.error('Token validation error:', error);
       return false;
     }
   }
@@ -137,8 +149,28 @@ export class AuthService {
    */
   register(payload: RegisterRequest): Observable<RegisterResponse> {
     this.setLoading(true);
-    return this.http.post<RegisterResponse>(`${BASE_URL}/api/auth/register`, payload).pipe(
-      tap(() => this.setLoading(false))
+    
+    // Ensure proper headers for JSON payload
+    const headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    };
+
+    // Log the payload for debugging (remove in production)
+    console.log('Registration payload:', JSON.stringify(payload, null, 2));
+    
+    return this.http.post<RegisterResponse>(`${BASE_URL}/api/auth/register`, payload, { headers }).pipe(
+      tap((response) => {
+        console.log('Registration response:', response);
+        this.setLoading(false);
+      }),
+      tap(
+        () => this.setLoading(false),
+        (error) => {
+          console.error('Registration error:', error);
+          this.setLoading(false);
+        }
+      )
     );
   }
 
@@ -179,6 +211,13 @@ export class AuthService {
    * Update current user profile
    */
   updateProfile(payload: UserUpdateRequest): Observable<AuthUser> {
+    // Check token validity before making request
+    if (!this.isAuthenticated) {
+      console.error('User not authenticated, clearing storage and redirecting');
+      this.logout();
+      return throwError(() => new Error('Session expired. Please login again.'));
+    }
+    
     return this.http.put<AuthUser>(`${BASE_URL}/api/users/me`, payload).pipe(
       tap(user => {
         localStorage.setItem(this.USER_KEY, JSON.stringify(user));
@@ -450,5 +489,13 @@ export class AuthService {
     } catch {
       return null;
     }
+  }
+
+  /**
+   * Update current user state
+   */
+  updateCurrentUser(user: AuthUser): void {
+    localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+    this._currentUser$.next(user);
   }
 }

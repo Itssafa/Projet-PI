@@ -25,7 +25,10 @@
       "Bash(dir:*)",
       "Bash(ng new:*)",
       "Bash(npx @angular/cli@16 new:*)",
-      "Read(C:\\Users\\user\\OneDrive\\Bureau\\projetPI\\backend\\microservice\\User\\src/**)"
+      "Read(C:\\Users\\user\\OneDrive\\Bureau\\projetPI\\backend\\microservice\\User\\src/**)",
+      "Bash(grep:*)",
+      "Bash(sed:*)",
+      "Bash(wmic process where:*)"
     ],
     "deny": [],
     "ask": [],

@@ -14,11 +14,13 @@ export interface AuthUser {
   enabled: boolean;
   emailVerified: boolean;
   dateInscription: string;
+  derniereConnexion?: string;
 }
 
 export interface ClientAbonne extends AuthUser {
   subscriptionType: 'BASIC' | 'PREMIUM' | 'VIP';
   searchLimit: number;
+  searchesUsed?: number;
   subscriptionStartDate: string;
   subscriptionEndDate: string;
 }
@@ -34,7 +36,7 @@ export interface AgenceImmobiliere extends AuthUser {
 }
 
 export interface Administrateur extends AuthUser {
-  adminLevel: 'SUPER_ADMIN' | 'ADMIN' | 'MODERATOR';
+  adminLevel: AdminLevel;
   canManageUsers: boolean;
   canVerifyAgencies: boolean;
   canAccessSystemStats: boolean;
@@ -91,10 +93,20 @@ export interface UserUpdateRequest {
   email?: string;
   telephone?: string;
   adresse?: string;
+  
+  // Fields for AGENCE_IMMOBILIERE
   nomAgence?: string;
+  numeroLicence?: string;
   siteWeb?: string;
   nombreEmployes?: number;
   zonesCouverture?: string;
+  
+  // Fields for CLIENT_ABONNE
+  subscriptionType?: string;
+  
+  // Fields for ADMINISTRATEUR
+  adminLevel?: string;
+  department?: string;
 }
 
 export interface AgencyVerificationRequest {

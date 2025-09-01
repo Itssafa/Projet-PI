@@ -1,3 +1,31 @@
+/* Profile Section Integration Styles */
+.profile-section {
+  app-profile-view {
+    .profile-view-container {
+      padding: 0 !important;
+      margin: 0 !important;
+      background: transparent !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      min-height: auto !important;
+      
+      .info-card {
+        margin-bottom: 16px !important;
+        border-radius: 8px !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+        
+        .card-header {
+          padding: 16px 20px !important;
+        }
+        
+        .card-content {
+          padding: 20px !important;
+        }
+      }
+    }
+  }
+}
+
 /* CSS Variables for Enhanced Design System */
 :host {
   --primary-50: #eff6ff;

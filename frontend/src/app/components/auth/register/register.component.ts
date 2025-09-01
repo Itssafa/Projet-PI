@@ -288,7 +288,31 @@ export class RegisterComponent implements OnInit {
         }
       },
       error: (error) => {
-        this.error = error.error?.message || 'Erreur lors de l\'inscription. Veuillez réessayer.';
+        console.error('Registration error details:', error);
+        
+        // Handle different types of errors
+        if (error.error && typeof error.error === 'object') {
+          // Backend field validation errors
+          if (error.error.errors) {
+            this.handleFieldErrors(error.error.errors);
+            this.error = 'Veuillez corriger les erreurs dans le formulaire.';
+          } else if (error.error.message) {
+            this.error = error.error.message;
+          } else {
+            this.error = 'Erreurs de validation. Vérifiez vos données.';
+          }
+        } else if (error.status === 0) {
+          this.error = 'Impossible de contacter le serveur. Vérifiez votre connexion.';
+        } else if (error.status === 400) {
+          this.error = 'Données invalides. Vérifiez le formulaire.';
+        } else if (error.status === 409) {
+          this.error = 'Un compte avec cet email existe déjà.';
+        } else if (error.status >= 500) {
+          this.error = 'Erreur serveur. Veuillez réessayer plus tard.';
+        } else {
+          this.error = error.error?.message || 'Erreur lors de l\'inscription. Veuillez réessayer.';
+        }
+        
         this.isLoading = false;
       }
     });
@@ -363,6 +387,9 @@ export class RegisterComponent implements OnInit {
     const field = form.get(fieldName);
     if (!field || !field.errors) return '';
     
+    // Check for server errors first
+    if (field.errors['serverError']) return field.errors['serverError'];
+    
     if (field.errors['required']) return 'Ce champ est obligatoire.';
     if (field.errors['email']) return 'Format d\'email invalide.';
     if (field.errors['minlength']) return `Minimum ${field.errors['minlength'].requiredLength} caractères.`;
@@ -401,5 +428,23 @@ export class RegisterComponent implements OnInit {
       case 'SUPER_ADMIN': return 'Super Administrateur';
       default: return level;
     }
+  }
+
+  // Handle field-level validation errors from backend
+  private handleFieldErrors(errors: { [key: string]: string }): void {
+    Object.keys(errors).forEach(fieldName => {
+      const errorMessage = errors[fieldName];
+      
+      // Try to find the field in all form steps
+      let control = this.step1Form.get(fieldName);
+      if (!control) control = this.step2Form.get(fieldName);
+      if (!control) control = this.step3Form.get(fieldName);
+      if (!control) control = this.step4Form.get(fieldName);
+      
+      if (control) {
+        control.setErrors({ serverError: errorMessage });
+        control.markAsTouched();
+      }
+    });
   }
 }

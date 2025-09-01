@@ -2,6 +2,7 @@ package esprit.user.controller;
 
 import esprit.user.dto.UserRegistrationDto;
 import esprit.user.dto.UserResponseDto;
+import esprit.user.dto.UserUpdateRequest;
 import esprit.user.entity.User;
 import esprit.user.entity.UserStatus;
 import esprit.user.entity.UserType;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +24,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/users")
+@CrossOrigin(origins = {"http://localhost:4200", "http://127.0.0.1:4200"}, allowCredentials = "true")
 @RequiredArgsConstructor
 @Slf4j
 public class UserController {
@@ -66,7 +69,7 @@ public class UserController {
         }
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:[0-9]+}")
     @PreAuthorize("hasRole('ADMINISTRATEUR') or @userService.getUserById(#id).get().email == authentication.name")
     public ResponseEntity<?> getUserById(@PathVariable Long id) {
         Optional<User> userOpt = userService.getUserById(id);
@@ -75,6 +78,43 @@ public class UserController {
             return ResponseEntity.ok(userDto);
         } else {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(Authentication authentication) {
+        try {
+            String email = authentication.getName();
+            Optional<User> userOpt = userService.findByEmail(email);
+            if (userOpt.isPresent()) {
+                UserResponseDto userDto = userService.convertToDto(userOpt.get());
+                return ResponseEntity.ok(userDto);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            log.error("Erreur lors de la récupération de l'utilisateur actuel: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Erreur interne du serveur"));
+        }
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<?> updateProfile(@Valid @RequestBody UserUpdateRequest updateRequest,
+                                         Authentication authentication) {
+        try {
+            String email = authentication.getName();
+            User updatedUser = userService.updateCurrentUser(email, updateRequest);
+            UserResponseDto userDto = userService.convertToDto(updatedUser);
+            return ResponseEntity.ok(userDto);
+        } catch (RuntimeException e) {
+            log.error("Erreur lors de la mise à jour du profil: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                .body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            log.error("Erreur interne lors de la mise à jour du profil: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Erreur interne du serveur"));
         }
     }
 

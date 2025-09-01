@@ -11,4 +11,24 @@ export class NotificationService {
     // fallback:
     // window.alert(message);
   }
+
+  showSuccess(message: string): void {
+    console.log('✅ Success:', message);
+    this.show(`✅ ${message}`);
+  }
+
+  showError(message: string): void {
+    console.error('❌ Error:', message);
+    this.show(`❌ ${message}`);
+  }
+
+  showWarning(message: string): void {
+    console.warn('⚠️ Warning:', message);
+    this.show(`⚠️ ${message}`);
+  }
+
+  showInfo(message: string): void {
+    console.info('ℹ️ Info:', message);
+    this.show(`ℹ️ ${message}`);
+  }
 }

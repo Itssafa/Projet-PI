@@ -29,6 +29,12 @@ export const routes: Routes = [
     loadComponent: () => import('./components/dashboard/dashboard.component').then(m => m.DashboardComponent),
     data: { expectedRoles: ['UTILISATEUR'] }
   },
+  { 
+    path: 'profile', 
+    canActivate: [AuthGuard, EmailVerificationGuard],
+    loadComponent: () => import('./components/dashboard/dashboard.component').then(m => m.DashboardComponent),
+    data: { expectedRoles: ['UTILISATEUR'] }
+  },
   
   // Client Abonné routes
   { 
@@ -99,6 +105,12 @@ export const routes: Routes = [
     loadComponent: () => import('./components/dashboard/dashboard.component').then(m => m.DashboardComponent),
     data: { expectedRoles: ['AGENCE_IMMOBILIERE'] }
   },
+  { 
+    path: 'agency/profile', 
+    canActivate: [AuthGuard, EmailVerificationGuard, RoleGuard],
+    loadComponent: () => import('./components/dashboard/dashboard.component').then(m => m.DashboardComponent),
+    data: { expectedRoles: ['AGENCE_IMMOBILIERE'] }
+  },
   
   // Admin routes
   { 
@@ -137,13 +149,14 @@ export const routes: Routes = [
     loadComponent: () => import('./components/dashboard/dashboard.component').then(m => m.DashboardComponent),
     data: { expectedRoles: ['ADMINISTRATEUR'] }
   },
-  
-  // Profile routes (accessible by all authenticated users)
   { 
-    path: 'profile', 
-    canActivate: [AuthGuard, EmailVerificationGuard],
-    loadComponent: () => import('./components/dashboard/dashboard.component').then(m => m.DashboardComponent)
+    path: 'admin/profile', 
+    canActivate: [AdminGuard],
+    loadComponent: () => import('./components/dashboard/dashboard.component').then(m => m.DashboardComponent),
+    data: { expectedRoles: ['ADMINISTRATEUR'] }
   },
+  
+  // Profile routes are now handled within the dashboard component
   
   // Default redirects based on user role
   { 

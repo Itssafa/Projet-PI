@@ -109,6 +109,7 @@
         <p>Chargement en cours...</p>
       </div>
 
+
       <!-- UTILISATEUR Dashboard -->
       <div *ngIf="isRegularUser()" class="dashboard-content">
         <!-- Overview Section -->
@@ -155,27 +156,31 @@
         </div>
 
         <!-- Profile Section -->
-        <div *ngIf="activeSection === 'profile'" class="section-content">
-          <div class="profile-card">
-            <h3>Mes Informations</h3>
-            <div class="profile-info">
-              <div class="info-item">
-                <label>Nom complet</label>
-                <span>{{ currentUser?.prenom }} {{ currentUser?.nom }}</span>
-              </div>
-              <div class="info-item">
-                <label>Email</label>
-                <span>{{ currentUser?.email }}</span>
-              </div>
-              <div class="info-item">
-                <label>Téléphone</label>
-                <span>{{ currentUser?.telephone }}</span>
-              </div>
-              <div class="info-item">
-                <label>Adresse</label>
-                <span>{{ currentUser?.adresse }}</span>
-              </div>
+        <div *ngIf="activeSection === 'profile'" class="section-content profile-section">
+          <!-- Profile Header -->
+          <div class="profile-section-header" *ngIf="!isEditingProfile">
+            <div class="section-title">
+              <h2>Mon Profil</h2>
+              <p>Gérez vos informations personnelles</p>
             </div>
+            <button class="btn btn-primary" (click)="startEditProfile()">
+              <span class="material-icons">edit</span>
+              Modifier mes informations
+            </button>
+          </div>
+
+          <!-- Profile View Mode -->
+          <div *ngIf="!isEditingProfile">
+            <app-profile-view [user]="currentUser"></app-profile-view>
+          </div>
+
+          <!-- Profile Edit Mode -->
+          <div *ngIf="isEditingProfile">
+            <app-profile-edit 
+              [user]="currentUser"
+              (saved)="onProfileSaved($event)"
+              (cancelled)="cancelEditProfile()">
+            </app-profile-edit>
           </div>
         </div>
 
@@ -621,6 +626,35 @@
                 <span class="preference-value">3 pièces</span>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- Profile Section -->
+        <div *ngIf="activeSection === 'profile'" class="section-content profile-section">
+          <!-- Profile Header -->
+          <div class="profile-section-header" *ngIf="!isEditingProfile">
+            <div class="section-title">
+              <h2>Mon Profil</h2>
+              <p>Gérez vos informations personnelles et votre abonnement</p>
+            </div>
+            <button class="btn btn-primary" (click)="startEditProfile()">
+              <span class="material-icons">edit</span>
+              Modifier mes informations
+            </button>
+          </div>
+
+          <!-- Profile View Mode -->
+          <div *ngIf="!isEditingProfile">
+            <app-profile-view [user]="currentUser"></app-profile-view>
+          </div>
+
+          <!-- Profile Edit Mode -->
+          <div *ngIf="isEditingProfile">
+            <app-profile-edit 
+              [user]="currentUser"
+              (saved)="onProfileSaved($event)"
+              (cancelled)="cancelEditProfile()">
+            </app-profile-edit>
           </div>
         </div>
       </div>
@@ -1180,112 +1214,31 @@
         </div>
 
         <!-- Profile Section -->
-        <div *ngIf="activeSection === 'profile'" class="section-content">
-          <div class="agency-profile">
-            <h2>Profil de l'Agence</h2>
-            
-            <div class="profile-sections">
-              <!-- Basic Info -->
-              <div class="profile-section">
-                <h3>Informations générales</h3>
-                <div class="profile-grid">
-                  <div class="profile-item">
-                    <label>Nom de l'agence</label>
-                    <span>{{ getAgencyInfo()?.nomAgence }}</span>
-                  </div>
-                  <div class="profile-item">
-                    <label>Numéro de licence</label>
-                    <span>{{ getAgencyInfo()?.numeroLicence }}</span>
-                  </div>
-                  <div class="profile-item">
-                    <label>Site web</label>
-                    <span>{{ getAgencyInfo()?.siteWeb }}</span>
-                  </div>
-                  <div class="profile-item">
-                    <label>Nombre d'employés</label>
-                    <span>{{ getAgencyInfo()?.nombreEmployes }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Contact Info -->
-              <div class="profile-section">
-                <h3>Coordonnées</h3>
-                <div class="profile-grid">
-                  <div class="profile-item">
-                    <label>Email principal</label>
-                    <span>{{ currentUser?.email }}</span>
-                  </div>
-                  <div class="profile-item">
-                    <label>Téléphone</label>
-                    <span>{{ currentUser?.telephone }}</span>
-                  </div>
-                  <div class="profile-item">
-                    <label>Adresse</label>
-                    <span>{{ currentUser?.adresse }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Coverage Areas -->
-              <div class="profile-section">
-                <h3>Zones de couverture</h3>
-                <div class="coverage-areas">
-                  <div class="area-tags">
-                    <span class="area-tag">Tunis</span>
-                    <span class="area-tag">Ariana</span>
-                    <span class="area-tag">Ben Arous</span>
-                    <span class="area-tag">Manouba</span>
-                  </div>
-                  <button class="btn btn-outline">
-                    <span class="material-icons">edit</span>
-                    Modifier les zones
-                  </button>
-                </div>
-              </div>
-
-              <!-- Settings -->
-              <div class="profile-section">
-                <h3>Paramètres</h3>
-                <div class="settings-list">
-                  <div class="setting-item">
-                    <div class="setting-info">
-                      <span class="setting-label">Notifications par email</span>
-                      <span class="setting-desc">Recevoir les notifications importantes</span>
-                    </div>
-                    <div class="setting-control">
-                      <label class="switch">
-                        <input type="checkbox" checked>
-                        <span class="slider"></span>
-                      </label>
-                    </div>
-                  </div>
-                  <div class="setting-item">
-                    <div class="setting-info">
-                      <span class="setting-label">Profil public</span>
-                      <span class="setting-desc">Votre agence est visible dans l'annuaire</span>
-                    </div>
-                    <div class="setting-control">
-                      <label class="switch">
-                        <input type="checkbox" checked>
-                        <span class="slider"></span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </div>
+        <div *ngIf="activeSection === 'profile'" class="section-content profile-section">
+          <!-- Profile Header -->
+          <div class="profile-section-header" *ngIf="!isEditingProfile">
+            <div class="section-title">
+              <h2>Profil Agence</h2>
+              <p>Gérez les informations de votre agence</p>
             </div>
+            <button class="btn btn-primary" (click)="startEditProfile()">
+              <span class="material-icons">edit</span>
+              Modifier les informations
+            </button>
+          </div>
 
-            <div class="profile-actions">
-              <button class="btn btn-primary">
-                <span class="material-icons">save</span>
-                Enregistrer les modifications
-              </button>
-              <button class="btn btn-outline">
-                <span class="material-icons">lock</span>
-                Changer le mot de passe
-              </button>
-            </div>
+          <!-- Profile View Mode -->
+          <div *ngIf="!isEditingProfile">
+            <app-profile-view [user]="currentUser"></app-profile-view>
+          </div>
+
+          <!-- Profile Edit Mode -->
+          <div *ngIf="isEditingProfile">
+            <app-profile-edit 
+              [user]="currentUser"
+              (saved)="onProfileSaved($event)"
+              (cancelled)="cancelEditProfile()">
+            </app-profile-edit>
           </div>
         </div>
       </div>
@@ -2266,6 +2219,35 @@
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- Profile Section -->
+        <div *ngIf="activeSection === 'profile'" class="section-content profile-section">
+          <!-- Profile Header -->
+          <div class="profile-section-header" *ngIf="!isEditingProfile">
+            <div class="section-title">
+              <h2>Profil Administrateur</h2>
+              <p>Gérez votre profil administrateur</p>
+            </div>
+            <button class="btn btn-primary" (click)="startEditProfile()">
+              <span class="material-icons">edit</span>
+              Modifier mes informations
+            </button>
+          </div>
+
+          <!-- Profile View Mode -->
+          <div *ngIf="!isEditingProfile">
+            <app-profile-view [user]="currentUser"></app-profile-view>
+          </div>
+
+          <!-- Profile Edit Mode -->
+          <div *ngIf="isEditingProfile">
+            <app-profile-edit 
+              [user]="currentUser"
+              (saved)="onProfileSaved($event)"
+              (cancelled)="cancelEditProfile()">
+            </app-profile-edit>
           </div>
         </div>
       </div>
