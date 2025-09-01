@@ -15,12 +15,12 @@ import {
   Administrateur
 } from '../../core/models';
 import { ProfileViewComponent } from '../profile/profile-view.component';
-import { ProfileEditComponent } from '../profile/profile-edit.component';
+import { ProfileSectionsComponent } from '../profile/profile-sections.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, ProfileViewComponent, ProfileEditComponent],
+  imports: [CommonModule, ProfileViewComponent, ProfileSectionsComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })

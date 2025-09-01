@@ -49,6 +49,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String jwt;
         final String userEmail;
 
+        // Debug logging per ChatGPT's suggestion
+        log.debug("JwtAuthFilter -> {} {} from {}. Authorization header: {}", 
+                  request.getMethod(), request.getRequestURI(), request.getRemoteAddr(), authHeader);
+
+        if (authHeader == null) {
+            var headerNames = java.util.Collections.list(request.getHeaderNames());
+            log.debug("Request headers: {}", headerNames);
+        }
+
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;

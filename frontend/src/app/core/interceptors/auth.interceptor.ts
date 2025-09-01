@@ -11,34 +11,29 @@ export class AuthInterceptor implements HttpInterceptor {
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const token = localStorage.getItem('jwt_token');
     
-    // Debug logs
-    console.log('Intercepting request to:', req.url);
-    console.log('Token found:', !!token);
-    if (token) {
-      console.log('Token preview:', token.substring(0, 20) + '...');
-    }
+    // Enhanced debug logs per ChatGPT's suggestion
+    console.log('[AuthInterceptor] url=', req.url, ' method=', req.method, ' tokenExists=', !!token);
     
-    let authReq = req;
     if (token) {
-      authReq = req.clone({
-        setHeaders: {
-          Authorization: `Bearer ${token}`
-        }
+      const cloned = req.clone({
+        headers: req.headers.set('Authorization', `Bearer ${token}`)
       });
-      console.log('Added Authorization header to request');
+      console.log('[AuthInterceptor] Added Authorization header ->', cloned.headers.get('Authorization'));
+      return next.handle(cloned).pipe(
+        catchError((error: HttpErrorResponse) => {
+          if (error.status === 401) {
+            // Token expired or invalid
+            console.log('[AuthInterceptor] 401 error, clearing tokens and redirecting');
+            localStorage.removeItem('jwt_token');
+            localStorage.removeItem('auth_user');
+            localStorage.removeItem('refresh_token');
+            this.router.navigate(['/login']);
+          }
+          return throwError(() => error);
+        })
+      );
     }
 
-    return next.handle(authReq).pipe(
-      catchError((error: HttpErrorResponse) => {
-        if (error.status === 401) {
-          // Token expired or invalid
-          localStorage.removeItem('jwt_token');
-          localStorage.removeItem('auth_user');
-          localStorage.removeItem('refresh_token');
-          this.router.navigate(['/login']);
-        }
-        return throwError(() => error);
-      })
-    );
+    return next.handle(req);
   }
 }

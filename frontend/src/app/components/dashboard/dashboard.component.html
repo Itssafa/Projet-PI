@@ -176,11 +176,11 @@
 
           <!-- Profile Edit Mode -->
           <div *ngIf="isEditingProfile">
-            <app-profile-edit 
+            <app-profile-sections 
               [user]="currentUser"
               (saved)="onProfileSaved($event)"
               (cancelled)="cancelEditProfile()">
-            </app-profile-edit>
+            </app-profile-sections>
           </div>
         </div>
 
@@ -650,11 +650,11 @@
 
           <!-- Profile Edit Mode -->
           <div *ngIf="isEditingProfile">
-            <app-profile-edit 
+            <app-profile-sections 
               [user]="currentUser"
               (saved)="onProfileSaved($event)"
               (cancelled)="cancelEditProfile()">
-            </app-profile-edit>
+            </app-profile-sections>
           </div>
         </div>
       </div>
@@ -1234,11 +1234,11 @@
 
           <!-- Profile Edit Mode -->
           <div *ngIf="isEditingProfile">
-            <app-profile-edit 
+            <app-profile-sections 
               [user]="currentUser"
               (saved)="onProfileSaved($event)"
               (cancelled)="cancelEditProfile()">
-            </app-profile-edit>
+            </app-profile-sections>
           </div>
         </div>
       </div>
@@ -2243,11 +2243,11 @@
 
           <!-- Profile Edit Mode -->
           <div *ngIf="isEditingProfile">
-            <app-profile-edit 
+            <app-profile-sections 
               [user]="currentUser"
               (saved)="onProfileSaved($event)"
               (cancelled)="cancelEditProfile()">
-            </app-profile-edit>
+            </app-profile-sections>
           </div>
         </div>
       </div>
