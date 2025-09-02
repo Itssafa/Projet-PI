@@ -359,3 +359,140 @@ export interface AgencyAnalytics {
   teamPerformance: TeamPerformance;
   marketInsights: MarketInsights;
 }
+
+// Annonce types and interfaces
+export type TypeBien = 'APPARTEMENT' | 'VILLA' | 'STUDIO' | 'DUPLEX' | 'PENTHOUSE' | 'MAISON' | 'TERRAIN' | 'LOCAL_COMMERCIAL' | 'BUREAU' | 'ENTREPOT';
+export type TypeTransaction = 'VENTE' | 'LOCATION';
+export type StatusAnnonce = 'ACTIVE' | 'INACTIVE' | 'VENDU' | 'LOUE' | 'EXPIRE' | 'BROUILLON';
+
+export interface AnnonceCreateRequest {
+  titre: string;
+  description: string;
+  prix: number;
+  typeBien: TypeBien;
+  typeTransaction: TypeTransaction;
+  adresse: string;
+  ville: string;
+  codePostal: string;
+  surface?: number;
+  nombreChambres?: number;
+  nombreSallesBain?: number;
+  garage?: boolean;
+  jardin?: boolean;
+  piscine?: boolean;
+  climatisation?: boolean;
+  ascenseur?: boolean;
+  etage?: number;
+  images?: string[];
+  nomContact: string;
+  telephoneContact: string;
+  emailContact?: string;
+  dateExpiration?: string;
+}
+
+export interface AnnonceUpdateRequest extends Partial<AnnonceCreateRequest> {
+  status?: StatusAnnonce;
+}
+
+export interface Annonce {
+  id: number;
+  titre: string;
+  description: string;
+  prix: number;
+  typeBien: TypeBien;
+  typeTransaction: TypeTransaction;
+  adresse: string;
+  ville: string;
+  codePostal: string;
+  surface?: number;
+  nombreChambres?: number;
+  nombreSallesBain?: number;
+  garage?: boolean;
+  jardin?: boolean;
+  piscine?: boolean;
+  climatisation?: boolean;
+  ascenseur?: boolean;
+  etage?: number;
+  status: StatusAnnonce;
+  images: string[];
+  nomContact: string;
+  telephoneContact: string;
+  emailContact?: string;
+  vues: number;
+  favoris: number;
+  dateCreation: string;
+  dateMiseAJour: string;
+  dateExpiration?: string;
+  createurId: number;
+  createurNom: string;
+  createurPrenom: string;
+  createurType: string;
+}
+
+export interface AnnonceSummary {
+  id: number;
+  titre: string;
+  prix: number;
+  typeBien: TypeBien;
+  typeTransaction: TypeTransaction;
+  ville: string;
+  surface?: number;
+  nombreChambres?: number;
+  premierImage?: string;
+  vues: number;
+  favoris: number;
+  dateCreation: string;
+  status: StatusAnnonce;
+  createurNom: string;
+  createurType: string;
+}
+
+export interface AnnonceSearchFilters {
+  titre?: string;
+  typeBien?: TypeBien;
+  typeTransaction?: TypeTransaction;
+  ville?: string;
+  prixMin?: number;
+  prixMax?: number;
+  surfaceMin?: number;
+  surfaceMax?: number;
+  nombreChambresMin?: number;
+  nombreSallesBainMin?: number;
+  garage?: boolean;
+  jardin?: boolean;
+  piscine?: boolean;
+  climatisation?: boolean;
+  ascenseur?: boolean;
+  sortBy?: string;
+  sortDirection?: 'asc' | 'desc';
+  page?: number;
+  size?: number;
+}
+
+export interface AnnonceStats {
+  totalAnnonces: number;
+  annoncesActives: number;
+  annoncesInactives: number;
+  annoncesVendues: number;
+  annoncesLouees: number;
+  totalVues: number;
+  totalFavoris: number;
+  prixMoyen: number;
+  surfaceMoyenne: number;
+}
+
+export interface PagedResponse<T> {
+  content: T[];
+  currentPage: number;
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}
+
+export interface AnnonceTypes {
+  typesBien: { [key in TypeBien]: string };
+  typesTransaction: { [key in TypeTransaction]: string };
+  statusAnnonce: { [key in StatusAnnonce]: string };
+}

@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Subscription, combineLatest } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
+import { AnnonceService } from '../../services/annonce.service';
+import { AnnonceSummary, AnnonceStats, PagedResponse } from '../../core/models';
 import { 
   AuthUser, 
   UserType, 
@@ -48,6 +50,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
   analyticsData: any = null;
   isLoadingAnalytics = false;
   
+  // Annonces data
+  myAnnonces: PagedResponse<AnnonceSummary> | null = null;
+  annonceStats: AnnonceStats | null = null;
+  isLoadingAnnonces = false;
+  
   // Profile editing state
   isEditingProfile = false;
   
@@ -73,7 +80,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     ],
     AGENCE_IMMOBILIERE: [
       { section: 'overview', label: 'Vue d\'ensemble', icon: 'dashboard', description: 'Tableau de bord agence' },
-      { section: 'properties', label: 'Mes Biens', icon: 'home', description: 'Gestion du portefeuille' },
+      { section: 'properties', label: 'Mes Annonces', icon: 'home', description: 'Gestion des annonces' },
       { section: 'clients', label: 'CRM Clients', icon: 'people', description: 'Relation client' },
       { section: 'team', label: 'Mon Équipe', icon: 'group', description: 'Gestion des collaborateurs' },
       { section: 'analytics', label: 'Analytics', icon: 'analytics', description: 'Performance et rapports' },
@@ -93,6 +100,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   constructor(
     private authService: AuthService,
+    private annonceService: AnnonceService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
@@ -216,8 +224,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   private loadAgencyData(): void {
-    // Agency-specific data loading will be implemented when needed
-    console.log('Loading agency-specific data...');
+    console.log('🏠 [DASHBOARD] Loading agency-specific data...');
+    
+    // Load analytics data for agency
+    this.loadAnalytics();
+    
+    // Load annonces data
+    this.loadMyAnnonces();
+    
+    // Load annonce statistics
+    this.loadAnnonceStats();
   }
 
   private loadClientData(): void {
@@ -567,5 +583,138 @@ export class DashboardComponent implements OnInit, OnDestroy {
   showMetricDetails(metric: any): void {
     console.log('Metric details:', metric);
     // TODO: Implement metric details popup
+  }
+
+  // Annonces methods
+  loadMyAnnonces(): void {
+    console.log('📋 [DASHBOARD] Loading my annonces...');
+    
+    if (!this.authService.isAuthenticated || !this.isAgency()) {
+      console.log('❌ [DASHBOARD] Not authorized to load annonces');
+      return;
+    }
+
+    this.isLoadingAnnonces = true;
+    const annoncesSub = this.annonceService.getMyAnnonces(0, 20).subscribe({
+      next: (data) => {
+        console.log('✅ [DASHBOARD] My annonces loaded successfully:', data);
+        this.myAnnonces = data;
+        this.isLoadingAnnonces = false;
+      },
+      error: (error) => {
+        console.error('❌ [DASHBOARD] Error loading my annonces:', error);
+        this.isLoadingAnnonces = false;
+        // Show user-friendly error message
+        alert('Erreur lors du chargement de vos annonces. Veuillez réessayer.');
+      }
+    });
+
+    this.subscriptions.push(annoncesSub);
+  }
+
+  loadAnnonceStats(): void {
+    console.log('📊 [DASHBOARD] Loading annonce statistics...');
+    
+    if (!this.authService.isAuthenticated || !this.isAgency()) {
+      console.log('❌ [DASHBOARD] Not authorized to load annonce stats');
+      return;
+    }
+
+    const statsSub = this.annonceService.getMyAnnonceStats().subscribe({
+      next: (stats) => {
+        console.log('✅ [DASHBOARD] Annonce statistics loaded:', stats);
+        this.annonceStats = stats;
+      },
+      error: (error) => {
+        console.error('❌ [DASHBOARD] Error loading annonce stats:', error);
+        // Continue without stats, don't show error to user for stats
+      }
+    });
+
+    this.subscriptions.push(statsSub);
+  }
+
+  // Helper methods for annonces
+  getTotalAnnonces(): number {
+    return this.annonceStats?.totalAnnonces || 0;
+  }
+
+  getActiveAnnonces(): number {
+    return this.annonceStats?.annoncesActives || 0;
+  }
+
+  getTotalVues(): number {
+    return this.annonceStats?.totalVues || 0;
+  }
+
+  getTotalFavoris(): number {
+    return this.annonceStats?.totalFavoris || 0;
+  }
+
+  getPrixMoyen(): number {
+    return this.annonceStats?.prixMoyen || 0;
+  }
+
+  formatPrice(price: number): string {
+    return this.annonceService.formatPrice(price);
+  }
+
+  getAnnonceTypeBienDisplay(type: string): string {
+    return this.annonceService.getTypeBienDisplayName(type as any);
+  }
+
+  getAnnonceTypeTransactionDisplay(type: string): string {
+    return this.annonceService.getTypeTransactionDisplayName(type as any);
+  }
+
+  getAnnonceStatusDisplay(status: string): string {
+    return this.annonceService.getStatusAnnonceDisplayName(status as any);
+  }
+
+  formatAnnonceDate(dateString: string): string {
+    return this.annonceService.formatDate(dateString);
+  }
+
+  // Navigation for annonces
+  createNewAnnonce(): void {
+    console.log('🏗️ [DASHBOARD] Creating new annonce...');
+    // TODO: Navigate to annonce creation page
+    alert('Création d\'annonce - En cours d\'implémentation');
+  }
+
+  editAnnonce(annonceId: number): void {
+    console.log('✏️ [DASHBOARD] Editing annonce:', annonceId);
+    // TODO: Navigate to annonce editing page
+    alert(`Modification de l'annonce ${annonceId} - En cours d'implémentation`);
+  }
+
+  viewAnnonce(annonceId: number): void {
+    console.log('👁️ [DASHBOARD] Viewing annonce:', annonceId);
+    // TODO: Navigate to annonce details page
+    alert(`Consultation de l'annonce ${annonceId} - En cours d'implémentation`);
+  }
+
+  deleteAnnonce(annonceId: number): void {
+    console.log('🗑️ [DASHBOARD] Deleting annonce:', annonceId);
+    
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette annonce ?')) {
+      return;
+    }
+
+    const deleteSub = this.annonceService.deleteAnnonce(annonceId).subscribe({
+      next: () => {
+        console.log('✅ [DASHBOARD] Annonce deleted successfully');
+        alert('Annonce supprimée avec succès !');
+        // Reload annonces
+        this.loadMyAnnonces();
+        this.loadAnnonceStats();
+      },
+      error: (error) => {
+        console.error('❌ [DASHBOARD] Error deleting annonce:', error);
+        alert('Erreur lors de la suppression de l\'annonce');
+      }
+    });
+
+    this.subscriptions.push(deleteSub);
   }
 }

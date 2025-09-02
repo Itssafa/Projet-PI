@@ -28,7 +28,9 @@
       "Read(C:\\Users\\user\\OneDrive\\Bureau\\projetPI\\backend\\microservice\\User\\src/**)",
       "Bash(grep:*)",
       "Bash(sed:*)",
-      "Bash(wmic process where:*)"
+      "Bash(wmic process where:*)",
+      "Bash(./start-backend.bat)",
+      "Bash(netstat:*)"
     ],
     "deny": [],
     "ask": [],

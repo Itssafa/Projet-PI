@@ -1,0 +1,377 @@
+<div class="annonce-create-container">
+  <div class="form-header">
+    <h1><span class="material-icons">add_business</span> Créer une Nouvelle Annonce</h1>
+    <p>Ajoutez votre propriété au catalogue avec tous les détails nécessaires</p>
+  </div>
+
+  <form [formGroup]="annonceForm" (ngSubmit)="onSubmit()" class="annonce-form">
+    
+    <!-- Basic Information Section -->
+    <div class="form-section">
+      <h2><span class="material-icons">info</span> Informations Générales</h2>
+      
+      <div class="form-row">
+        <div class="form-field full-width">
+          <label for="titre">
+            <span class="material-icons">title</span>
+            Titre de l'annonce *
+          </label>
+          <input 
+            id="titre" 
+            type="text" 
+            formControlName="titre" 
+            placeholder="Ex: Villa moderne avec piscine - Vue mer exceptionnelle"
+            [class.error]="isFieldInvalid('titre')"
+          >
+          <div class="error-message" *ngIf="isFieldInvalid('titre')">
+            {{ getFieldError('titre') }}
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field half-width">
+          <label for="typeBien">
+            <span class="material-icons">business</span>
+            Type de bien *
+          </label>
+          <select id="typeBien" formControlName="typeBien" [class.error]="isFieldInvalid('typeBien')">
+            <option value="">Sélectionner un type</option>
+            <option *ngFor="let type of typesBien" [value]="type.value">{{ type.label }}</option>
+          </select>
+          <div class="error-message" *ngIf="isFieldInvalid('typeBien')">
+            {{ getFieldError('typeBien') }}
+          </div>
+        </div>
+
+        <div class="form-field half-width">
+          <label for="typeTransaction">
+            <span class="material-icons">swap_horiz</span>
+            Type de transaction *
+          </label>
+          <select id="typeTransaction" formControlName="typeTransaction" [class.error]="isFieldInvalid('typeTransaction')">
+            <option value="">Sélectionner</option>
+            <option *ngFor="let type of typesTransaction" [value]="type.value">{{ type.label }}</option>
+          </select>
+          <div class="error-message" *ngIf="isFieldInvalid('typeTransaction')">
+            {{ getFieldError('typeTransaction') }}
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field full-width">
+          <label for="description">
+            <span class="material-icons">description</span>
+            Description *
+          </label>
+          <textarea 
+            id="description" 
+            formControlName="description" 
+            rows="4"
+            placeholder="Décrivez en détail votre propriété : localisation, caractéristiques, avantages..."
+            [class.error]="isFieldInvalid('description')"
+          ></textarea>
+          <div class="error-message" *ngIf="isFieldInvalid('description')">
+            {{ getFieldError('description') }}
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field half-width">
+          <label for="prix">
+            <span class="material-icons">attach_money</span>
+            Prix (TND) *
+          </label>
+          <input 
+            id="prix" 
+            type="number" 
+            formControlName="prix" 
+            placeholder="0"
+            [class.error]="isFieldInvalid('prix')"
+          >
+          <div class="error-message" *ngIf="isFieldInvalid('prix')">
+            {{ getFieldError('prix') }}
+          </div>
+        </div>
+
+        <div class="form-field half-width">
+          <label for="surface">
+            <span class="material-icons">square_foot</span>
+            Surface (m²)
+          </label>
+          <input 
+            id="surface" 
+            type="number" 
+            formControlName="surface" 
+            placeholder="0"
+          >
+        </div>
+      </div>
+    </div>
+
+    <!-- Location Section -->
+    <div class="form-section">
+      <h2><span class="material-icons">location_on</span> Localisation</h2>
+      
+      <div class="form-row">
+        <div class="form-field full-width">
+          <label for="adresse">
+            <span class="material-icons">home</span>
+            Adresse complète *
+          </label>
+          <input 
+            id="adresse" 
+            type="text" 
+            formControlName="adresse" 
+            placeholder="Ex: 15 Avenue Habib Bourguiba"
+            [class.error]="isFieldInvalid('adresse')"
+          >
+          <div class="error-message" *ngIf="isFieldInvalid('adresse')">
+            {{ getFieldError('adresse') }}
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field half-width">
+          <label for="ville">
+            <span class="material-icons">location_city</span>
+            Ville *
+          </label>
+          <input 
+            id="ville" 
+            type="text" 
+            formControlName="ville" 
+            placeholder="Ex: Tunis"
+            [class.error]="isFieldInvalid('ville')"
+          >
+          <div class="error-message" *ngIf="isFieldInvalid('ville')">
+            {{ getFieldError('ville') }}
+          </div>
+        </div>
+
+        <div class="form-field half-width">
+          <label for="codePostal">
+            <span class="material-icons">markunread_mailbox</span>
+            Code postal *
+          </label>
+          <input 
+            id="codePostal" 
+            type="text" 
+            formControlName="codePostal" 
+            placeholder="1000"
+            [class.error]="isFieldInvalid('codePostal')"
+          >
+          <div class="error-message" *ngIf="isFieldInvalid('codePostal')">
+            {{ getFieldError('codePostal') }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Property Details Section -->
+    <div class="form-section">
+      <h2><span class="material-icons">home_work</span> Détails du Bien</h2>
+      
+      <div class="form-row">
+        <div class="form-field third-width">
+          <label for="nombreChambres">
+            <span class="material-icons">bed</span>
+            Chambres
+          </label>
+          <input 
+            id="nombreChambres" 
+            type="number" 
+            formControlName="nombreChambres" 
+            placeholder="0"
+          >
+        </div>
+
+        <div class="form-field third-width">
+          <label for="nombreSallesBain">
+            <span class="material-icons">bathtub</span>
+            Salles de bain
+          </label>
+          <input 
+            id="nombreSallesBain" 
+            type="number" 
+            formControlName="nombreSallesBain" 
+            placeholder="0"
+          >
+        </div>
+
+        <div class="form-field third-width">
+          <label for="etage">
+            <span class="material-icons">layers</span>
+            Étage
+          </label>
+          <input 
+            id="etage" 
+            type="number" 
+            formControlName="etage" 
+            placeholder="0"
+          >
+        </div>
+      </div>
+
+      <!-- Features Checkboxes -->
+      <div class="form-row">
+        <div class="features-grid">
+          <label class="checkbox-field">
+            <input type="checkbox" formControlName="garage">
+            <span class="checkmark">
+              <span class="material-icons">garage</span>
+            </span>
+            <span class="label-text">Garage</span>
+          </label>
+
+          <label class="checkbox-field">
+            <input type="checkbox" formControlName="jardin">
+            <span class="checkmark">
+              <span class="material-icons">grass</span>
+            </span>
+            <span class="label-text">Jardin</span>
+          </label>
+
+          <label class="checkbox-field">
+            <input type="checkbox" formControlName="piscine">
+            <span class="checkmark">
+              <span class="material-icons">pool</span>
+            </span>
+            <span class="label-text">Piscine</span>
+          </label>
+
+          <label class="checkbox-field">
+            <input type="checkbox" formControlName="climatisation">
+            <span class="checkmark">
+              <span class="material-icons">ac_unit</span>
+            </span>
+            <span class="label-text">Climatisation</span>
+          </label>
+
+          <label class="checkbox-field">
+            <input type="checkbox" formControlName="ascenseur">
+            <span class="checkmark">
+              <span class="material-icons">elevator</span>
+            </span>
+            <span class="label-text">Ascenseur</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Images Section -->
+    <div class="form-section">
+      <h2><span class="material-icons">photo_library</span> Photos</h2>
+      
+      <div class="form-row">
+        <div class="image-input-container">
+          <input 
+            type="url" 
+            formControlName="imageUrl" 
+            placeholder="https://exemple.com/image.jpg"
+            class="image-url-input"
+          >
+          <button type="button" (click)="addImage()" class="add-image-btn">
+            <span class="material-icons">add_photo_alternate</span>
+            Ajouter
+          </button>
+        </div>
+      </div>
+
+      <div class="images-preview" *ngIf="imageUrls.length > 0">
+        <div class="image-item" *ngFor="let url of imageUrls; let i = index">
+          <img [src]="url" [alt]="'Image ' + (i + 1)" onerror="this.style.display='none'">
+          <button type="button" (click)="removeImage(i)" class="remove-image-btn">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact Section -->
+    <div class="form-section">
+      <h2><span class="material-icons">contact_phone</span> Contact</h2>
+      
+      <div class="form-row">
+        <div class="form-field half-width">
+          <label for="nomContact">
+            <span class="material-icons">person</span>
+            Nom du contact *
+          </label>
+          <input 
+            id="nomContact" 
+            type="text" 
+            formControlName="nomContact" 
+            placeholder="Nom et prénom"
+            [class.error]="isFieldInvalid('nomContact')"
+          >
+          <div class="error-message" *ngIf="isFieldInvalid('nomContact')">
+            {{ getFieldError('nomContact') }}
+          </div>
+        </div>
+
+        <div class="form-field half-width">
+          <label for="telephoneContact">
+            <span class="material-icons">phone</span>
+            Téléphone *
+          </label>
+          <input 
+            id="telephoneContact" 
+            type="tel" 
+            formControlName="telephoneContact" 
+            placeholder="12345678"
+            [class.error]="isFieldInvalid('telephoneContact')"
+          >
+          <div class="error-message" *ngIf="isFieldInvalid('telephoneContact')">
+            {{ getFieldError('telephoneContact') }}
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field half-width">
+          <label for="emailContact">
+            <span class="material-icons">email</span>
+            Email (optionnel)
+          </label>
+          <input 
+            id="emailContact" 
+            type="email" 
+            formControlName="emailContact" 
+            placeholder="contact@exemple.com"
+            [class.error]="isFieldInvalid('emailContact')"
+          >
+          <div class="error-message" *ngIf="isFieldInvalid('emailContact')">
+            {{ getFieldError('emailContact') }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit Section -->
+    <div class="form-actions">
+      <div class="message-container" *ngIf="submitMessage">
+        <div class="submit-message" [class.success]="submitMessage.includes('succès')" [class.error]="!submitMessage.includes('succès')">
+          {{ submitMessage }}
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button type="button" (click)="cancel()" class="btn btn-secondary" [disabled]="isSubmitting">
+          <span class="material-icons">cancel</span>
+          Annuler
+        </button>
+        
+        <button type="submit" class="btn btn-primary" [disabled]="isSubmitting || annonceForm.invalid">
+          <span class="material-icons" *ngIf="!isSubmitting">publish</span>
+          <div class="spinner" *ngIf="isSubmitting"></div>
+          {{ isSubmitting ? 'Publication...' : 'Publier l\'annonce' }}
+        </button>
+      </div>
+    </div>
+
+  </form>
+</div>

@@ -692,101 +692,154 @@
           </div>
         </div>
 
-        <!-- Properties Section -->
+        <!-- Annonces Section -->
         <div *ngIf="activeSection === 'properties'" class="section-content">
           <div class="properties-header">
-            <h2>Gestion des Biens</h2>
-            <button class="btn btn-primary">
+            <h2>Mes Annonces</h2>
+            <button class="btn btn-primary" [disabled]="!isAgencyVerified()" (click)="createNewAnnonce()">
               <span class="material-icons">add</span>
-              Ajouter un bien
+              Nouvelle annonce
             </button>
           </div>
 
-          <!-- Properties Stats -->
-          <div class="properties-stats">
-            <div class="stat-row">
-              <div class="stat-item">
-                <span class="stat-number">127</span>
-                <span class="stat-label">Total biens</span>
+          <!-- Non-verified agency message -->
+          <div *ngIf="!isAgencyVerified()" class="verification-notice">
+            <div class="notice-card">
+              <div class="notice-icon">
+                <span class="material-icons">info</span>
               </div>
-              <div class="stat-item">
-                <span class="stat-number">89</span>
-                <span class="stat-label">Disponibles</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-number">23</span>
-                <span class="stat-label">En négociation</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-number">15</span>
-                <span class="stat-label">Vendus ce mois</span>
+              <div class="notice-content">
+                <h3>Vérification requise</h3>
+                <p>Pour accéder à la gestion de vos biens, votre agence doit être vérifiée par notre équipe.</p>
+                <p>Une fois la vérification terminée, vous pourrez:</p>
+                <ul>
+                  <li>Ajouter et gérer vos propriétés</li>
+                  <li>Publier des annonces</li>
+                  <li>Accéder aux statistiques avancées</li>
+                  <li>Gérer votre portefeuille client</li>
+                </ul>
+                <button class="btn btn-outline" (click)="setActiveSection('verification')">
+                  <span class="material-icons">verified</span>
+                  Voir le statut de vérification
+                </button>
               </div>
             </div>
           </div>
 
-          <!-- Properties List -->
-          <div class="properties-list">
-            <div class="property-item">
-              <div class="property-image">
-                <div class="property-placeholder">
-                  <span class="material-icons">home</span>
+          <!-- Annonces Stats -->
+          <div class="properties-stats" *ngIf="isAgencyVerified()">
+            <div class="stat-row">
+              <div class="stat-item">
+                <span class="stat-number">{{ getTotalAnnonces() }}</span>
+                <span class="stat-label">Total annonces</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">{{ getActiveAnnonces() }}</span>
+                <span class="stat-label">Actives</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">{{ getTotalVues() }}</span>
+                <span class="stat-label">Vues totales</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">{{ getTotalFavoris() }}</span>
+                <span class="stat-label">Favoris</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">{{ formatPrice(getPrixMoyen()) }}</span>
+                <span class="stat-label">Prix moyen</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Annonces List -->
+          <div class="properties-list" *ngIf="isAgencyVerified()">
+            <!-- Loading state -->
+            <div *ngIf="isLoadingAnnonces" class="loading-state">
+              <div class="loading-spinner"></div>
+              <p>Chargement de vos annonces...</p>
+            </div>
+
+            <!-- No annonces state -->
+            <div *ngIf="!isLoadingAnnonces && (!myAnnonces || !myAnnonces.content || myAnnonces.content.length === 0)" class="empty-state">
+              <div class="empty-icon">
+                <span class="material-icons">home_work</span>
+              </div>
+              <h3>Aucune annonce trouvée</h3>
+              <p>Vous n'avez pas encore créé d'annonce. Commencez par ajouter votre première annonce !</p>
+              <button class="btn btn-primary" (click)="createNewAnnonce()">
+                <span class="material-icons">add</span>
+                Créer ma première annonce
+              </button>
+            </div>
+
+            <!-- Annonces list -->
+            <div *ngIf="!isLoadingAnnonces && myAnnonces && myAnnonces.content && myAnnonces.content.length > 0">
+              <div class="property-item" *ngFor="let annonce of myAnnonces.content">
+                <div class="property-image">
+                  <div class="property-placeholder" *ngIf="!annonce.premierImage">
+                    <span class="material-icons">{{ annonce.typeBien === 'VILLA' ? 'villa' : 'home' }}</span>
+                  </div>
+                  <img *ngIf="annonce.premierImage" [src]="annonce.premierImage" [alt]="annonce.titre" class="property-img">
                 </div>
-              </div>
-              <div class="property-details">
-                <h4>Appartement 3 pièces - Tunis Centre</h4>
-                <p class="property-description">Bel appartement refait à neuf, proche commodités</p>
-                <div class="property-specs">
-                  <span class="spec">3 pièces</span>
-                  <span class="spec">85m²</span>
-                  <span class="spec">2ème étage</span>
+                <div class="property-details">
+                  <h4>{{ annonce.titre }}</h4>
+                  <p class="property-description" *ngIf="annonce.typeTransaction">
+                    {{ getAnnonceTypeTransactionDisplay(annonce.typeTransaction) }} - {{ getAnnonceTypeBienDisplay(annonce.typeBien) }}
+                  </p>
+                  <div class="property-specs">
+                    <span class="spec" *ngIf="annonce.nombreChambres">{{ annonce.nombreChambres }} ch.</span>
+                    <span class="spec" *ngIf="annonce.surface">{{ annonce.surface }}m²</span>
+                    <span class="spec">{{ annonce.vues }} vues</span>
+                    <span class="spec">{{ annonce.favoris }} ♥</span>
+                  </div>
+                  <div class="property-location">
+                    <span class="material-icons">location_on</span>
+                    {{ annonce.ville }}
+                  </div>
                 </div>
-                <div class="property-location">
-                  <span class="material-icons">location_on</span>
-                  Tunis Centre
+                <div class="property-price">
+                  <div class="price-main">{{ formatPrice(annonce.prix) }}</div>
+                  <div class="price-per-m2" *ngIf="annonce.surface">{{ formatPrice(annonce.prix / annonce.surface) }}/m²</div>
+                  <div class="price-date">{{ formatAnnonceDate(annonce.dateCreation) }}</div>
                 </div>
-              </div>
-              <div class="property-price">
-                <div class="price-main">180 000 €</div>
-                <div class="price-per-m2">2,118 €/m²</div>
-              </div>
-              <div class="property-status">
-                <span class="status-badge available">Disponible</span>
-              </div>
-              <div class="property-actions">
-                <button class="btn btn-sm btn-outline">Modifier</button>
-                <button class="btn btn-sm btn-primary">Voir détails</button>
+                <div class="property-status">
+                  <span class="status-badge" [class]="'status-' + annonce.status.toLowerCase()">
+                    {{ getAnnonceStatusDisplay(annonce.status) }}
+                  </span>
+                </div>
+                <div class="property-actions">
+                  <button class="btn btn-sm btn-outline" (click)="editAnnonce(annonce.id)">
+                    <span class="material-icons">edit</span>
+                    Modifier
+                  </button>
+                  <button class="btn btn-sm btn-primary" (click)="viewAnnonce(annonce.id)">
+                    <span class="material-icons">visibility</span>
+                    Détails
+                  </button>
+                  <button class="btn btn-sm btn-danger" (click)="deleteAnnonce(annonce.id)">
+                    <span class="material-icons">delete</span>
+                    Supprimer
+                  </button>
+                </div>
               </div>
             </div>
 
-            <div class="property-item">
-              <div class="property-image">
-                <div class="property-placeholder">
-                  <span class="material-icons">villa</span>
-                </div>
+            <!-- Pagination -->
+            <div class="pagination-container" *ngIf="myAnnonces && myAnnonces.totalPages && myAnnonces.totalPages > 1">
+              <div class="pagination-info">
+                Page {{ myAnnonces.currentPage + 1 }} sur {{ myAnnonces.totalPages }} 
+                ({{ myAnnonces.totalElements }} annonces au total)
               </div>
-              <div class="property-details">
-                <h4>Villa avec jardin - Sousse</h4>
-                <p class="property-description">Villa moderne avec piscine et grand jardin</p>
-                <div class="property-specs">
-                  <span class="spec">5 pièces</span>
-                  <span class="spec">200m²</span>
-                  <span class="spec">Jardin 400m²</span>
-                </div>
-                <div class="property-location">
-                  <span class="material-icons">location_on</span>
-                  Sousse
-                </div>
-              </div>
-              <div class="property-price">
-                <div class="price-main">450 000 €</div>
-                <div class="price-per-m2">2,250 €/m²</div>
-              </div>
-              <div class="property-status">
-                <span class="status-badge negotiation">En négociation</span>
-              </div>
-              <div class="property-actions">
-                <button class="btn btn-sm btn-outline">Modifier</button>
-                <button class="btn btn-sm btn-primary">Voir détails</button>
+              <div class="pagination-controls">
+                <button class="btn btn-sm" [disabled]="!myAnnonces.hasPrevious" (click)="loadMyAnnonces()">
+                  <span class="material-icons">chevron_left</span>
+                  Précédent
+                </button>
+                <button class="btn btn-sm" [disabled]="!myAnnonces.hasNext" (click)="loadMyAnnonces()">
+                  Suivant
+                  <span class="material-icons">chevron_right</span>
+                </button>
               </div>
             </div>
           </div>
@@ -796,10 +849,30 @@
         <div *ngIf="activeSection === 'clients'" class="section-content">
           <div class="clients-header">
             <h2>CRM Clients</h2>
-            <button class="btn btn-primary">
+            <button class="btn btn-primary" [disabled]="!isAgencyVerified()">
               <span class="material-icons">person_add</span>
               Nouveau client
             </button>
+          </div>
+
+          <!-- Non-verified agency message -->
+          <div *ngIf="!isAgencyVerified()" class="verification-notice">
+            <div class="notice-card">
+              <div class="notice-icon">
+                <span class="material-icons">people</span>
+              </div>
+              <div class="notice-content">
+                <h3>Accès au CRM en attente</h3>
+                <p>Votre système de gestion client sera disponible une fois votre agence vérifiée.</p>
+                <p>Avec le CRM, vous pourrez:</p>
+                <ul>
+                  <li>Gérer vos contacts clients</li>
+                  <li>Suivre les prospects</li>
+                  <li>Planifier des rendez-vous</li>
+                  <li>Analyser votre pipeline de ventes</li>
+                </ul>
+              </div>
+            </div>
           </div>
 
           <!-- Clients Stats -->
@@ -922,10 +995,30 @@
         <div *ngIf="activeSection === 'team'" class="section-content">
           <div class="team-header">
             <h2>Gestion d'Équipe</h2>
-            <button class="btn btn-primary">
+            <button class="btn btn-primary" [disabled]="!isAgencyVerified()">
               <span class="material-icons">person_add</span>
               Inviter un membre
             </button>
+          </div>
+
+          <!-- Non-verified agency message -->
+          <div *ngIf="!isAgencyVerified()" class="verification-notice">
+            <div class="notice-card">
+              <div class="notice-icon">
+                <span class="material-icons">group</span>
+              </div>
+              <div class="notice-content">
+                <h3>Gestion d'équipe indisponible</h3>
+                <p>Les fonctionnalités de gestion d'équipe seront activées après vérification de votre agence.</p>
+                <p>Une fois vérifiée, vous pourrez:</p>
+                <ul>
+                  <li>Inviter des collaborateurs</li>
+                  <li>Gérer les rôles et permissions</li>
+                  <li>Suivre les performances individuelles</li>
+                  <li>Organiser le travail d'équipe</li>
+                </ul>
+              </div>
+            </div>
           </div>
 
           <!-- Team Stats -->
@@ -1030,14 +1123,34 @@
             </div>
           </div>
 
+          <!-- Non-verified agency message -->
+          <div *ngIf="!isAgencyVerified()" class="verification-notice">
+            <div class="notice-card">
+              <div class="notice-icon">
+                <span class="material-icons">analytics</span>
+              </div>
+              <div class="notice-content">
+                <h3>Analytics premium en attente</h3>
+                <p>L'accès aux statistiques avancées sera disponible après vérification de votre agence.</p>
+                <p>Vous aurez accès à:</p>
+                <ul>
+                  <li>Tableau de bord des performances</li>
+                  <li>Analyses de marché</li>
+                  <li>Rapports de conversion</li>
+                  <li>Insights sur la concurrence</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
           <!-- Loading State -->
-          <div *ngIf="isLoadingAnalytics" class="loading-container">
+          <div *ngIf="isLoadingAnalytics && isAgencyVerified()" class="loading-container">
             <div class="spinner"></div>
             <p>Chargement des données analytiques...</p>
           </div>
 
           <!-- Key Performance Indicators -->
-          <div *ngIf="!isLoadingAnalytics && analyticsData" class="kpi-grid">
+          <div *ngIf="!isLoadingAnalytics && analyticsData && isAgencyVerified()" class="kpi-grid">
             <div *ngFor="let kpi of analyticsData.kpis" 
                  class="kpi-card animated-kpi-card"
                  (click)="showMetricDetails(kpi)">
@@ -1059,7 +1172,7 @@
           </div>
 
           <!-- Performance Charts -->
-          <div *ngIf="!isLoadingAnalytics && analyticsData" class="analytics-charts">
+          <div *ngIf="!isLoadingAnalytics && analyticsData && isAgencyVerified()" class="analytics-charts">
             <div *ngFor="let chart of analyticsData.performanceCharts" class="chart-grid-item">
               <app-animated-chart 
                 [chartData]="chart"
