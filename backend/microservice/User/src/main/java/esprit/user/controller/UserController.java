@@ -9,6 +9,7 @@ import esprit.user.entity.UserStatus;
 import esprit.user.entity.UserType;
 import esprit.user.service.UserService;
 import esprit.user.service.StatisticsService;
+import esprit.user.service.AnalyticsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +34,7 @@ public class UserController {
 
     private final UserService userService;
     private final StatisticsService statisticsService;
+    private final AnalyticsService analyticsService;
 
     @GetMapping
     @PreAuthorize("hasRole('ADMINISTRATEUR')")
@@ -255,6 +257,28 @@ public class UserController {
                 .body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             log.error("Erreur interne lors de la vérification de l'agence {}: {}", agencyId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Erreur interne du serveur"));
+        }
+    }
+
+    @GetMapping("/analytics")
+    public ResponseEntity<?> getUserAnalytics(Authentication authentication) {
+        try {
+            String email = authentication.getName();
+            User user = userService.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            if (user.getUserType() == UserType.CLIENT_ABONNE) {
+                return ResponseEntity.ok(analyticsService.getClientAnalytics(user));
+            } else if (user.getUserType() == UserType.AGENCE_IMMOBILIERE) {
+                return ResponseEntity.ok(analyticsService.getAgencyAnalytics(user));
+            } else {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Analytics not available for this user type"));
+            }
+        } catch (Exception e) {
+            log.error("Erreur lors de la récupération des analytics pour l'utilisateur: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Erreur interne du serveur"));
         }

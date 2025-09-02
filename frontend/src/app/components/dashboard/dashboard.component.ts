@@ -16,11 +16,12 @@ import {
 } from '../../core/models';
 import { ProfileViewComponent } from '../profile/profile-view.component';
 import { ProfileSectionsComponent } from '../profile/profile-sections.component';
+import { AnimatedChartComponent } from '../shared/animated-chart.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, ProfileViewComponent, ProfileSectionsComponent],
+  imports: [CommonModule, ProfileViewComponent, ProfileSectionsComponent, AnimatedChartComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
@@ -42,6 +43,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
   pendingAgencies: AuthUser[] = [];
   verifiedAgencies: AuthUser[] = [];
   isLoadingAgencies = false;
+  
+  // Analytics data
+  analyticsData: any = null;
+  isLoadingAnalytics = false;
   
   // Profile editing state
   isEditingProfile = false;
@@ -279,6 +284,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
       case 'agencies':
         if (this.userType === 'ADMINISTRATEUR') {
           this.loadAgencies();
+        }
+        break;
+      case 'analytics':
+        if (this.userType === 'CLIENT_ABONNE' || this.userType === 'AGENCE_IMMOBILIERE') {
+          this.loadAnalytics();
         }
         break;
       default:
@@ -530,5 +540,32 @@ export class DashboardComponent implements OnInit, OnDestroy {
       return agency.nomAgence.split(' ').map((word: string) => word.charAt(0)).join('').toUpperCase();
     }
     return `${agency.prenom.charAt(0)}${agency.nom.charAt(0)}`.toUpperCase();
+  }
+
+  // Analytics methods
+  loadAnalytics(): void {
+    if (!this.userType || (this.userType !== 'CLIENT_ABONNE' && this.userType !== 'AGENCE_IMMOBILIERE')) {
+      return;
+    }
+    
+    this.isLoadingAnalytics = true;
+    const analyticsSub = this.authService.getUserAnalytics().subscribe({
+      next: (data) => {
+        this.analyticsData = data;
+        this.isLoadingAnalytics = false;
+        console.log('Analytics data loaded:', data);
+      },
+      error: (error) => {
+        console.error('Error loading analytics:', error);
+        this.isLoadingAnalytics = false;
+      }
+    });
+
+    this.subscriptions.push(analyticsSub);
+  }
+
+  showMetricDetails(metric: any): void {
+    console.log('Metric details:', metric);
+    // TODO: Implement metric details popup
   }
 }

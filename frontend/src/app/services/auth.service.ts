@@ -509,4 +509,14 @@ export class AuthService {
   verifyAgency(agencyId: number): Observable<{message: string}> {
     return this.http.post<{message: string}>(`${BASE_URL}/api/users/verify-agency/${agencyId}`, {});
   }
+
+  // --- Analytics Endpoints ---
+
+  /**
+   * GET /api/users/analytics
+   * Get analytics data for current user (CLIENT_ABONNE or AGENCE_IMMOBILIERE)
+   */
+  getUserAnalytics(): Observable<any> {
+    return this.http.get<any>(`${BASE_URL}/api/users/analytics`);
+  }
 }

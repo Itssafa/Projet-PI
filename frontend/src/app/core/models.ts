@@ -222,3 +222,140 @@ export interface VisitStats {
   topPages: PageStats[];
   geographicDistribution: CountryStats[];
 }
+
+// Enhanced Analytics Models
+export interface MetricData {
+  label: string;
+  value: number;
+  trend: 'positive' | 'negative' | 'neutral';
+  percentage: number;
+  icon: string;
+  color: string;
+}
+
+export interface ChartDataset {
+  label: string;
+  data: number[];
+  backgroundColor: string;
+  borderColor: string;
+  borderWidth: number;
+  fill: boolean;
+}
+
+export interface ChartData {
+  type: 'line' | 'bar' | 'pie' | 'doughnut';
+  title: string;
+  labels: string[];
+  datasets: ChartDataset[];
+}
+
+export interface ActivityData {
+  date: string;
+  activity: string;
+  description: string;
+  icon: string;
+  color: string;
+}
+
+export interface SubscriptionInsights {
+  currentPlan: string;
+  daysRemaining: number;
+  usagePercentage: number;
+  availableFeatures: string[];
+  upgradeRecommendations: string[];
+}
+
+export interface SearchAnalytics {
+  totalSearches: number;
+  searchesThisMonth: number;
+  searchesRemaining: number;
+  averageSearchesPerDay: number;
+  topSearchTypes: string[];
+  topLocations: string[];
+}
+
+export interface ClientAnalytics {
+  keyMetrics: MetricData[];
+  charts: ChartData[];
+  searchAnalytics: SearchAnalytics;
+  recentActivity: ActivityData[];
+  subscriptionInsights: SubscriptionInsights;
+}
+
+export interface PropertyTypeData {
+  type: string;
+  count: number;
+  averagePrice: number;
+  color: string;
+}
+
+export interface PropertyAnalytics {
+  totalProperties: number;
+  propertiesSold: number;
+  propertiesRented: number;
+  activeListings: number;
+  averageSaleTime: number;
+  averageRentTime: number;
+  propertyByType: PropertyTypeData[];
+}
+
+export interface ClientSegment {
+  segment: string;
+  count: number;
+  percentage: number;
+  color: string;
+}
+
+export interface ClientAnalyticsData {
+  totalClients: number;
+  activeClients: number;
+  newClientsThisMonth: number;
+  clientSatisfactionScore: number;
+  clientSegments: ClientSegment[];
+}
+
+export interface MemberPerformance {
+  name: string;
+  role: string;
+  score: number;
+  salesCount: number;
+  revenue: number;
+  avatar: string;
+}
+
+export interface TeamPerformance {
+  totalMembers: number;
+  averagePerformanceScore: number;
+  topPerformers: MemberPerformance[];
+  teamMetrics: MetricData[];
+}
+
+export interface MarketData {
+  competitorName: string;
+  marketShare: number;
+  color: string;
+}
+
+export interface PriceInsight {
+  location: string;
+  averagePrice: number;
+  priceChange: number;
+  trend: string;
+}
+
+export interface MarketInsights {
+  marketTrend: 'growing' | 'stable' | 'declining';
+  marketGrowthRate: number;
+  competitorAnalysis: MarketData[];
+  priceInsights: PriceInsight[];
+  recommendations: string[];
+}
+
+export interface AgencyAnalytics {
+  kpis: MetricData[];
+  performanceCharts: ChartData[];
+  propertyAnalytics: PropertyAnalytics;
+  clientAnalytics: ClientAnalyticsData;
+  teamPerformance: TeamPerformance;
+  marketInsights: MarketInsights;
+}

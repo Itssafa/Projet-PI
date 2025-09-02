@@ -540,69 +540,43 @@
             <p>Analysez votre activité sur la plateforme</p>
           </div>
 
+          <!-- Loading State -->
+          <div *ngIf="isLoadingAnalytics" class="loading-container">
+            <div class="spinner"></div>
+            <p>Chargement des données analytiques...</p>
+          </div>
+
           <!-- Key Metrics -->
-          <div class="analytics-metrics">
-            <div class="metric-card">
+          <div *ngIf="!isLoadingAnalytics && analyticsData" class="analytics-metrics">
+            <div *ngFor="let metric of analyticsData.keyMetrics" 
+                 class="metric-card animated-metric-card"
+                 (click)="showMetricDetails(metric)">
               <div class="metric-icon">
-                <span class="material-icons">search</span>
+                <span class="material-icons" [style.color]="metric.color">{{ metric.icon }}</span>
               </div>
               <div class="metric-content">
-                <div class="metric-number">47</div>
-                <div class="metric-label">Recherches ce mois</div>
-                <div class="metric-trend positive">+23% vs mois dernier</div>
-              </div>
-            </div>
-
-            <div class="metric-card">
-              <div class="metric-icon">
-                <span class="material-icons">visibility</span>
-              </div>
-              <div class="metric-content">
-                <div class="metric-number">156</div>
-                <div class="metric-label">Biens consultés</div>
-                <div class="metric-trend positive">+15% vs mois dernier</div>
-              </div>
-            </div>
-
-            <div class="metric-card">
-              <div class="metric-icon">
-                <span class="material-icons">contact_phone</span>
-              </div>
-              <div class="metric-content">
-                <div class="metric-number">12</div>
-                <div class="metric-label">Agences contactées</div>
-                <div class="metric-trend neutral">Stable</div>
-              </div>
-            </div>
-
-            <div class="metric-card">
-              <div class="metric-icon">
-                <span class="material-icons">schedule</span>
-              </div>
-              <div class="metric-content">
-                <div class="metric-number">2h 45m</div>
-                <div class="metric-label">Temps moyen par session</div>
-                <div class="metric-trend positive">+8% vs mois dernier</div>
+                <div class="metric-number">{{ metric.value }}</div>
+                <div class="metric-label">{{ metric.label }}</div>
+                <div class="metric-trend" [ngClass]="metric.trend">
+                  <span class="material-icons">
+                    {{ metric.trend === 'positive' ? 'trending_up' : 
+                       metric.trend === 'negative' ? 'trending_down' : 'trending_flat' }}
+                  </span>
+                  {{ metric.percentage ? '+' + metric.percentage + '%' : 'Stable' }}
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Charts Placeholder -->
-          <div class="analytics-charts">
-            <div class="chart-container">
-              <h3>Activité de recherche</h3>
-              <div class="chart-placeholder">
-                <span class="material-icons">trending_up</span>
-                <p>Graphique d'activité disponible avec l'intégration Chart.js</p>
-              </div>
-            </div>
-
-            <div class="chart-container">
-              <h3>Types de biens recherchés</h3>
-              <div class="chart-placeholder">
-                <span class="material-icons">pie_chart</span>
-                <p>Répartition par type de bien</p>
-              </div>
+          <!-- Charts -->
+          <div *ngIf="!isLoadingAnalytics && analyticsData" class="analytics-charts">
+            <div *ngFor="let chart of analyticsData.charts" class="chart-grid-item">
+              <app-animated-chart 
+                [chartData]="chart"
+                [showLegend]="true"
+                [animated]="true"
+                [responsive]="true">
+              </app-animated-chart>
             </div>
           </div>
 
@@ -1056,73 +1030,43 @@
             </div>
           </div>
 
+          <!-- Loading State -->
+          <div *ngIf="isLoadingAnalytics" class="loading-container">
+            <div class="spinner"></div>
+            <p>Chargement des données analytiques...</p>
+          </div>
+
           <!-- Key Performance Indicators -->
-          <div class="kpi-grid">
-            <div class="kpi-card revenue">
+          <div *ngIf="!isLoadingAnalytics && analyticsData" class="kpi-grid">
+            <div *ngFor="let kpi of analyticsData.kpis" 
+                 class="kpi-card animated-kpi-card"
+                 (click)="showMetricDetails(kpi)">
               <div class="kpi-icon">
-                <span class="material-icons">euro</span>
+                <span class="material-icons" [style.color]="kpi.color">{{ kpi.icon }}</span>
               </div>
               <div class="kpi-content">
-                <div class="kpi-number">€ 127,500</div>
-                <div class="kpi-label">Chiffre d'affaires</div>
-                <div class="kpi-trend positive">+18% vs mois dernier</div>
-              </div>
-            </div>
-
-            <div class="kpi-card transactions">
-              <div class="kpi-icon">
-                <span class="material-icons">handshake</span>
-              </div>
-              <div class="kpi-content">
-                <div class="kpi-number">23</div>
-                <div class="kpi-label">Transactions closes</div>
-                <div class="kpi-trend positive">+12% vs mois dernier</div>
-              </div>
-            </div>
-
-            <div class="kpi-card conversion">
-              <div class="kpi-icon">
-                <span class="material-icons">trending_up</span>
-              </div>
-              <div class="kpi-content">
-                <div class="kpi-number">15.8%</div>
-                <div class="kpi-label">Taux de conversion</div>
-                <div class="kpi-trend positive">+2.3pts vs mois dernier</div>
-              </div>
-            </div>
-
-            <div class="kpi-card avg-price">
-              <div class="kpi-icon">
-                <span class="material-icons">home</span>
-              </div>
-              <div class="kpi-content">
-                <div class="kpi-number">€ 285k</div>
-                <div class="kpi-label">Prix moyen</div>
-                <div class="kpi-trend neutral">Stable</div>
+                <div class="kpi-number">{{ kpi.value }}</div>
+                <div class="kpi-label">{{ kpi.label }}</div>
+                <div class="kpi-trend" [ngClass]="kpi.trend">
+                  <span class="material-icons">
+                    {{ kpi.trend === 'positive' ? 'trending_up' : 
+                       kpi.trend === 'negative' ? 'trending_down' : 'trending_flat' }}
+                  </span>
+                  {{ kpi.percentage ? '+' + kpi.percentage + '%' : 'Stable' }}
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Charts -->
-          <div class="analytics-charts">
-            <div class="chart-section">
-              <h3>Évolution du chiffre d'affaires</h3>
-              <div class="chart-container">
-                <div class="chart-placeholder">
-                  <span class="material-icons">trending_up</span>
-                  <p>Graphique CA mensuel disponible avec Chart.js</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="chart-section">
-              <h3>Répartition des biens vendus</h3>
-              <div class="chart-container">
-                <div class="chart-placeholder">
-                  <span class="material-icons">donut_large</span>
-                  <p>Graphique en secteurs par type de bien</p>
-                </div>
-              </div>
+          <!-- Performance Charts -->
+          <div *ngIf="!isLoadingAnalytics && analyticsData" class="analytics-charts">
+            <div *ngFor="let chart of analyticsData.performanceCharts" class="chart-grid-item">
+              <app-animated-chart 
+                [chartData]="chart"
+                [showLegend]="true"
+                [animated]="true"
+                [responsive]="true">
+              </app-animated-chart>
             </div>
           </div>
 
