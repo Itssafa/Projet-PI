@@ -348,11 +348,11 @@ export class AuthService {
   }
 
   /**
-   * POST /api/auth/change-password
+   * POST /api/users/change-password
    * Change user password
    */
   changePassword(payload: PasswordChangeRequest): Observable<PasswordChangeResponse> {
-    return this.http.post<PasswordChangeResponse>(`${BASE_URL}/api/auth/change-password`, payload);
+    return this.http.post<PasswordChangeResponse>(`${BASE_URL}/api/users/change-password`, payload);
   }
 
   // --- Role-Based Access Control ---
@@ -497,5 +497,23 @@ export class AuthService {
   updateCurrentUser(user: AuthUser): void {
     localStorage.setItem(this.USER_KEY, JSON.stringify(user));
     this._currentUser$.next(user);
+  }
+
+  // --- Agency Management ---
+
+  /**
+   * GET /api/users/type/AGENCE_IMMOBILIERE
+   * Get all agencies for admin verification
+   */
+  getAllAgencies(): Observable<AuthUser[]> {
+    return this.http.get<AuthUser[]>(`${BASE_URL}/api/users/type/AGENCE_IMMOBILIERE`);
+  }
+
+  /**
+   * POST /api/users/verify-agency/{agencyId}
+   * Verify an agency (admin only)
+   */
+  verifyAgency(agencyId: number): Observable<{message: string}> {
+    return this.http.post<{message: string}>(`${BASE_URL}/api/users/verify-agency/${agencyId}`, {});
   }
 }

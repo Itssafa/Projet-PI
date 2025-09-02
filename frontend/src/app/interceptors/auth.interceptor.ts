@@ -1,34 +1,27 @@
-import { Injectable } from '@angular/core';
-import {
-  HttpInterceptor,
-  HttpRequest,
-  HttpHandler,
-  HttpEvent,
-  HttpErrorResponse
-} from '@angular/common/http';
-import { Observable, catchError, throwError } from 'rxjs';
+import { HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { catchError, throwError } from 'rxjs';
 
-@Injectable()
-export class AuthInterceptor implements HttpInterceptor {
-  constructor(private router: Router) {}
+export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  const router = inject(Router);
+  const token = localStorage.getItem('jwt_token');
 
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const token = localStorage.getItem('jwt_token');
+  const authReq = token
+    ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
+    : req;
 
-    const authReq = token
-      ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
-      : req;
-
-    return next.handle(authReq).pipe(
-      catchError((err: HttpErrorResponse) => {
-        if (err.status === 401) {
-          // Token missing/expired/invalid → force login
-          localStorage.removeItem('jwt_token');
-          this.router.navigate(['/login'], { queryParams: { redirect: this.router.url } });
-        }
-        return throwError(() => err);
-      })
-    );
-  }
-}
+  return next(authReq).pipe(
+    catchError((err) => {
+      if (err.status === 401) {
+        // Token missing/expired/invalid → force login
+        localStorage.removeItem('jwt_token');
+        localStorage.removeItem('auth_user');
+        localStorage.removeItem('refresh_token');
+        sessionStorage.removeItem('session_id');
+        router.navigate(['/login'], { queryParams: { redirect: router.url } });
+      }
+      return throwError(() => err);
+    })
+  );
+};

@@ -179,7 +179,8 @@
             <app-profile-sections 
               [user]="currentUser"
               (saved)="onProfileSaved($event)"
-              (cancelled)="cancelEditProfile()">
+              (cancelled)="cancelEditProfile()"
+              (passwordChanged)="onPasswordChanged()">
             </app-profile-sections>
           </div>
         </div>
@@ -653,7 +654,8 @@
             <app-profile-sections 
               [user]="currentUser"
               (saved)="onProfileSaved($event)"
-              (cancelled)="cancelEditProfile()">
+              (cancelled)="cancelEditProfile()"
+              (passwordChanged)="onPasswordChanged()">
             </app-profile-sections>
           </div>
         </div>
@@ -1237,7 +1239,8 @@
             <app-profile-sections 
               [user]="currentUser"
               (saved)="onProfileSaved($event)"
-              (cancelled)="cancelEditProfile()">
+              (cancelled)="cancelEditProfile()"
+              (passwordChanged)="onPasswordChanged()">
             </app-profile-sections>
           </div>
         </div>
@@ -2246,7 +2249,8 @@
             <app-profile-sections 
               [user]="currentUser"
               (saved)="onProfileSaved($event)"
-              (cancelled)="cancelEditProfile()">
+              (cancelled)="cancelEditProfile()"
+              (passwordChanged)="onPasswordChanged()">
             </app-profile-sections>
           </div>
         </div>

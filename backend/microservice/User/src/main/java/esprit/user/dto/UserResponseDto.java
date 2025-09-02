@@ -24,4 +24,12 @@ public class UserResponseDto {
     private boolean emailVerified;
     private LocalDateTime createdAt;
     private LocalDateTime lastLogin;
+    
+    // Agency-specific fields
+    private String nomAgence;
+    private String numeroLicence;
+    private String siteWeb;
+    private Integer nombreEmployes;
+    private String zonesCouverture;
+    private Boolean verified;
 }

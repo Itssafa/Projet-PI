@@ -3,10 +3,12 @@ package esprit.user.controller;
 import esprit.user.dto.UserRegistrationDto;
 import esprit.user.dto.UserResponseDto;
 import esprit.user.dto.UserUpdateRequest;
+import esprit.user.dto.PasswordChangeRequest;
 import esprit.user.entity.User;
 import esprit.user.entity.UserStatus;
 import esprit.user.entity.UserType;
 import esprit.user.service.UserService;
+import esprit.user.service.StatisticsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +32,7 @@ import java.util.stream.Collectors;
 public class UserController {
 
     private final UserService userService;
+    private final StatisticsService statisticsService;
 
     @GetMapping
     @PreAuthorize("hasRole('ADMINISTRATEUR')")
@@ -103,6 +106,11 @@ public class UserController {
     public ResponseEntity<?> updateProfile(@Valid @RequestBody UserUpdateRequest updateRequest,
                                          Authentication authentication) {
         try {
+            // Debug logging per ChatGPT's suggestion
+            log.info("UpdateProfile endpoint - Authentication: {}", authentication);
+            log.info("UpdateProfile endpoint - Principal: {}", authentication != null ? authentication.getName() : "null");
+            log.info("UpdateProfile endpoint - Update data: {}", updateRequest);
+            
             String email = authentication.getName();
             User updatedUser = userService.updateCurrentUser(email, updateRequest);
             UserResponseDto userDto = userService.convertToDto(updatedUser);
@@ -181,6 +189,58 @@ public class UserController {
             .map(userService::convertToDto)
             .collect(Collectors.toList());
         return ResponseEntity.ok(userDtos);
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<?> getUserStats(Authentication authentication) {
+        try {
+            String email = authentication.getName();
+            User user = userService.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            // For regular users, return basic stats
+            Map<String, Object> userStats = Map.of(
+                "userType", user.getUserType(),
+                "status", user.getStatus(),
+                "emailVerified", user.isEmailVerified(),
+                "createdAt", user.getCreatedAt(),
+                "lastLogin", user.getLastLogin()
+            );
+            
+            return ResponseEntity.ok(userStats);
+        } catch (Exception e) {
+            log.error("Erreur lors de la récupération des statistiques utilisateur: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Erreur interne du serveur"));
+        }
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@Valid @RequestBody PasswordChangeRequest passwordRequest, 
+                                          Authentication authentication) {
+        try {
+            String email = authentication.getName();
+            userService.changePassword(email, passwordRequest.getCurrentPassword(), passwordRequest.getNewPassword());
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Mot de passe changé avec succès"
+            ));
+        } catch (RuntimeException e) {
+            log.error("Erreur lors du changement de mot de passe: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                .body(Map.of(
+                    "success", false,
+                    "error", e.getMessage()
+                ));
+        } catch (Exception e) {
+            log.error("Erreur interne lors du changement de mot de passe: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of(
+                    "success", false,
+                    "error", "Erreur interne du serveur"
+                ));
+        }
     }
 
     @PostMapping("/verify-agency/{agencyId}")

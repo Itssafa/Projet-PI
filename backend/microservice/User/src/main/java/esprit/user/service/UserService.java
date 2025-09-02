@@ -277,6 +277,18 @@ public class UserService {
         dto.setEmailVerified(user.isEmailVerified());
         dto.setCreatedAt(user.getCreatedAt());
         dto.setLastLogin(user.getLastLogin());
+        
+        // Add agency-specific fields if user is an agency
+        if (user instanceof AgenceImmobiliere) {
+            AgenceImmobiliere agency = (AgenceImmobiliere) user;
+            dto.setNomAgence(agency.getNomAgence());
+            dto.setNumeroLicence(agency.getNumeroLicence());
+            dto.setSiteWeb(agency.getSiteWeb());
+            dto.setNombreEmployes(agency.getNombreEmployes());
+            dto.setZonesCouverture(agency.getZonesCouverture());
+            dto.setVerified(agency.isVerified());
+        }
+        
         return dto;
     }
 

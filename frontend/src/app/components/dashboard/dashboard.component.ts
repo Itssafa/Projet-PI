@@ -460,4 +460,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     // Update the auth service with the new user data
     this.authService.updateCurrentUser(updatedUser);
   }
+
+  onPasswordChanged(): void {
+    this.isEditingProfile = false;
+  }
 }

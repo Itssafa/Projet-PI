@@ -342,6 +342,7 @@ export class ProfileSectionsComponent implements OnInit {
   @Input() user: AuthUser | null = null;
   @Output() saved = new EventEmitter<AuthUser>();
   @Output() cancelled = new EventEmitter<void>();
+  @Output() passwordChanged = new EventEmitter<void>();
 
   profileForm!: FormGroup;
   agencyForm!: FormGroup;
@@ -495,6 +496,12 @@ export class ProfileSectionsComponent implements OnInit {
       return;
     }
 
+    // Check authentication before saving
+    if (!this.authService.isAuthenticated) {
+      this.showError('Session expirée. Veuillez vous reconnecter.');
+      return;
+    }
+
     this.isLoading = true;
     this.clearMessages();
 
@@ -521,6 +528,12 @@ export class ProfileSectionsComponent implements OnInit {
   saveAgency(): void {
     if (!this.hasAgencyChanges()) {
       this.notificationService.showInfo('Aucune modification détectée dans les informations de l\'agence.');
+      return;
+    }
+
+    // Check authentication before saving
+    if (!this.authService.isAuthenticated) {
+      this.showError('Session expirée. Veuillez vous reconnecter.');
       return;
     }
 
@@ -553,6 +566,12 @@ export class ProfileSectionsComponent implements OnInit {
       return;
     }
 
+    // Check authentication before changing password
+    if (!this.authService.isAuthenticated) {
+      this.showError('Session expirée. Veuillez vous reconnecter.');
+      return;
+    }
+
     this.isLoading = true;
     this.clearMessages();
 
@@ -567,6 +586,11 @@ export class ProfileSectionsComponent implements OnInit {
         this.passwordForm.reset();
         this.showPasswordSection = false;
         this.isLoading = false;
+        
+        // Emit event to exit edit mode after password change
+        setTimeout(() => {
+          this.passwordChanged.emit();
+        }, 2000); // Wait 2 seconds to show the success message
       },
       error: (error) => {
         this.showError(error.error?.error || error.error?.message || 'Erreur lors du changement de mot de passe.');
@@ -656,13 +680,23 @@ export class ProfileSectionsComponent implements OnInit {
 
   showVerificationProcess(): void {
     const message = `
-    Processus de Vérification des Agences:
+    📋 Processus de Vérification des Agences Immobilières
     
-    1. Soumission des documents - Votre agence a été enregistrée
-    2. Vérification administrative - Notre équipe vérifie vos informations
-    3. Validation finale - Une fois approuvée, vous recevrez le statut "Vérifiée"
+    ✅ 1. Enregistrement initial - Votre agence a été créée
+    ⏳ 2. Vérification administrative - En cours
+       • Vérification des informations légales
+       • Contrôle du numéro de licence
+       • Validation de l'adresse et contacts
     
-    Délai habituel: 2-5 jours ouvrables
+    ⏳ 3. Validation finale - En attente
+       • Approbation par l'administrateur
+       • Attribution du statut "Agence Vérifiée"
+       • Accès aux fonctionnalités premium
+    
+    📧 Vous recevrez une notification par email une fois votre agence vérifiée.
+    
+    ⏰ Délai habituel: 2-5 jours ouvrables
+    💡 Astuce: Assurez-vous que toutes vos informations sont correctes pour accélérer le processus.
     `;
     
     this.notificationService.showInfo(message);
