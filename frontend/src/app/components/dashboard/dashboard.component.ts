@@ -37,6 +37,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
   platformStats: PlatformStats | null = null;
   visitStats: VisitStats | null = null;
   
+  // Agency management
+  allAgencies: AuthUser[] = [];
+  pendingAgencies: AuthUser[] = [];
+  verifiedAgencies: AuthUser[] = [];
+  isLoadingAgencies = false;
+  
   // Profile editing state
   isEditingProfile = false;
   
@@ -270,6 +276,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
           this.loadVisitData();
         }
         break;
+      case 'agencies':
+        if (this.userType === 'ADMINISTRATEUR') {
+          this.loadAgencies();
+        }
+        break;
       default:
         break;
     }
@@ -463,5 +474,61 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   onPasswordChanged(): void {
     this.isEditingProfile = false;
+  }
+
+  // Agency management methods
+  loadAgencies(): void {
+    if (!this.isAdmin()) return;
+    
+    this.isLoadingAgencies = true;
+    const agencySub = this.authService.getAllAgencies().subscribe({
+      next: (agencies) => {
+        this.allAgencies = agencies;
+        this.pendingAgencies = agencies.filter(agency => !agency.verified);
+        this.verifiedAgencies = agencies.filter(agency => agency.verified);
+        this.isLoadingAgencies = false;
+      },
+      error: (error) => {
+        console.error('Error loading agencies:', error);
+        this.isLoadingAgencies = false;
+      }
+    });
+
+    this.subscriptions.push(agencySub);
+  }
+
+  verifyAgency(agencyId: number): void {
+    if (!this.isAdmin()) return;
+
+    const verifySub = this.authService.verifyAgency(agencyId).subscribe({
+      next: (response) => {
+        console.log('Agency verified successfully:', response.message);
+        // Reload agencies to update the lists
+        this.loadAgencies();
+        // Show success message (you can implement a toast notification here)
+        alert('Agence vérifiée avec succès !');
+      },
+      error: (error) => {
+        console.error('Error verifying agency:', error);
+        alert('Erreur lors de la vérification de l\'agence');
+      }
+    });
+
+    this.subscriptions.push(verifySub);
+  }
+
+  getPendingAgenciesCount(): number {
+    return this.pendingAgencies.length;
+  }
+
+  getVerifiedAgenciesCount(): number {
+    return this.verifiedAgencies.length;
+  }
+
+  getAgencyInitials(agency: AuthUser): string {
+    if (agency.nomAgence) {
+      return agency.nomAgence.split(' ').map((word: string) => word.charAt(0)).join('').toUpperCase();
+    }
+    return `${agency.prenom.charAt(0)}${agency.nom.charAt(0)}`.toUpperCase();
   }
 }

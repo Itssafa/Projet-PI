@@ -1543,13 +1543,13 @@
             <h2>Vérification des Agences</h2>
             <div class="agencies-stats-summary">
               <span class="stat-item">
-                <strong>12</strong> en attente
+                <strong>{{ getPendingAgenciesCount() }}</strong> en attente
               </span>
               <span class="stat-item">
-                <strong>67</strong> vérifiées
+                <strong>{{ getVerifiedAgenciesCount() }}</strong> vérifiées
               </span>
               <span class="stat-item">
-                <strong>5</strong> rejetées
+                <strong>0</strong> rejetées
               </span>
             </div>
           </div>
@@ -1557,88 +1557,48 @@
           <!-- Verification Queue -->
           <div class="verification-queue">
             <h3>File d'attente de vérification</h3>
-            <div class="queue-item urgent">
+            <div *ngIf="isLoadingAgencies" class="loading-message">
+              Chargement des agences...
+            </div>
+            <div *ngIf="!isLoadingAgencies && pendingAgencies.length === 0" class="empty-message">
+              Aucune agence en attente de vérification
+            </div>
+            <div *ngFor="let agency of pendingAgencies" class="queue-item">
               <div class="agency-info">
-                <div class="agency-avatar">IP</div>
+                <div class="agency-avatar">{{ getAgencyInitials(agency) }}</div>
                 <div class="agency-details">
-                  <h4>ImmoPlus Tunis</h4>
-                  <p class="agency-email">contact@immoplus.tn</p>
-                  <p class="agency-license">Licence: #TN-2024-0156</p>
+                  <h4>{{ agency.nomAgence || (agency.prenom + ' ' + agency.nom) }}</h4>
+                  <p class="agency-email">{{ agency.email }}</p>
+                  <p class="agency-license" *ngIf="agency.numeroLicence">Licence: #{{ agency.numeroLicence }}</p>
+                  <p class="agency-phone" *ngIf="agency.telephone">Tél: {{ agency.telephone }}</p>
+                  <p class="agency-address" *ngIf="agency.adresse">{{ agency.adresse }}</p>
                 </div>
               </div>
               <div class="submission-date">
-                <span class="date-label">Demande soumise</span>
-                <span class="date-value">Il y a 5 jours</span>
-                <span class="urgency-badge urgent">Urgent</span>
+                <span class="date-label">Inscrit le</span>
+                <span class="date-value">{{ agency.createdAt | date:'dd/MM/yyyy' }}</span>
+                <span class="urgency-badge normal">En attente</span>
               </div>
               <div class="documents-status">
-                <div class="doc-item complete">
-                  <span class="material-icons">check_circle</span>
-                  <span>Carte professionnelle</span>
+                <div class="doc-item" [class.complete]="agency.emailVerified" [class.pending]="!agency.emailVerified">
+                  <span class="material-icons">{{ agency.emailVerified ? 'check_circle' : 'schedule' }}</span>
+                  <span>Email {{ agency.emailVerified ? 'vérifié' : 'non vérifié' }}</span>
                 </div>
-                <div class="doc-item complete">
-                  <span class="material-icons">check_circle</span>
-                  <span>Assurance RC</span>
+                <div class="doc-item" [class.complete]="agency.numeroLicence" [class.pending]="!agency.numeroLicence">
+                  <span class="material-icons">{{ agency.numeroLicence ? 'check_circle' : 'schedule' }}</span>
+                  <span>Numéro de licence {{ agency.numeroLicence ? 'fourni' : 'manquant' }}</span>
                 </div>
-                <div class="doc-item complete">
-                  <span class="material-icons">check_circle</span>
-                  <span>Garantie financière</span>
+                <div class="doc-item" [class.complete]="agency.siteWeb" [class.pending]="!agency.siteWeb">
+                  <span class="material-icons">{{ agency.siteWeb ? 'check_circle' : 'help_outline' }}</span>
+                  <span>Site web {{ agency.siteWeb ? 'fourni' : 'optionnel' }}</span>
                 </div>
               </div>
               <div class="verification-actions">
-                <button class="btn btn-sm btn-outline">
-                  <span class="material-icons">visibility</span>
-                  Examiner
-                </button>
-                <button class="btn btn-sm btn-success">
+                <button class="btn btn-sm btn-success" (click)="verifyAgency(agency.id!)">
                   <span class="material-icons">verified</span>
                   Approuver
                 </button>
-                <button class="btn btn-sm btn-danger">
-                  <span class="material-icons">close</span>
-                  Rejeter
-                </button>
-              </div>
-            </div>
-
-            <div class="queue-item">
-              <div class="agency-info">
-                <div class="agency-avatar">PP</div>
-                <div class="agency-details">
-                  <h4>Prestige Properties</h4>
-                  <p class="agency-email">info@prestige-prop.tn</p>
-                  <p class="agency-license">Licence: #TN-2024-0157</p>
-                </div>
-              </div>
-              <div class="submission-date">
-                <span class="date-label">Demande soumise</span>
-                <span class="date-value">Il y a 3 jours</span>
-                <span class="urgency-badge normal">Normal</span>
-              </div>
-              <div class="documents-status">
-                <div class="doc-item complete">
-                  <span class="material-icons">check_circle</span>
-                  <span>Carte professionnelle</span>
-                </div>
-                <div class="doc-item pending">
-                  <span class="material-icons">schedule</span>
-                  <span>Assurance RC (manquant)</span>
-                </div>
-                <div class="doc-item complete">
-                  <span class="material-icons">check_circle</span>
-                  <span>Garantie financière</span>
-                </div>
-              </div>
-              <div class="verification-actions">
-                <button class="btn btn-sm btn-outline">
-                  <span class="material-icons">visibility</span>
-                  Examiner
-                </button>
-                <button class="btn btn-sm btn-warning">
-                  <span class="material-icons">request_quote</span>
-                  Demander docs
-                </button>
-                <button class="btn btn-sm btn-danger">
+                <button class="btn btn-sm btn-danger" disabled>
                   <span class="material-icons">close</span>
                   Rejeter
                 </button>
@@ -1650,20 +1610,24 @@
           <div class="verified-agencies">
             <h3>Agences vérifiées récemment</h3>
             <div class="verified-list">
-              <div class="verified-item">
+              <div *ngIf="verifiedAgencies.length === 0" class="empty-message">
+                Aucune agence vérifiée pour le moment
+              </div>
+              <div *ngFor="let agency of verifiedAgencies.slice(0, 5)" class="verified-item">
                 <div class="agency-info">
-                  <div class="agency-avatar verified">EP</div>
+                  <div class="agency-avatar verified">{{ getAgencyInitials(agency) }}</div>
                   <div class="agency-details">
-                    <h4>Elite Properties</h4>
-                    <p class="verification-date">Vérifiée le 28/01/2025</p>
+                    <h4>{{ agency.nomAgence || (agency.prenom + ' ' + agency.nom) }}</h4>
+                    <p class="verification-date">Vérifiée (date non disponible)</p>
+                    <p *ngIf="agency.siteWeb" class="agency-website">{{ agency.siteWeb }}</p>
                   </div>
                 </div>
                 <div class="agency-performance">
-                  <span class="performance-metric">47 biens</span>
-                  <span class="performance-metric">€2.1M CA</span>
+                  <span class="performance-metric">{{ agency.nombreEmployes || 'N/A' }} employés</span>
+                  <span class="performance-metric" *ngIf="agency.zonesCouverture">{{ agency.zonesCouverture }}</span>
                   <span class="performance-rating">
-                    <span class="material-icons">star</span>
-                    4.8
+                    <span class="material-icons">verified</span>
+                    Vérifiée
                   </span>
                 </div>
                 <div class="agency-actions">
@@ -1671,7 +1635,7 @@
                     <span class="material-icons">visibility</span>
                     Voir détails
                   </button>
-                  <button class="btn btn-sm btn-warning">
+                  <button class="btn btn-sm btn-warning" disabled>
                     <span class="material-icons">pause</span>
                     Suspendre
                   </button>

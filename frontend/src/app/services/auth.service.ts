@@ -280,13 +280,6 @@ export class AuthService {
     return this.http.delete<ApiResponse<void>>(`${BASE_URL}/api/admin/users/${userId}`);
   }
 
-  /**
-   * PUT /api/admin/verify-agency/{id}
-   * Verify or reject agency
-   */
-  verifyAgency(agencyId: number, payload: AgencyVerificationRequest): Observable<AgencyVerificationResponse> {
-    return this.http.put<AgencyVerificationResponse>(`${BASE_URL}/api/admin/verify-agency/${agencyId}`, payload);
-  }
 
   /**
    * GET /api/admin/statistics

@@ -4,7 +4,7 @@ export type SubscriptionType = 'BASIC' | 'PREMIUM' | 'VIP';
 export type AdminLevel = 'SUPER_ADMIN' | 'ADMIN' | 'MODERATOR' | 'SUPPORT';
 
 export interface AuthUser {
-  id: number;
+  id?: number;
   nom: string;
   prenom: string;
   email: string;
@@ -13,8 +13,32 @@ export interface AuthUser {
   userType: UserType;
   enabled: boolean;
   emailVerified: boolean;
-  dateInscription: string;
+  dateInscription?: string;
   derniereConnexion?: string;
+  createdAt?: string;
+  
+  // Agency-specific fields (optional)
+  nomAgence?: string;
+  numeroLicence?: string;
+  siteWeb?: string;
+  nombreEmployes?: number;
+  zonesCouverture?: string;
+  verified?: boolean;
+  verificationDate?: string;
+  
+  // Client-specific fields (optional)
+  subscriptionType?: 'BASIC' | 'PREMIUM' | 'VIP';
+  searchLimit?: number;
+  searchesUsed?: number;
+  subscriptionStartDate?: string;
+  subscriptionEndDate?: string;
+  
+  // Admin-specific fields (optional)
+  adminLevel?: AdminLevel;
+  canManageUsers?: boolean;
+  canVerifyAgencies?: boolean;
+  canAccessSystemStats?: boolean;
+  department?: string;
 }
 
 export interface ClientAbonne extends AuthUser {
