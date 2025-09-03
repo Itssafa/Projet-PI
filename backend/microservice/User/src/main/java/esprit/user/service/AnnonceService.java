@@ -271,14 +271,14 @@ public class AnnonceService {
     }
     
     @Transactional(readOnly = true)
-    public Page<AnnonceResponseDto> getMyAnnonces(String userEmail, int page, int size) {
+    public Page<AnnonceSummaryDto> getMyAnnonces(String userEmail, int page, int size) {
         User user = userRepository.findByEmail(userEmail)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur non trouvé"));
         
         Pageable pageable = PageRequest.of(page, size);
         Page<Annonce> annonces = annonceRepository.findByCreateurOrderByDateCreationDesc(user, pageable);
         
-        return annonces.map(this::convertToResponseDto);
+        return annonces.map(this::convertToSummaryDto);
     }
     
     @Transactional(readOnly = true)

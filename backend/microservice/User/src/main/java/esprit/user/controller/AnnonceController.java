@@ -18,7 +18,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/annonces")
-@CrossOrigin(origins = {"http://localhost:4200", "http://127.0.0.1:4200"}, allowCredentials = "true")
+@CrossOrigin(origins = {"http://localhost:4200", "http://127.0.0.1:4200", "http://localhost:4201", "http://127.0.0.1:4201"}, allowCredentials = "true")
 @RequiredArgsConstructor
 @Slf4j
 public class AnnonceController {
@@ -182,7 +182,7 @@ public class AnnonceController {
                                           Authentication authentication) {
         try {
             String userEmail = authentication.getName();
-            Page<AnnonceResponseDto> result = annonceService.getMyAnnonces(userEmail, page, size);
+            Page<AnnonceSummaryDto> result = annonceService.getMyAnnonces(userEmail, page, size);
             
             return ResponseEntity.ok(Map.of(
                 "content", result.getContent(),

@@ -168,7 +168,15 @@ export class AnnonceCreateComponent implements OnInit {
         },
         error: (error) => {
           console.error(`❌ [ANNONCE-${this.isEditMode ? 'EDIT' : 'CREATE'}] Error ${this.isEditMode ? 'updating' : 'creating'} annonce:`, error);
-          this.submitMessage = `Erreur lors de ${this.isEditMode ? 'la modification' : 'la création'} de l'annonce. Veuillez réessayer.`;
+          
+          // Show specific validation errors if available
+          if (error.error && typeof error.error === 'object') {
+            const errorMessages = Object.values(error.error).join(', ');
+            this.submitMessage = `Erreurs de validation: ${errorMessages}`;
+          } else {
+            this.submitMessage = `Erreur lors de ${this.isEditMode ? 'la modification' : 'la création'} de l'annonce. Veuillez réessayer.`;
+          }
+          
           this.isSubmitting = false;
         }
       });

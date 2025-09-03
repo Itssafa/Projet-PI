@@ -37,7 +37,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:4200")); // frontend origin
+        config.setAllowedOrigins(List.of("http://localhost:4200", "http://localhost:4201")); // frontend origin
         config.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
         // ✅ allow both cases for headers per ChatGPT fix
         config.setAllowedHeaders(List.of("Authorization","authorization","Content-Type","Accept","X-Requested-With"));

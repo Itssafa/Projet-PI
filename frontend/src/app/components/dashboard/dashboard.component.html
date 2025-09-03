@@ -185,6 +185,171 @@
           </div>
         </div>
 
+        <!-- Properties Browse Section -->
+        <div *ngIf="activeSection === 'properties'" class="section-content">
+          <div class="properties-header">
+            <h2>Parcourir les Biens Immobiliers</h2>
+            <p *ngIf="!isClientAbonne()" class="limitation-notice">
+              <span class="material-icons">info</span>
+              Version gratuite - Accès limité à {{ getMaxVisibleAnnonces() }} annonces. 
+              <a (click)="setActiveSection('upgrade')" class="upgrade-link">Passer à Premium</a> pour un accès complet.
+            </p>
+          </div>
+
+          <!-- Search Filters -->
+          <div class="search-filters">
+            <div class="filter-row">
+              <div class="search-input">
+                <span class="material-icons">search</span>
+                <input type="text" 
+                       placeholder="Rechercher par titre ou localisation..."
+                       [(ngModel)]="searchQuery"
+                       (input)="onSearch()"
+                       class="form-control">
+              </div>
+              <div class="filter-select">
+                <select [(ngModel)]="selectedTypeBien" (change)="onFilterChange()" class="form-control">
+                  <option value="">Tous les types</option>
+                  <option value="APPARTEMENT">Appartement</option>
+                  <option value="VILLA">Villa</option>
+                  <option value="MAISON">Maison</option>
+                  <option value="STUDIO">Studio</option>
+                </select>
+              </div>
+              <div class="filter-select">
+                <select [(ngModel)]="selectedTypeTransaction" (change)="onFilterChange()" class="form-control">
+                  <option value="">Vente ou Location</option>
+                  <option value="VENTE">Vente</option>
+                  <option value="LOCATION">Location</option>
+                </select>
+              </div>
+              <button class="btn btn-secondary" (click)="clearSearch()">
+                <span class="material-icons">clear</span>
+                Effacer
+              </button>
+            </div>
+          </div>
+
+          <!-- Loading State -->
+          <div class="loading-section" *ngIf="isLoadingPublicAnnonces">
+            <div class="loading-spinner"></div>
+            <p>Chargement des annonces...</p>
+          </div>
+
+          <!-- Properties Grid -->
+          <div class="properties-grid" *ngIf="!isLoadingPublicAnnonces && publicAnnonces?.content?.length">
+            <div class="property-card" 
+                 *ngFor="let annonce of publicAnnonces?.content?.slice(0, getMaxVisibleAnnonces()); let i = index"
+                 (click)="viewAnnonceDetails(annonce)">
+              <div class="property-image">
+                <div *ngIf="!annonce.premierImage" class="no-image-placeholder">
+                  <span class="material-icons">{{ annonce.typeBien === 'VILLA' ? 'villa' : 'home' }}</span>
+                </div>
+                <img *ngIf="annonce.premierImage" [src]="annonce.premierImage" [alt]="annonce.titre">
+                
+                <!-- Transaction Type Badge -->
+                <div class="transaction-badge" [class]="'badge-' + annonce.typeTransaction.toLowerCase()">
+                  {{ getAnnonceTypeTransactionDisplay(annonce.typeTransaction) }}
+                </div>
+                
+                <!-- Premium Feature: Rating Display -->
+                <div class="rating-badge" *ngIf="isClientAbonne() && annonceRatings[annonce.id]">
+                  <span class="material-icons">star</span>
+                  {{ annonceRatings[annonce.id] | number:'1.1-1' }}
+                </div>
+              </div>
+              
+              <div class="property-content">
+                <h3 class="property-title">{{ annonce.titre }}</h3>
+                
+                <div class="property-location">
+                  <span class="material-icons">location_on</span>
+                  {{ annonce.ville }}
+                </div>
+                
+                <div class="property-price">{{ formatPrice(annonce.prix) }}</div>
+                
+                <div class="property-details" *ngIf="canViewFullDetails() || isClientAbonne()">
+                  <div class="detail-item" *ngIf="annonce.surface">
+                    <span class="material-icons">square_foot</span>
+                    {{ annonce.surface }} m²
+                  </div>
+                  <div class="detail-item" *ngIf="annonce.nombreChambres">
+                    <span class="material-icons">bed</span>
+                    {{ annonce.nombreChambres }} ch.
+                  </div>
+                  <div class="detail-item" *ngIf="annonce.nombreSallesBain">
+                    <span class="material-icons">bathtub</span>
+                    {{ annonce.nombreSallesBain }} sdb.
+                  </div>
+                </div>
+
+                <!-- Limited view for regular users -->
+                <div class="property-details-limited" *ngIf="!canViewFullDetails() && !isClientAbonne()">
+                  <div class="blur-overlay">
+                    <span class="upgrade-message">
+                      <span class="material-icons">lock</span>
+                      Détails disponibles pour les abonnés Premium
+                    </span>
+                  </div>
+                </div>
+                
+                <div class="property-meta">
+                  <div class="property-agency" *ngIf="canViewFullDetails()">
+                    <span class="material-icons">business</span>
+                    {{ annonce.createurNom }}
+                  </div>
+                  <div class="property-stats">
+                    <span class="stat">
+                      <span class="material-icons">visibility</span>
+                      {{ annonce.vues }}
+                    </span>
+                    <span class="stat" *ngIf="isClientAbonne()">
+                      <span class="material-icons">favorite</span>
+                      {{ annonce.favoris }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- No Results -->
+          <div class="no-results" *ngIf="!isLoadingPublicAnnonces && (!publicAnnonces?.content?.length)">
+            <div class="no-results-content">
+              <span class="material-icons">search_off</span>
+              <h3>Aucune annonce trouvée</h3>
+              <p>Essayez de modifier vos critères de recherche</p>
+            </div>
+          </div>
+
+          <!-- Pagination -->
+          <div class="pagination" *ngIf="publicAnnonces && publicAnnonces.totalPages > 1">
+            <button class="btn btn-pagination" 
+                    [disabled]="!publicAnnonces.hasPrevious"
+                    (click)="loadPublicAnnonces(publicAnnonces.currentPage - 1)">
+              <span class="material-icons">chevron_left</span>
+              Précédent
+            </button>
+            
+            <div class="pagination-pages">
+              <button *ngFor="let page of getPaginationPages()" 
+                      class="btn btn-page"
+                      [class.active]="page === publicAnnonces.currentPage"
+                      (click)="loadPublicAnnonces(page)">
+                {{ page + 1 }}
+              </button>
+            </div>
+            
+            <button class="btn btn-pagination" 
+                    [disabled]="!publicAnnonces.hasNext"
+                    (click)="loadPublicAnnonces(publicAnnonces.currentPage + 1)">
+              Suivant
+              <span class="material-icons">chevron_right</span>
+            </button>
+          </div>
+        </div>
+
         <!-- Upgrade Section -->
         <div *ngIf="activeSection === 'upgrade'" class="section-content">
           <div class="subscription-plans">
@@ -296,6 +461,216 @@
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- Properties Browse Section for CLIENT_ABONNE -->
+        <div *ngIf="activeSection === 'properties'" class="section-content">
+          <div class="properties-header">
+            <h2>Parcourir les Biens Immobiliers</h2>
+            <p class="premium-notice">
+              <span class="material-icons">star</span>
+              Accès Premium - Recherche avancée et fonctionnalités complètes
+            </p>
+          </div>
+
+          <!-- Advanced Search Filters for Premium Users -->
+          <div class="advanced-search-filters">
+            <div class="filter-row">
+              <div class="search-input">
+                <span class="material-icons">search</span>
+                <input type="text" 
+                       placeholder="Rechercher par titre ou localisation..."
+                       [(ngModel)]="searchQuery"
+                       (input)="searchPublicAnnonces()"
+                       class="form-control">
+              </div>
+              <div class="filter-select">
+                <select [(ngModel)]="selectedTypeBien" (change)="searchPublicAnnonces()" class="form-control">
+                  <option value="">Tous les types</option>
+                  <option value="APPARTEMENT">Appartement</option>
+                  <option value="VILLA">Villa</option>
+                  <option value="MAISON">Maison</option>
+                  <option value="STUDIO">Studio</option>
+                  <option value="DUPLEX">Duplex</option>
+                  <option value="PENTHOUSE">Penthouse</option>
+                  <option value="TERRAIN">Terrain</option>
+                </select>
+              </div>
+              <div class="filter-select">
+                <select [(ngModel)]="selectedTypeTransaction" (change)="searchPublicAnnonces()" class="form-control">
+                  <option value="">Vente ou Location</option>
+                  <option value="VENTE">Vente</option>
+                  <option value="LOCATION">Location</option>
+                </select>
+              </div>
+              <button class="btn btn-secondary" (click)="clearSearch()">
+                <span class="material-icons">clear</span>
+                Effacer
+              </button>
+              <button class="btn btn-primary" (click)="searchPublicAnnonces()">
+                <span class="material-icons">search</span>
+                Rechercher
+              </button>
+            </div>
+          </div>
+
+          <!-- Loading State -->
+          <div class="loading-section" *ngIf="isLoadingPublicAnnonces">
+            <div class="loading-spinner"></div>
+            <p>Chargement des annonces...</p>
+          </div>
+
+          <!-- Enhanced Properties Grid for Premium Users -->
+          <div class="premium-properties-grid" *ngIf="!isLoadingPublicAnnonces && publicAnnonces?.content?.length">
+            <div class="property-card premium-card" 
+                 *ngFor="let annonce of publicAnnonces?.content; let i = index"
+                 (click)="viewAnnonceDetails(annonce)">
+              <div class="property-image">
+                <div *ngIf="!annonce.premierImage" class="no-image-placeholder">
+                  <span class="material-icons">{{ annonce.typeBien === 'VILLA' ? 'villa' : 'home' }}</span>
+                </div>
+                <img *ngIf="annonce.premierImage" [src]="annonce.premierImage" [alt]="annonce.titre">
+                
+                <!-- Transaction Type Badge -->
+                <div class="transaction-badge" [class]="'badge-' + annonce.typeTransaction.toLowerCase()">
+                  {{ getAnnonceTypeTransactionDisplay(annonce.typeTransaction) }}
+                </div>
+                
+                <!-- Rating Display -->
+                <div class="rating-badge" *ngIf="annonceRatings[annonce.id]">
+                  <span class="material-icons">star</span>
+                  {{ annonceRatings[annonce.id] | number:'1.1-1' }}
+                </div>
+
+                <!-- Favorite Button -->
+                <div class="favorite-btn">
+                  <button class="btn-favorite">
+                    <span class="material-icons">favorite_border</span>
+                  </button>
+                </div>
+              </div>
+              
+              <div class="property-content premium-content">
+                <h3 class="property-title">{{ annonce.titre }}</h3>
+                
+                <div class="property-location">
+                  <span class="material-icons">location_on</span>
+                  {{ annonce.ville }}
+                </div>
+                
+                <div class="property-price">{{ formatPrice(annonce.prix) }}</div>
+                
+                <!-- Full Details for Premium Users -->
+                <div class="property-details full-details">
+                  <div class="detail-item" *ngIf="annonce.surface">
+                    <span class="material-icons">square_foot</span>
+                    {{ annonce.surface }} m²
+                  </div>
+                  <div class="detail-item" *ngIf="annonce.nombreChambres">
+                    <span class="material-icons">bed</span>
+                    {{ annonce.nombreChambres }} ch.
+                  </div>
+                  <div class="detail-item" *ngIf="annonce.nombreSallesBain">
+                    <span class="material-icons">bathtub</span>
+                    {{ annonce.nombreSallesBain }} sdb.
+                  </div>
+                  <div class="detail-item" *ngIf="annonce.etage">
+                    <span class="material-icons">layers</span>
+                    Étage {{ annonce.etage }}
+                  </div>
+                </div>
+
+                <div class="property-features" *ngIf="annonce.garage || annonce.piscine || annonce.jardin">
+                  <span class="feature" *ngIf="annonce.garage">
+                    <span class="material-icons">garage</span>
+                    Garage
+                  </span>
+                  <span class="feature" *ngIf="annonce.piscine">
+                    <span class="material-icons">pool</span>
+                    Piscine
+                  </span>
+                  <span class="feature" *ngIf="annonce.jardin">
+                    <span class="material-icons">yard</span>
+                    Jardin
+                  </span>
+                </div>
+                
+                <div class="property-meta premium-meta">
+                  <div class="property-agency">
+                    <span class="material-icons">business</span>
+                    {{ annonce.createurNom }}
+                  </div>
+                  <div class="property-stats">
+                    <span class="stat">
+                      <span class="material-icons">visibility</span>
+                      {{ annonce.vues }}
+                    </span>
+                    <span class="stat">
+                      <span class="material-icons">favorite</span>
+                      {{ annonce.favoris }}
+                    </span>
+                    <span class="stat">
+                      <span class="material-icons">comment</span>
+                      {{ annonceComments[annonce.id]?.length || 0 }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Contact Agency Button -->
+                <div class="property-actions">
+                  <button class="btn btn-primary contact-btn">
+                    <span class="material-icons">phone</span>
+                    Contacter l'agence
+                  </button>
+                  <button class="btn btn-outline view-details-btn">
+                    <span class="material-icons">info</span>
+                    Voir détails
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- No Results -->
+          <div class="no-results" *ngIf="!isLoadingPublicAnnonces && (!publicAnnonces?.content?.length)">
+            <div class="no-results-content">
+              <span class="material-icons">search_off</span>
+              <h3>Aucune annonce trouvée</h3>
+              <p>Essayez de modifier vos critères de recherche</p>
+            </div>
+          </div>
+
+          <!-- Enhanced Pagination -->
+          <div class="pagination premium-pagination" *ngIf="publicAnnonces && publicAnnonces.totalPages > 1">
+            <button class="btn btn-pagination" 
+                    [disabled]="!publicAnnonces.hasPrevious"
+                    (click)="loadPublicAnnonces(publicAnnonces.currentPage - 1)">
+              <span class="material-icons">chevron_left</span>
+              Précédent
+            </button>
+            
+            <div class="pagination-pages">
+              <button *ngFor="let page of getPaginationPages()" 
+                      class="btn btn-page"
+                      [class.active]="page === publicAnnonces.currentPage"
+                      (click)="loadPublicAnnonces(page)">
+                {{ page + 1 }}
+              </button>
+            </div>
+            
+            <span class="pagination-info">
+              Affichage {{ (publicAnnonces.currentPage * publicAnnonces.size) + 1 }} à 
+              {{ Math.min((publicAnnonces.currentPage + 1) * publicAnnonces.size, publicAnnonces.totalElements) }} 
+              sur {{ publicAnnonces.totalElements }} résultats
+            </span>
+            
+            <button class="btn btn-pagination" 
+                    [disabled]="!publicAnnonces.hasNext"
+                    (click)="loadPublicAnnonces(publicAnnonces.currentPage + 1)">
+              Suivant
+              <span class="material-icons">chevron_right</span>
+            </button>
           </div>
         </div>
 
@@ -2372,4 +2747,231 @@
       </div>
     </div>
   </main>
+
+  <!-- Property Details Modal with Ratings & Comments -->
+  <div class="property-modal-overlay" *ngIf="selectedAnnonce" (click)="closeAnnonceDetails()">
+    <div class="property-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ selectedAnnonce.titre }}</h2>
+        <button class="btn-close" (click)="closeAnnonceDetails()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+
+      <div class="modal-content">
+        <!-- Property Images -->
+        <div class="property-gallery">
+          <div class="main-image">
+            <img *ngIf="selectedAnnonce.premierImage" 
+                 [src]="selectedAnnonce.premierImage" 
+                 [alt]="selectedAnnonce.titre">
+            <div *ngIf="!selectedAnnonce.premierImage" class="no-image-placeholder">
+              <span class="material-icons">{{ selectedAnnonce.typeBien === 'VILLA' ? 'villa' : 'home' }}</span>
+              <p>Aucune image disponible</p>
+            </div>
+            
+            <!-- Transaction Badge -->
+            <div class="transaction-badge modal-badge" [class]="'badge-' + selectedAnnonce.typeTransaction.toLowerCase()">
+              {{ getAnnonceTypeTransactionDisplay(selectedAnnonce.typeTransaction) }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Property Info -->
+        <div class="property-info-grid">
+          <div class="property-main-info">
+            <div class="price-section">
+              <div class="property-price large">{{ formatPrice(selectedAnnonce.prix) }}</div>
+              <div class="property-type">{{ getAnnonceTypeBienDisplay(selectedAnnonce.typeBien) }}</div>
+            </div>
+
+            <div class="property-location">
+              <span class="material-icons">location_on</span>
+              <span>{{ selectedAnnonce.ville }}</span>
+            </div>
+
+            <!-- Property Details -->
+            <div class="property-details-grid">
+              <div class="detail-card" *ngIf="selectedAnnonce.surface">
+                <span class="material-icons">square_foot</span>
+                <div class="detail-info">
+                  <div class="detail-value">{{ selectedAnnonce.surface }} m²</div>
+                  <div class="detail-label">Surface</div>
+                </div>
+              </div>
+              
+              <div class="detail-card" *ngIf="selectedAnnonce.nombreChambres">
+                <span class="material-icons">bed</span>
+                <div class="detail-info">
+                  <div class="detail-value">{{ selectedAnnonce.nombreChambres }}</div>
+                  <div class="detail-label">Chambres</div>
+                </div>
+              </div>
+              
+              <div class="detail-card" *ngIf="selectedAnnonce.nombreSallesBain">
+                <span class="material-icons">bathtub</span>
+                <div class="detail-info">
+                  <div class="detail-value">{{ selectedAnnonce.nombreSallesBain }}</div>
+                  <div class="detail-label">Salles de bain</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Features -->
+            <div class="property-features-modal" *ngIf="selectedAnnonce.garage || selectedAnnonce.piscine || selectedAnnonce.jardin">
+              <h4>Équipements</h4>
+              <div class="features-grid">
+                <div class="feature-item" *ngIf="selectedAnnonce.garage">
+                  <span class="material-icons">garage</span>
+                  <span>Garage</span>
+                </div>
+                <div class="feature-item" *ngIf="selectedAnnonce.piscine">
+                  <span class="material-icons">pool</span>
+                  <span>Piscine</span>
+                </div>
+                <div class="feature-item" *ngIf="selectedAnnonce.jardin">
+                  <span class="material-icons">yard</span>
+                  <span>Jardin</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Agency Info -->
+            <div class="agency-info" *ngIf="canViewFullDetails()">
+              <h4>Agence</h4>
+              <div class="agency-card">
+                <span class="material-icons">business</span>
+                <div class="agency-details">
+                  <div class="agency-name">{{ selectedAnnonce.createurNom }}</div>
+                  <div class="agency-type">{{ selectedAnnonce.createurType }}</div>
+                </div>
+                <button class="btn btn-primary" *ngIf="canContactAgency()">
+                  <span class="material-icons">phone</span>
+                  Contacter
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ratings & Comments Section -->
+          <div class="ratings-comments-section" *ngIf="canRateAndComment()">
+            <!-- Average Rating Display -->
+            <div class="average-rating">
+              <h4>Évaluations</h4>
+              <div class="rating-display" *ngIf="annonceRatings[selectedAnnonce.id]; else noRating">
+                <div class="rating-stars">
+                  <span *ngFor="let star of [1,2,3,4,5]" 
+                        class="material-icons rating-star"
+                        [class.filled]="star <= annonceRatings[selectedAnnonce.id]">
+                    star
+                  </span>
+                </div>
+                <div class="rating-value">{{ annonceRatings[selectedAnnonce.id] | number:'1.1-1' }} / 5</div>
+              </div>
+              <ng-template #noRating>
+                <p class="no-rating">Aucune évaluation pour le moment</p>
+              </ng-template>
+            </div>
+
+            <!-- Rating Submission -->
+            <div class="rating-submission">
+              <h5>Évaluez ce bien</h5>
+              <div class="rating-input">
+                <span *ngFor="let star of [1,2,3,4,5]; let i = index" 
+                      class="material-icons rating-star interactive"
+                      [class.filled]="i < selectedRating"
+                      (click)="selectedRating = i + 1"
+                      (mouseover)="hoverRating = i + 1"
+                      (mouseleave)="hoverRating = 0">
+                  star
+                </span>
+              </div>
+              <button class="btn btn-secondary" 
+                      [disabled]="!selectedRating"
+                      (click)="submitRating(selectedAnnonce.id, selectedRating)">
+                Soumettre l'évaluation
+              </button>
+            </div>
+
+            <!-- Comments Section -->
+            <div class="comments-section">
+              <h4>Commentaires ({{ annonceComments[selectedAnnonce.id]?.length || 0 }})</h4>
+              
+              <!-- Comment Input -->
+              <div class="comment-input">
+                <textarea placeholder="Partagez votre avis sur ce bien..."
+                          [(ngModel)]="newComment"
+                          class="comment-textarea"
+                          rows="3"></textarea>
+                <button class="btn btn-primary comment-submit"
+                        [disabled]="!newComment?.trim()"
+                        (click)="submitComment(selectedAnnonce.id, newComment)">
+                  <span class="material-icons">send</span>
+                  Publier
+                </button>
+              </div>
+
+              <!-- Comments List -->
+              <div class="comments-list" *ngIf="annonceComments[selectedAnnonce.id]?.length">
+                <div class="comment-item" 
+                     *ngFor="let comment of annonceComments[selectedAnnonce.id]">
+                  <div class="comment-author">
+                    <div class="author-avatar">
+                      {{ comment.userName.charAt(0) }}
+                    </div>
+                    <div class="author-info">
+                      <div class="author-name">{{ comment.userName }}</div>
+                      <div class="comment-date">{{ comment.dateCreation | date:'short' }}</div>
+                    </div>
+                    <div class="comment-rating" *ngIf="comment.rating">
+                      <span *ngFor="let star of [1,2,3,4,5]" 
+                            class="material-icons rating-star small"
+                            [class.filled]="star <= comment.rating">
+                        star
+                      </span>
+                    </div>
+                  </div>
+                  <div class="comment-text">{{ comment.comment }}</div>
+                </div>
+              </div>
+
+              <div class="no-comments" *ngIf="!annonceComments[selectedAnnonce.id]?.length">
+                <span class="material-icons">comment</span>
+                <p>Aucun commentaire pour le moment. Soyez le premier à donner votre avis !</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Limited Access Message for Regular Users -->
+          <div class="limited-access" *ngIf="!canRateAndComment()">
+            <div class="upgrade-prompt">
+              <span class="material-icons">lock</span>
+              <h4>Fonctionnalités Premium</h4>
+              <p>Évaluations et commentaires disponibles pour les utilisateurs inscrits.</p>
+              <button class="btn btn-premium" (click)="setActiveSection('upgrade')">
+                <span class="material-icons">star</span>
+                S'inscrire
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Property Stats -->
+        <div class="property-stats-modal">
+          <div class="stat-item">
+            <span class="material-icons">visibility</span>
+            <span>{{ selectedAnnonce.vues }} vues</span>
+          </div>
+          <div class="stat-item" *ngIf="isClientAbonne()">
+            <span class="material-icons">favorite</span>
+            <span>{{ selectedAnnonce.favoris }} favoris</span>
+          </div>
+          <div class="stat-item">
+            <span class="material-icons">schedule</span>
+            <span>Publié le {{ formatAnnonceDate(selectedAnnonce.dateCreation) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

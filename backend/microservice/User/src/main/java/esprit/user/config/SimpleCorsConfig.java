@@ -17,6 +17,8 @@ public class SimpleCorsConfig {
         // Solution 1: Origins spécifiques avec credentials
         configuration.addAllowedOrigin("http://localhost:4200");
         configuration.addAllowedOrigin("http://127.0.0.1:4200");
+        configuration.addAllowedOrigin("http://localhost:4201");
+        configuration.addAllowedOrigin("http://127.0.0.1:4201");
         configuration.addAllowedMethod("*");
         configuration.addAllowedHeader("*");
         configuration.setAllowCredentials(true);

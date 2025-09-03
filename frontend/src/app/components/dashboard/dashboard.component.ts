@@ -57,6 +57,22 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   annonceStats: AnnonceStats | null = null;
   isLoadingAnnonces = false;
   
+  // Public annonces browsing (for users and subscribers)
+  publicAnnonces: PagedResponse<AnnonceSummary> | null = null;
+  isLoadingPublicAnnonces = false;
+  selectedAnnonce: AnnonceSummary | null = null;
+  
+  // Ratings and Comments data
+  annonceRatings: { [key: number]: number } = {}; // annonceId -> average rating
+  annonceComments: { [key: number]: any[] } = {}; // annonceId -> comments array
+  isLoadingRatings = false;
+  isLoadingComments = false;
+  
+  // Rating input state
+  selectedRating = 0;
+  hoverRating = 0;
+  newComment = '';
+  
   // Search and filters
   searchQuery = '';
   selectedTypeBien = '';
@@ -76,15 +92,20 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   // Subscriptions
   private subscriptions: Subscription[] = [];
 
+  // Expose Math for template use
+  Math = Math;
+
   // Navigation items for different user types
   navigationItems = {
     UTILISATEUR: [
       { section: 'overview', label: 'Vue d\'ensemble', icon: 'dashboard', description: 'Aperçu de votre compte' },
+      { section: 'properties', label: 'Parcourir les Biens', icon: 'home', description: 'Découvrir les annonces disponibles' },
       { section: 'profile', label: 'Mon Profil', icon: 'person', description: 'Gérer vos informations' },
       { section: 'upgrade', label: 'Passer Premium', icon: 'star', description: 'Découvrir les fonctionnalités premium' }
     ],
     CLIENT_ABONNE: [
       { section: 'overview', label: 'Vue d\'ensemble', icon: 'dashboard', description: 'Tableau de bord principal' },
+      { section: 'properties', label: 'Parcourir les Biens', icon: 'home', description: 'Recherche avancée des annonces' },
       { section: 'subscription', label: 'Mon Abonnement', icon: 'star', description: 'Gérer votre abonnement' },
       { section: 'searches', label: 'Mes Recherches', icon: 'search', description: 'Historique et alertes' },
       { section: 'analytics', label: 'Mes Statistiques', icon: 'analytics', description: 'Analyse de vos activités' },
@@ -158,6 +179,21 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     ).subscribe({
       next: (data) => {
         console.log('✅ [SEARCH] Search results received:', data);
+        
+        // Debug search results images
+        if (data?.content && data.content.length > 0) {
+          data.content.forEach((annonce, index) => {
+            console.log(`🖼️ [SEARCH-IMAGE-DEBUG] Annonce ${index + 1}:`, {
+              id: annonce.id,
+              titre: annonce.titre,
+              premierImage: annonce.premierImage,
+              imageExists: !!annonce.premierImage,
+              imageType: typeof annonce.premierImage,
+              imageLength: annonce.premierImage?.length || 0
+            });
+          });
+        }
+        
         this.myAnnonces = data;
         this.isLoadingAnnonces = false;
       },
@@ -308,13 +344,11 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
       event.preventDefault();
     }
     
-    // Navigate to appropriate route based on user type and section
-    this.navigateToSection(section);
+    // Set the active section without navigating away from dashboard
+    this.activeSection = section;
     
-    // Don't load section data for profile - it handles its own data loading
-    if (section !== 'profile') {
-      this.loadSectionData(section);
-    }
+    // Load section data
+    this.loadSectionData(section);
   }
 
   private navigateToSection(section: string): void {
@@ -362,6 +396,11 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
       case 'analytics':
         if (this.userType === 'CLIENT_ABONNE' || this.userType === 'AGENCE_IMMOBILIERE') {
           this.loadAnalytics();
+        }
+        break;
+      case 'properties':
+        if (this.userType === 'UTILISATEUR' || this.userType === 'CLIENT_ABONNE') {
+          this.loadPublicAnnonces();
         }
         break;
       default:
@@ -527,7 +566,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   goToProfile(): void {
-    this.navigateToSection('profile');
+    this.setActiveSection('profile');
   }
 
   // Email verification check
@@ -658,6 +697,22 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
         console.log('🎯 [DEBUG] Data content array:', data?.content);
         console.log('🎯 [DEBUG] Content length:', data?.content?.length);
         console.log('🎯 [DEBUG] Total elements:', data?.totalElements);
+        
+        // Debug each annonce to check image data
+        if (data?.content && data.content.length > 0) {
+          data.content.forEach((annonce, index) => {
+            console.log(`🖼️ [IMAGE-DEBUG] Annonce ${index + 1}:`, {
+              id: annonce.id,
+              titre: annonce.titre,
+              premierImage: annonce.premierImage,
+              images: annonce.images,
+              imageExists: !!annonce.premierImage,
+              imageType: typeof annonce.premierImage,
+              imageLength: annonce.premierImage?.length || 0
+            });
+          });
+        }
+        
         this.myAnnonces = data;
         this.isLoadingAnnonces = false;
         
@@ -858,5 +913,168 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     this.selectedTypeTransaction = '';
     this.selectedStatus = '';
     this.loadMyAnnonces(0); // Load all user's annonces
+  }
+
+  // Public Annonces methods for users and subscribers
+  loadPublicAnnonces(page: number = 0): void {
+    console.log('🏠 [DASHBOARD] Loading public annonces for page:', page);
+    
+    if (!this.authService.isAuthenticated) {
+      console.log('❌ [DASHBOARD] Not authenticated, cannot load annonces');
+      return;
+    }
+
+    this.isLoadingPublicAnnonces = true;
+    const searchSub = this.annonceService.searchAnnonces({
+      page,
+      size: this.isClientAbonne() ? 20 : 10, // Subscribers see more per page
+      sortBy: 'dateCreation',
+      sortDirection: 'desc'
+    }).subscribe({
+      next: (data) => {
+        console.log('✅ [DASHBOARD] Public annonces loaded successfully:', data);
+        console.log('🎯 [DEBUG] Data content array:', data?.content);
+        console.log('🎯 [DEBUG] Content length:', data?.content?.length);
+        console.log('🎯 [DEBUG] Total elements:', data?.totalElements);
+        
+        // Debug each annonce to check image data
+        if (data?.content && data.content.length > 0) {
+          data.content.forEach((annonce, index) => {
+            console.log(`🖼️ [PUBLIC-ANNONCE-DEBUG] Annonce ${index + 1}:`, {
+              id: annonce.id,
+              titre: annonce.titre,
+              premierImage: annonce.premierImage,
+              imageExists: !!annonce.premierImage,
+              imageType: typeof annonce.premierImage,
+              imageLength: annonce.premierImage?.length || 0
+            });
+          });
+        }
+        
+        this.publicAnnonces = data;
+        this.isLoadingPublicAnnonces = false;
+      },
+      error: (error) => {
+        console.error('❌ [DASHBOARD] Error loading public annonces:', error);
+        this.isLoadingPublicAnnonces = false;
+        // Show user-friendly error message
+        alert('Erreur lors du chargement des annonces. Veuillez réessayer.');
+      }
+    });
+
+    this.subscriptions.push(searchSub);
+  }
+
+  searchPublicAnnonces(): void {
+    console.log('🔎 [DASHBOARD] Searching public annonces with filters...');
+    this.isLoadingPublicAnnonces = true;
+    
+    const searchFilters = {
+      titre: this.searchQuery,
+      typeBien: this.selectedTypeBien as any,
+      typeTransaction: this.selectedTypeTransaction as any,
+      page: 0,
+      size: this.isClientAbonne() ? 20 : 10
+    };
+
+    this.annonceService.searchAnnonces(searchFilters).subscribe({
+      next: (data) => {
+        console.log('✅ [PUBLIC-SEARCH] Search results:', data);
+        this.publicAnnonces = data;
+        this.isLoadingPublicAnnonces = false;
+      },
+      error: (error) => {
+        console.error('❌ [PUBLIC-SEARCH] Search error:', error);
+        this.isLoadingPublicAnnonces = false;
+      }
+    });
+  }
+
+  viewAnnonceDetails(annonce: AnnonceSummary): void {
+    console.log('👁️ [DASHBOARD] Viewing annonce details:', annonce.id);
+    this.selectedAnnonce = annonce;
+    // Load ratings and comments for this annonce
+    this.loadAnnonceRatings(annonce.id);
+    this.loadAnnonceComments(annonce.id);
+  }
+
+  closeAnnonceDetails(): void {
+    this.selectedAnnonce = null;
+  }
+
+  // Ratings and Comments methods
+  loadAnnonceRatings(annonceId: number): void {
+    // TODO: Implement when backend API is ready
+    console.log('⭐ [RATINGS] Loading ratings for annonce:', annonceId);
+    this.isLoadingRatings = true;
+    // Mock rating for now
+    setTimeout(() => {
+      this.annonceRatings[annonceId] = 4.2;
+      this.isLoadingRatings = false;
+    }, 500);
+  }
+
+  loadAnnonceComments(annonceId: number): void {
+    // TODO: Implement when backend API is ready
+    console.log('💬 [COMMENTS] Loading comments for annonce:', annonceId);
+    this.isLoadingComments = true;
+    // Mock comments for now
+    setTimeout(() => {
+      this.annonceComments[annonceId] = [
+        {
+          id: 1,
+          userId: 1,
+          userName: 'Marie Dupont',
+          userType: 'CLIENT_ABONNE',
+          comment: 'Très bel appartement, bien situé!',
+          rating: 5,
+          dateCreation: new Date().toISOString()
+        },
+        {
+          id: 2,
+          userId: 2,
+          userName: 'Jean Martin',
+          userType: 'UTILISATEUR',
+          comment: 'Intéressant, mais le prix me semble un peu élevé.',
+          rating: 3,
+          dateCreation: new Date(Date.now() - 86400000).toISOString()
+        }
+      ];
+      this.isLoadingComments = false;
+    }, 700);
+  }
+
+  submitRating(annonceId: number, rating: number): void {
+    console.log('⭐ [RATING] Submitting rating:', rating, 'for annonce:', annonceId);
+    // TODO: Implement API call when backend is ready
+    alert(`Merci pour votre évaluation de ${rating} étoiles !`);
+  }
+
+  submitComment(annonceId: number, comment: string): void {
+    console.log('💬 [COMMENT] Submitting comment:', comment, 'for annonce:', annonceId);
+    // TODO: Implement API call when backend is ready
+    alert('Merci pour votre commentaire !');
+    this.newComment = ''; // Clear the input after submission
+  }
+
+  // Feature restriction methods
+  canViewFullDetails(): boolean {
+    // Subscribers can view full details, regular users have limited view
+    return this.isClientAbonne();
+  }
+
+  canRateAndComment(): boolean {
+    // Both users and subscribers can rate and comment
+    return this.isRegularUser() || this.isClientAbonne();
+  }
+
+  canContactAgency(): boolean {
+    // Only subscribers can contact agencies directly
+    return this.isClientAbonne();
+  }
+
+  getMaxVisibleAnnonces(): number {
+    // Regular users see limited annonces, subscribers see more
+    return this.isClientAbonne() ? 50 : 10;
   }
 }

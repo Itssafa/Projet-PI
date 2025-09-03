@@ -21,7 +21,7 @@ public class AnnonceDto {
         private String titre;
 
         @NotBlank(message = "La description est obligatoire")
-        @Size(min = 50, max = 2000, message = "La description doit contenir entre 50 et 2000 caractères")
+        @Size(min = 20, max = 2000, message = "La description doit contenir entre 20 et 2000 caractères")
         private String description;
 
         @NotNull(message = "Le prix est obligatoire")
