@@ -80,7 +80,7 @@ public class AnnonceController {
             Page<AnnonceSummaryDto> result = annonceService.searchAnnonces(searchDto);
             
             return ResponseEntity.ok(Map.of(
-                "annonces", result.getContent(),
+                "content", result.getContent(),
                 "currentPage", result.getNumber(),
                 "totalPages", result.getTotalPages(),
                 "totalElements", result.getTotalElements(),
@@ -185,11 +185,13 @@ public class AnnonceController {
             Page<AnnonceResponseDto> result = annonceService.getMyAnnonces(userEmail, page, size);
             
             return ResponseEntity.ok(Map.of(
-                "annonces", result.getContent(),
+                "content", result.getContent(),
                 "currentPage", result.getNumber(),
                 "totalPages", result.getTotalPages(),
                 "totalElements", result.getTotalElements(),
-                "size", result.getSize()
+                "size", result.getSize(),
+                "hasNext", result.hasNext(),
+                "hasPrevious", result.hasPrevious()
             ));
         } catch (Exception e) {
             log.error("Erreur lors de la récupération des annonces utilisateur: {}", e.getMessage());

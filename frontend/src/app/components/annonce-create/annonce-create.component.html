@@ -1,7 +1,16 @@
 <div class="annonce-create-container">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Chargement de l'annonce...</p>
+  </div>
+
   <div class="form-header">
-    <h1><span class="material-icons">add_business</span> Créer une Nouvelle Annonce</h1>
-    <p>Ajoutez votre propriété au catalogue avec tous les détails nécessaires</p>
+    <h1>
+      <span class="material-icons">{{ isEditMode ? 'edit' : 'add_business' }}</span> 
+      {{ getPageTitle() }}
+    </h1>
+    <p>{{ isEditMode ? 'Modifiez les informations de votre propriété' : 'Ajoutez votre propriété au catalogue avec tous les détails nécessaires' }}</p>
   </div>
 
   <form [formGroup]="annonceForm" (ngSubmit)="onSubmit()" class="annonce-form">
@@ -366,9 +375,9 @@
         </button>
         
         <button type="submit" class="btn btn-primary" [disabled]="isSubmitting || annonceForm.invalid">
-          <span class="material-icons" *ngIf="!isSubmitting">publish</span>
+          <span class="material-icons" *ngIf="!isSubmitting">{{ isEditMode ? 'save' : 'publish' }}</span>
           <div class="spinner" *ngIf="isSubmitting"></div>
-          {{ isSubmitting ? 'Publication...' : 'Publier l\'annonce' }}
+          {{ isSubmitting ? (isEditMode ? 'Modification...' : 'Publication...') : getSubmitButtonText() }}
         </button>
       </div>
     </div>

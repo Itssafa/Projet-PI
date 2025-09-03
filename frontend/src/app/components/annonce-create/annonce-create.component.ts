@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { AnnonceService } from '../../services/annonce.service';
-import { AnnonceCreateRequest, TypeBien, TypeTransaction } from '../../core/models';
+import { AnnonceCreateRequest, AnnonceUpdateRequest, TypeBien, TypeTransaction, AnnonceSummary } from '../../core/models';
 
 @Component({
   selector: 'app-annonce-create',
@@ -17,6 +17,12 @@ export class AnnonceCreateComponent implements OnInit {
   isSubmitting = false;
   submitMessage = '';
   imageUrls: string[] = [];
+  
+  // Edit mode properties
+  isEditMode = false;
+  annonceId: number | null = null;
+  currentAnnonce: AnnonceSummary | null = null;
+  isLoading = false;
 
   typesBien = [
     { value: 'APPARTEMENT', label: 'Appartement' },
@@ -39,13 +45,25 @@ export class AnnonceCreateComponent implements OnInit {
   constructor(
     private formBuilder: FormBuilder,
     private annonceService: AnnonceService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     this.annonceForm = this.createForm();
   }
 
   ngOnInit(): void {
-    console.log('🏗️ [ANNONCE-CREATE] Component initialized');
+    // Check if we're in edit mode
+    this.route.paramMap.subscribe(params => {
+      const id = params.get('id');
+      if (id) {
+        this.isEditMode = true;
+        this.annonceId = parseInt(id, 10);
+        console.log('✏️ [ANNONCE-EDIT] Edit mode - loading annonce:', this.annonceId);
+        this.loadAnnonceForEdit();
+      } else {
+        console.log('🏗️ [ANNONCE-CREATE] Create mode initialized');
+      }
+    });
   }
 
   private createForm(): FormGroup {
@@ -107,7 +125,7 @@ export class AnnonceCreateComponent implements OnInit {
       this.submitMessage = '';
 
       const formValue = this.annonceForm.value;
-      const annonceData: AnnonceCreateRequest = {
+      const annonceData: AnnonceCreateRequest | AnnonceUpdateRequest = {
         titre: formValue.titre,
         description: formValue.description,
         prix: formValue.prix,
@@ -133,10 +151,14 @@ export class AnnonceCreateComponent implements OnInit {
 
       console.log('📤 [ANNONCE-CREATE] Submitting annonce data:', annonceData);
 
-      this.annonceService.createAnnonce(annonceData).subscribe({
+      const request = this.isEditMode ? 
+        this.annonceService.updateAnnonce(this.annonceId!, annonceData as AnnonceUpdateRequest) : 
+        this.annonceService.createAnnonce(annonceData as AnnonceCreateRequest);
+      
+      request.subscribe({
         next: (response) => {
-          console.log('✅ [ANNONCE-CREATE] Annonce created successfully:', response);
-          this.submitMessage = 'Annonce créée avec succès !';
+          console.log(`✅ [ANNONCE-${this.isEditMode ? 'EDIT' : 'CREATE'}] Annonce ${this.isEditMode ? 'updated' : 'created'} successfully:`, response);
+          this.submitMessage = `Annonce ${this.isEditMode ? 'modifiée' : 'créée'} avec succès !`;
           this.isSubmitting = false;
           
           // Redirect to dashboard after 2 seconds
@@ -145,16 +167,78 @@ export class AnnonceCreateComponent implements OnInit {
           }, 2000);
         },
         error: (error) => {
-          console.error('❌ [ANNONCE-CREATE] Error creating annonce:', error);
-          this.submitMessage = 'Erreur lors de la création de l\'annonce. Veuillez réessayer.';
+          console.error(`❌ [ANNONCE-${this.isEditMode ? 'EDIT' : 'CREATE'}] Error ${this.isEditMode ? 'updating' : 'creating'} annonce:`, error);
+          this.submitMessage = `Erreur lors de ${this.isEditMode ? 'la modification' : 'la création'} de l'annonce. Veuillez réessayer.`;
           this.isSubmitting = false;
         }
       });
     } else {
-      console.log('⚠️ [ANNONCE-CREATE] Form is invalid');
+      console.log(`⚠️ [ANNONCE-${this.isEditMode ? 'EDIT' : 'CREATE'}] Form is invalid`);
       this.markFormGroupTouched(this.annonceForm);
       this.submitMessage = 'Veuillez corriger les erreurs dans le formulaire.';
     }
+  }
+
+  private loadAnnonceForEdit(): void {
+    if (!this.annonceId) return;
+    
+    this.isLoading = true;
+    this.annonceService.getAnnonceById(this.annonceId).subscribe({
+      next: (annonce) => {
+        console.log('✅ [ANNONCE-EDIT] Annonce loaded for editing:', annonce);
+        this.currentAnnonce = annonce;
+        this.populateForm(annonce);
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('❌ [ANNONCE-EDIT] Error loading annonce:', error);
+        this.submitMessage = 'Erreur lors du chargement de l\'annonce.';
+        this.isLoading = false;
+        // Redirect back to properties if annonce not found
+        setTimeout(() => {
+          this.router.navigate(['/agency/properties']);
+        }, 2000);
+      }
+    });
+  }
+
+  private populateForm(annonce: any): void {
+    // Populate basic fields
+    this.annonceForm.patchValue({
+      titre: annonce.titre,
+      description: annonce.description,
+      prix: annonce.prix,
+      typeBien: annonce.typeBien,
+      typeTransaction: annonce.typeTransaction,
+      adresse: annonce.adresse,
+      ville: annonce.ville,
+      codePostal: annonce.codePostal,
+      surface: annonce.surface,
+      nombreChambres: annonce.nombreChambres,
+      nombreSallesBain: annonce.nombreSallesBain,
+      etage: annonce.etage,
+      garage: annonce.garage || false,
+      jardin: annonce.jardin || false,
+      piscine: annonce.piscine || false,
+      climatisation: annonce.climatisation || false,
+      ascenseur: annonce.ascenseur || false,
+      nomContact: annonce.nomContact,
+      telephoneContact: annonce.telephoneContact,
+      emailContact: annonce.emailContact
+    });
+    
+    // Populate images
+    if (annonce.images && annonce.images.length > 0) {
+      this.imageUrls = [...annonce.images];
+    }
+  }
+  
+  getPageTitle(): string {
+    return this.isEditMode ? 'Modifier l\'annonce' : 'Créer une nouvelle annonce';
+  }
+  
+  getSubmitButtonText(): string {
+    return this.isEditMode ? 'Modifier l\'annonce' : 'Créer l\'annonce';
   }
 
   private markFormGroupTouched(formGroup: FormGroup) {

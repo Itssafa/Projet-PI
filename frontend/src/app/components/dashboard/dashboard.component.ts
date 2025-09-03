@@ -1,7 +1,9 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { Subscription, combineLatest } from 'rxjs';
+import { Subscription, combineLatest, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap, tap } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { AnnonceService } from '../../services/annonce.service';
 import { AnnonceSummary, AnnonceStats, PagedResponse } from '../../core/models';
@@ -23,11 +25,11 @@ import { AnimatedChartComponent } from '../shared/animated-chart.component';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, ProfileViewComponent, ProfileSectionsComponent, AnimatedChartComponent],
+  imports: [CommonModule, FormsModule, ProfileViewComponent, ProfileSectionsComponent, AnimatedChartComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
-export class DashboardComponent implements OnInit, OnDestroy {
+export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   // User and authentication
   currentUser: AuthUser | null = null;
   userType: UserType | null = null;
@@ -54,6 +56,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
   myAnnonces: PagedResponse<AnnonceSummary> | null = null;
   annonceStats: AnnonceStats | null = null;
   isLoadingAnnonces = false;
+  
+  // Search and filters
+  searchQuery = '';
+  selectedTypeBien = '';
+  selectedTypeTransaction = '';
+  selectedStatus = '';
+  
+  // Search subject for debounced search
+  private searchSubject = new Subject<string>();
+  private searchSubscription?: Subscription;
   
   // Profile editing state
   isEditingProfile = false;
@@ -108,10 +120,55 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.initializeDashboard();
     this.loadDashboardData();
+    this.setupSearchFunctionality();
   }
 
   ngOnDestroy(): void {
     this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+
+  ngAfterViewInit(): void {
+    console.log('🎯 [DEBUG] MyAnnonces data:', this.myAnnonces);
+    console.log('🎯 [DEBUG] MyAnnonces content length:', this.myAnnonces?.content?.length);
+    console.log('🎯 [DEBUG] Active section:', this.activeSection);
+    console.log('🎯 [DEBUG] User type:', this.userType);
+    console.log('🎯 [DEBUG] Is agency:', this.isAgency());
+    console.log('🎯 [DEBUG] Is loading annonces:', this.isLoadingAnnonces);
+  }
+
+  private setupSearchFunctionality(): void {
+    // Setup debounced search
+    this.searchSubscription = this.searchSubject.pipe(
+      debounceTime(500), // Wait 500ms after user stops typing
+      distinctUntilChanged(), // Only search if search term changed
+      tap(searchTerm => {
+        console.log('🔍 [SEARCH] Debounced search triggered:', searchTerm);
+        this.isLoadingAnnonces = true;
+      }),
+      switchMap(searchTerm => {
+        // Call the search API with current filters
+        return this.annonceService.searchAnnonces({
+          titre: searchTerm,
+          typeBien: this.selectedTypeBien as any,
+          typeTransaction: this.selectedTypeTransaction as any,
+          page: 0,
+          size: 20
+        });
+      })
+    ).subscribe({
+      next: (data) => {
+        console.log('✅ [SEARCH] Search results received:', data);
+        this.myAnnonces = data;
+        this.isLoadingAnnonces = false;
+      },
+      error: (error) => {
+        console.error('❌ [SEARCH] Search error:', error);
+        this.isLoadingAnnonces = false;
+        // Don't show alert for search errors, just fail gracefully
+      }
+    });
+
+    this.subscriptions.push(this.searchSubscription);
   }
 
   private initializeDashboard(): void {
@@ -586,8 +643,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   // Annonces methods
-  loadMyAnnonces(): void {
-    console.log('📋 [DASHBOARD] Loading my annonces...');
+  loadMyAnnonces(page: number = 0): void {
+    console.log('📋 [DASHBOARD] Loading my annonces for page:', page);
     
     if (!this.authService.isAuthenticated || !this.isAgency()) {
       console.log('❌ [DASHBOARD] Not authorized to load annonces');
@@ -595,11 +652,21 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
 
     this.isLoadingAnnonces = true;
-    const annoncesSub = this.annonceService.getMyAnnonces(0, 20).subscribe({
+    const annoncesSub = this.annonceService.getMyAnnonces(page, 20).subscribe({
       next: (data) => {
         console.log('✅ [DASHBOARD] My annonces loaded successfully:', data);
+        console.log('🎯 [DEBUG] Data content array:', data?.content);
+        console.log('🎯 [DEBUG] Content length:', data?.content?.length);
+        console.log('🎯 [DEBUG] Total elements:', data?.totalElements);
         this.myAnnonces = data;
         this.isLoadingAnnonces = false;
+        
+        // Trigger change detection debug after data is loaded
+        setTimeout(() => {
+          console.log('🎯 [DEBUG] After loading - MyAnnonces:', this.myAnnonces);
+          console.log('🎯 [DEBUG] After loading - Content exists:', !!this.myAnnonces?.content);
+          console.log('🎯 [DEBUG] After loading - Content length:', this.myAnnonces?.content?.length);
+        }, 100);
       },
       error: (error) => {
         console.error('❌ [DASHBOARD] Error loading my annonces:', error);
@@ -677,21 +744,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   // Navigation for annonces
   createNewAnnonce(): void {
-    console.log('🏗️ [DASHBOARD] Creating new annonce...');
-    // TODO: Navigate to annonce creation page
-    alert('Création d\'annonce - En cours d\'implémentation');
+    console.log('🏗️ [DASHBOARD] Navigating to annonce creation...');
+    this.router.navigate(['/annonce-create']);
   }
 
   editAnnonce(annonceId: number): void {
     console.log('✏️ [DASHBOARD] Editing annonce:', annonceId);
-    // TODO: Navigate to annonce editing page
-    alert(`Modification de l'annonce ${annonceId} - En cours d'implémentation`);
+    this.router.navigate(['/annonce-edit', annonceId]);
   }
 
   viewAnnonce(annonceId: number): void {
     console.log('👁️ [DASHBOARD] Viewing annonce:', annonceId);
-    // TODO: Navigate to annonce details page
-    alert(`Consultation de l'annonce ${annonceId} - En cours d'implémentation`);
+    this.router.navigate(['/annonce-view', annonceId]);
   }
 
   deleteAnnonce(annonceId: number): void {
@@ -716,5 +780,83 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
 
     this.subscriptions.push(deleteSub);
+  }
+
+  // Pagination methods
+  getPaginationPages(): number[] {
+    if (!this.myAnnonces || this.myAnnonces.totalPages <= 1) {
+      return [];
+    }
+    
+    const totalPages = this.myAnnonces.totalPages;
+    const currentPage = this.myAnnonces.currentPage;
+    const maxVisible = 5;
+    
+    let start = Math.max(0, currentPage - Math.floor(maxVisible / 2));
+    let end = Math.min(totalPages, start + maxVisible);
+    
+    if (end - start < maxVisible && totalPages >= maxVisible) {
+      start = Math.max(0, end - maxVisible);
+    }
+    
+    const pages = [];
+    for (let i = start; i < end; i++) {
+      pages.push(i);
+    }
+    
+    return pages;
+  }
+
+  goToPage(page: number): void {
+    if (!this.myAnnonces || page < 0 || page >= this.myAnnonces.totalPages) {
+      return;
+    }
+    
+    console.log('📄 [DASHBOARD] Going to page:', page + 1);
+    this.loadMyAnnonces(page);
+  }
+
+  // Search and filter methods
+  onSearch(): void {
+    console.log('🔍 [DASHBOARD] Search query changed:', this.searchQuery);
+    // Trigger debounced search
+    this.searchSubject.next(this.searchQuery);
+  }
+
+  onFilterChange(): void {
+    console.log('🎛️ [DASHBOARD] Filter changed - Type:', this.selectedTypeBien, 'Transaction:', this.selectedTypeTransaction, 'Status:', this.selectedStatus);
+    // Trigger immediate search when filters change
+    this.searchAnnonces();
+  }
+
+  searchAnnonces(): void {
+    console.log('🔎 [DASHBOARD] Searching annonces with filters...');
+    this.isLoadingAnnonces = true;
+    
+    this.annonceService.searchAnnonces({
+      titre: this.searchQuery,
+      typeBien: this.selectedTypeBien as any,
+      typeTransaction: this.selectedTypeTransaction as any,
+      page: 0,
+      size: 20
+    }).subscribe({
+      next: (data) => {
+        console.log('✅ [SEARCH] Filter search results:', data);
+        this.myAnnonces = data;
+        this.isLoadingAnnonces = false;
+      },
+      error: (error) => {
+        console.error('❌ [SEARCH] Filter search error:', error);
+        this.isLoadingAnnonces = false;
+      }
+    });
+  }
+
+  clearSearch(): void {
+    this.searchQuery = '';
+    this.selectedTypeBien = '';
+    this.selectedTypeTransaction = '';
+    this.selectedStatus = '';
+    this.loadMyAnnonces(0); // Load all user's annonces
   }
 }

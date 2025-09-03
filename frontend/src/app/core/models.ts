@@ -432,18 +432,36 @@ export interface Annonce {
 export interface AnnonceSummary {
   id: number;
   titre: string;
+  description?: string;
   prix: number;
   typeBien: TypeBien;
   typeTransaction: TypeTransaction;
+  adresse?: string;
   ville: string;
+  codePostal?: string;
   surface?: number;
   nombreChambres?: number;
-  premierImage?: string;
+  nombreSallesBain?: number;
+  garage?: boolean;
+  jardin?: boolean;
+  piscine?: boolean;
+  climatisation?: boolean;
+  ascenseur?: boolean;
+  etage?: number;
+  status: StatusAnnonce;
+  images?: string[];
+  nomContact?: string;
+  telephoneContact?: string;
+  emailContact?: string;
   vues: number;
   favoris: number;
   dateCreation: string;
-  status: StatusAnnonce;
+  dateMiseAJour?: string;
+  dateExpiration?: string;
+  premierImage?: string;
+  createurId?: number;
   createurNom: string;
+  createurPrenom?: string;
   createurType: string;
 }
 

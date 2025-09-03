@@ -69,12 +69,13 @@ export class AnnonceService {
   }
 
   // Get my annonces
-  getMyAnnonces(page = 0, size = 10): Observable<PagedResponse<Annonce>> {
+  getMyAnnonces(page = 0, size = 10): Observable<PagedResponse<AnnonceSummary>> {
     const params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
     
-    return this.http.get<any>(`${BASE_URL}/me`, { params });
+    console.log('🔄 [ANNONCE-SERVICE] Getting my annonces - page:', page, 'size:', size);
+    return this.http.get<PagedResponse<AnnonceSummary>>(`${BASE_URL}/me`, { params });
   }
 
   // Get popular annonces

@@ -1,0 +1,203 @@
+<div class="annonce-view-container">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Chargement de l'annonce...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !isLoading" class="error-container">
+    <div class="error-icon">
+      <span class="material-icons">error</span>
+    </div>
+    <h2>{{ error }}</h2>
+    <button class="btn btn-primary" (click)="goBack()">
+      <span class="material-icons">arrow_back</span>
+      Retour
+    </button>
+  </div>
+
+  <!-- Annonce Details -->
+  <div *ngIf="annonce && !isLoading" class="annonce-details">
+    
+    <!-- Header with actions -->
+    <div class="annonce-header">
+      <div class="header-actions">
+        <button class="btn btn-secondary" (click)="goBack()">
+          <span class="material-icons">arrow_back</span>
+          Retour
+        </button>
+        <button class="btn btn-primary" (click)="editAnnonce()">
+          <span class="material-icons">edit</span>
+          Modifier
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="annonce-content">
+      
+      <!-- Image Gallery Section -->
+      <div class="image-section">
+        <div class="main-image-container">
+          <div *ngIf="getCurrentImage()" class="main-image">
+            <img [src]="getCurrentImage()!" [alt]="annonce.titre">
+            
+            <!-- Navigation arrows for multiple images -->
+            <div *ngIf="hasMultipleImages()" class="image-nav">
+              <button class="nav-btn prev" (click)="previousImage()">
+                <span class="material-icons">chevron_left</span>
+              </button>
+              <button class="nav-btn next" (click)="nextImage()">
+                <span class="material-icons">chevron_right</span>
+              </button>
+            </div>
+          </div>
+          
+          <!-- Default placeholder if no images -->
+          <div *ngIf="!getCurrentImage()" class="default-image">
+            <span class="material-icons">{{ annonce.typeBien === 'VILLA' ? 'villa' : 'home' }}</span>
+          </div>
+        </div>
+        
+        <!-- Thumbnail Gallery -->
+        <div *ngIf="annonce.images && annonce.images.length > 1" class="image-thumbnails">
+          <div 
+            *ngFor="let image of annonce.images; let i = index"
+            class="thumbnail"
+            [class.active]="i === currentImageIndex"
+            (click)="selectImage(i)">
+            <img [src]="image" [alt]="'Image ' + (i + 1)">
+          </div>
+        </div>
+      </div>
+
+      <!-- Info Section -->
+      <div class="info-section">
+        
+        <!-- Title and Basic Info -->
+        <div class="title-section">
+          <h1>{{ annonce.titre }}</h1>
+          <div class="basic-info">
+            <span class="price">{{ formatPrice(annonce.prix) }} <span class="currency">TND</span></span>
+            <div class="badges">
+              <span class="badge transaction-badge">{{ getTypeTransactionDisplay(annonce.typeTransaction) }}</span>
+              <span class="badge type-badge">{{ getTypeBienDisplay(annonce.typeBien) }}</span>
+              <span class="badge status-badge" [ngClass]="'status-' + annonce.status.toLowerCase()">
+                {{ getStatusDisplay(annonce.status) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Location -->
+        <div class="location-section">
+          <div class="location">
+            <span class="material-icons">location_on</span>
+            <span>
+              <ng-container *ngIf="annonce.adresse">{{ annonce.adresse }}, </ng-container>
+              {{ annonce.ville }}
+              <ng-container *ngIf="annonce.codePostal"> {{ annonce.codePostal }}</ng-container>
+            </span>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="description-section">
+          <h2><span class="material-icons">description</span> Description</h2>
+          <p class="description">{{ annonce.description }}</p>
+        </div>
+
+        <!-- Property Features -->
+        <div class="features-section">
+          <h2><span class="material-icons">home</span> Caractéristiques</h2>
+          <div class="features-grid">
+            <div class="feature-item" *ngIf="annonce.surface">
+              <span class="material-icons">square_foot</span>
+              <span class="feature-label">Surface</span>
+              <span class="feature-value">{{ annonce.surface }}m²</span>
+            </div>
+            <div class="feature-item" *ngIf="annonce.nombreChambres">
+              <span class="material-icons">bed</span>
+              <span class="feature-label">Chambres</span>
+              <span class="feature-value">{{ annonce.nombreChambres }}</span>
+            </div>
+            <div class="feature-item" *ngIf="annonce.nombreSallesBain">
+              <span class="material-icons">bathtub</span>
+              <span class="feature-label">Salles de bain</span>
+              <span class="feature-value">{{ annonce.nombreSallesBain }}</span>
+            </div>
+            <div class="feature-item" *ngIf="annonce.etage != null">
+              <span class="material-icons">layers</span>
+              <span class="feature-label">Étage</span>
+              <span class="feature-value">{{ annonce.etage }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Amenities -->
+        <div class="amenities-section" *ngIf="annonce.garage || annonce.jardin || annonce.piscine || annonce.climatisation || annonce.ascenseur">
+          <h2><span class="material-icons">star</span> Équipements</h2>
+          <div class="amenities-list">
+            <div class="amenity-item" *ngIf="annonce.garage">
+              <span class="material-icons">garage</span>
+              <span>Garage</span>
+            </div>
+            <div class="amenity-item" *ngIf="annonce.jardin">
+              <span class="material-icons">grass</span>
+              <span>Jardin</span>
+            </div>
+            <div class="amenity-item" *ngIf="annonce.piscine">
+              <span class="material-icons">pool</span>
+              <span>Piscine</span>
+            </div>
+            <div class="amenity-item" *ngIf="annonce.climatisation">
+              <span class="material-icons">ac_unit</span>
+              <span>Climatisation</span>
+            </div>
+            <div class="amenity-item" *ngIf="annonce.ascenseur">
+              <span class="material-icons">elevator</span>
+              <span>Ascenseur</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="contact-section">
+          <h2><span class="material-icons">contact_phone</span> Contact</h2>
+          <div class="contact-info">
+            <div class="contact-item">
+              <span class="material-icons">person</span>
+              <span>{{ annonce.nomContact }}</span>
+            </div>
+            <div class="contact-item">
+              <span class="material-icons">phone</span>
+              <span>{{ annonce.telephoneContact }}</span>
+            </div>
+            <div class="contact-item" *ngIf="annonce.emailContact">
+              <span class="material-icons">email</span>
+              <span>{{ annonce.emailContact }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Metadata -->
+        <div class="metadata-section">
+          <div class="metadata-item">
+            <span class="label">Créé le:</span>
+            <span class="value">{{ formatDate(annonce.dateCreation) }}</span>
+          </div>
+          <div class="metadata-item" *ngIf="annonce.dateMiseAJour">
+            <span class="label">Modifié le:</span>
+            <span class="value">{{ formatDate(annonce.dateMiseAJour) }}</span>
+          </div>
+          <div class="metadata-item" *ngIf="annonce.dateExpiration">
+            <span class="label">Expire le:</span>
+            <span class="value">{{ formatDate(annonce.dateExpiration) }}</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

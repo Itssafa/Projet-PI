@@ -68,6 +68,30 @@ export const routes: Routes = [
     data: { expectedRoles: ['CLIENT_ABONNE'] }
   },
   
+  // Annonce creation route
+  { 
+    path: 'annonce-create', 
+    canActivate: [AuthGuard, EmailVerificationGuard, AgencyVerificationGuard],
+    loadComponent: () => import('./components/annonce-create/annonce-create.component').then(m => m.AnnonceCreateComponent),
+    data: { expectedRoles: ['AGENCE_IMMOBILIERE'], requiresVerification: true }
+  },
+  
+  // Annonce edit route
+  { 
+    path: 'annonce-edit/:id', 
+    canActivate: [AuthGuard, EmailVerificationGuard, AgencyVerificationGuard],
+    loadComponent: () => import('./components/annonce-create/annonce-create.component').then(m => m.AnnonceCreateComponent),
+    data: { expectedRoles: ['AGENCE_IMMOBILIERE'], requiresVerification: true }
+  },
+  
+  // Annonce view route
+  { 
+    path: 'annonce-view/:id', 
+    canActivate: [AuthGuard, EmailVerificationGuard],
+    loadComponent: () => import('./components/annonce-view/annonce-view.component').then(m => m.AnnonceViewComponent),
+    data: { expectedRoles: ['AGENCE_IMMOBILIERE', 'CLIENT_ABONNE', 'UTILISATEUR', 'ADMINISTRATEUR'] }
+  },
+
   // Agency routes
   { 
     path: 'agency/dashboard', 
