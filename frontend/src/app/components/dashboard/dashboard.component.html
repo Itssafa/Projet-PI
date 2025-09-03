@@ -809,123 +809,126 @@
             </div>
           </div>
 
-          <!-- Annonces List -->
-          <div class="properties-list" *ngIf="isAgencyVerified()">
-            <!-- Loading state -->
-            <div *ngIf="isLoadingAnnonces" class="loading-state">
-              <div class="loading-spinner"></div>
-              <p>Chargement de vos annonces...</p>
-            </div>
+<!-- Annonces List - FIXED VERSION -->
+<div *ngIf="isAgencyVerified()">
+  <!-- Loading state -->
+  <div *ngIf="isLoadingAnnonces" class="loading-state">
+    <div class="loading-spinner"></div>
+    <p>Chargement de vos annonces...</p>
+  </div>
 
-            <!-- No annonces state -->
-            <div *ngIf="!isLoadingAnnonces && (!myAnnonces || !myAnnonces.content || myAnnonces.content.length === 0)" class="empty-state">
-              <div class="empty-icon">
-                <span class="material-icons">home_work</span>
-              </div>
-              <h3>Aucune annonce trouvée</h3>
-              <p>Vous n'avez pas encore créé d'annonce. Commencez par ajouter votre première annonce !</p>
-              <button class="btn btn-primary" (click)="createNewAnnonce()">
-                <span class="material-icons">add</span>
-                Créer ma première annonce
-              </button>
-            </div>
+  <!-- No annonces state -->
+  <div *ngIf="!isLoadingAnnonces && (!myAnnonces || !myAnnonces.content || myAnnonces.content.length === 0)" class="empty-state">
+    <div class="empty-icon">
+      <span class="material-icons">home_work</span>
+    </div>
+    <h3>Aucune annonce trouvée</h3>
+    <p>Vous n'avez pas encore créé d'annonce. Commencez par ajouter votre première annonce !</p>
+    <button class="btn btn-primary" (click)="createNewAnnonce()">
+      <span class="material-icons">add</span>
+      Créer ma première annonce
+    </button>
+  </div>
 
-            <!-- Annonces list -->
-            <div *ngIf="!isLoadingAnnonces && myAnnonces && myAnnonces.content && myAnnonces.content.length > 0" class="properties-list">
-              <div class="property-card" *ngFor="let annonce of myAnnonces.content">
-                <div class="property-image">
-                  <div *ngIf="!annonce.premierImage" style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); display: flex; align-items: center; justify-content: center; height: 100%;">
-                    <span class="material-icons" style="font-size: 3rem; color: #94a3b8;">{{ annonce.typeBien === 'VILLA' ? 'villa' : 'home' }}</span>
-                  </div>
-                  <img *ngIf="annonce.premierImage" [src]="annonce.premierImage" [alt]="annonce.titre">
-                  
-                  <div class="property-badge">{{ getAnnonceTypeTransactionDisplay(annonce.typeTransaction) }}</div>
-                  <div class="property-type">{{ getAnnonceTypeBienDisplay(annonce.typeBien) }}</div>
-                  <div class="property-status" [ngClass]="'status-' + annonce.status.toLowerCase()">
-                    {{ getAnnonceStatusDisplay(annonce.status) }}
-                  </div>
-                </div>
-                
-                <div class="property-content">
-                  <h3 class="property-title">{{ annonce.titre }}</h3>
-                  
-                  <div class="property-location">
-                    <span class="material-icons">location_on</span>
-                    <ng-container *ngIf="annonce.adresse">{{ annonce.adresse }}, </ng-container>{{ annonce.ville }}<ng-container *ngIf="annonce.codePostal"> {{ annonce.codePostal }}</ng-container>
-                  </div>
-                  
-                  <div class="property-description" *ngIf="annonce.description">
-                    {{ annonce.description }}
-                  </div>
-                  
-                  <div class="property-features">
-                    <div class="feature-item" *ngIf="annonce.nombreChambres">
-                      <span class="material-icons">bed</span>
-                      {{ annonce.nombreChambres }} chambres
-                    </div>
-                    <div class="feature-item" *ngIf="annonce.nombreSallesBain">
-                      <span class="material-icons">bathtub</span>
-                      {{ annonce.nombreSallesBain }} SDB
-                    </div>
-                    <div class="feature-item" *ngIf="annonce.surface">
-                      <span class="material-icons">square_foot</span>
-                      {{ annonce.surface }}m²
-                    </div>
-                    <div class="feature-item" *ngIf="annonce.etage != null">
-                      <span class="material-icons">layers</span>
-                      Étage {{ annonce.etage }}
-                    </div>
-                  </div>
-                  
-                  <div class="property-footer">
-                    <div class="property-price">
-                      {{ formatPrice(annonce.prix) }}
-                      <span class="currency">TND</span>
-                    </div>
-                    
-                    <div class="property-actions">
-                      <button class="btn-action" (click)="viewAnnonce(annonce.id)" title="Voir les détails">
-                        <span class="material-icons">visibility</span>
-                      </button>
-                      <button class="btn-action btn-edit" (click)="editAnnonce(annonce.id)" title="Modifier">
-                        <span class="material-icons">edit</span>
-                      </button>
-                      <button class="btn-action btn-delete" (click)="deleteAnnonce(annonce.id)" title="Supprimer">
-                        <span class="material-icons">delete</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Pagination -->
-            <div class="pagination-container" *ngIf="myAnnonces && myAnnonces.totalPages && myAnnonces.totalPages > 1">
-              <div class="pagination">
-                <button class="pagination-btn" [disabled]="!myAnnonces.hasPrevious" (click)="goToPage(myAnnonces.currentPage - 1)">
-                  <span class="material-icons">chevron_left</span>
-                </button>
-                
-                <button 
-                  class="pagination-btn" 
-                  [class.active]="page === myAnnonces.currentPage"
-                  *ngFor="let page of getPaginationPages()" 
-                  (click)="goToPage(page)">
-                  {{ page + 1 }}
-                </button>
-                
-                <button class="pagination-btn" [disabled]="!myAnnonces.hasNext" (click)="goToPage(myAnnonces.currentPage + 1)">
-                  <span class="material-icons">chevron_right</span>
-                </button>
-                
-                <div class="pagination-info">
-                  Page {{ myAnnonces.currentPage + 1 }} sur {{ myAnnonces.totalPages }}
-                  <br>
-                  {{ myAnnonces.totalElements }} annonces au total
-                </div>
-              </div>
-            </div>
+  <!-- Annonces grid container - This is the key fix -->
+  <div *ngIf="!isLoadingAnnonces && myAnnonces && myAnnonces.content && myAnnonces.content.length > 0" 
+       class="properties-list">
+    
+    <!-- Individual property cards -->
+    <div class="property-card" *ngFor="let annonce of myAnnonces.content">
+      <div class="property-image">
+        <div *ngIf="!annonce.premierImage" style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); display: flex; align-items: center; justify-content: center; height: 100%;">
+          <span class="material-icons" style="font-size: 3rem; color: #94a3b8;">{{ annonce.typeBien === 'VILLA' ? 'villa' : 'home' }}</span>
+        </div>
+        <img *ngIf="annonce.premierImage" [src]="annonce.premierImage" [alt]="annonce.titre">
+        
+        <div class="property-badge">{{ getAnnonceTypeTransactionDisplay(annonce.typeTransaction) }}</div>
+        <div class="property-type">{{ getAnnonceTypeBienDisplay(annonce.typeBien) }}</div>
+        <div class="property-status" [ngClass]="'status-' + annonce.status.toLowerCase()">
+          {{ getAnnonceStatusDisplay(annonce.status) }}
+        </div>
+      </div>
+      
+      <div class="property-content">
+        <h3 class="property-title">{{ annonce.titre }}</h3>
+        
+        <div class="property-location">
+          <span class="material-icons">location_on</span>
+          <ng-container *ngIf="annonce.adresse">{{ annonce.adresse }}, </ng-container>{{ annonce.ville }}<ng-container *ngIf="annonce.codePostal"> {{ annonce.codePostal }}</ng-container>
+        </div>
+        
+        <div class="property-description" *ngIf="annonce.description">
+          {{ annonce.description }}
+        </div>
+        
+        <div class="property-features">
+          <div class="feature-item" *ngIf="annonce.nombreChambres">
+            <span class="material-icons">bed</span>
+            {{ annonce.nombreChambres }} chambres
           </div>
+          <div class="feature-item" *ngIf="annonce.nombreSallesBain">
+            <span class="material-icons">bathtub</span>
+            {{ annonce.nombreSallesBain }} SDB
+          </div>
+          <div class="feature-item" *ngIf="annonce.surface">
+            <span class="material-icons">square_foot</span>
+            {{ annonce.surface }}m²
+          </div>
+          <div class="feature-item" *ngIf="annonce.etage != null">
+            <span class="material-icons">layers</span>
+            Étage {{ annonce.etage }}
+          </div>
+        </div>
+        
+        <div class="property-footer">
+          <div class="property-price">
+            {{ formatPrice(annonce.prix) }}
+            <span class="currency">TND</span>
+          </div>
+          
+          <div class="property-actions">
+            <button class="btn-action" (click)="viewAnnonce(annonce.id)" title="Voir les détails">
+              <span class="material-icons">visibility</span>
+            </button>
+            <button class="btn-action btn-edit" (click)="editAnnonce(annonce.id)" title="Modifier">
+              <span class="material-icons">edit</span>
+            </button>
+            <button class="btn-action btn-delete" (click)="deleteAnnonce(annonce.id)" title="Supprimer">
+              <span class="material-icons">delete</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-container" *ngIf="myAnnonces && myAnnonces.totalPages && myAnnonces.totalPages > 1">
+    <div class="pagination">
+      <button class="pagination-btn" [disabled]="!myAnnonces.hasPrevious" (click)="goToPage(myAnnonces.currentPage - 1)">
+        <span class="material-icons">chevron_left</span>
+      </button>
+      
+      <button 
+        class="pagination-btn" 
+        [class.active]="page === myAnnonces.currentPage"
+        *ngFor="let page of getPaginationPages()" 
+        (click)="goToPage(page)">
+        {{ page + 1 }}
+      </button>
+      
+      <button class="pagination-btn" [disabled]="!myAnnonces.hasNext" (click)="goToPage(myAnnonces.currentPage + 1)">
+        <span class="material-icons">chevron_right</span>
+      </button>
+      
+      <div class="pagination-info">
+        Page {{ myAnnonces.currentPage + 1 }} sur {{ myAnnonces.totalPages }}
+        <br>
+        {{ myAnnonces.totalElements }} annonces au total
+      </div>
+    </div>
+  </div>
+</div>
         </div>
 
         <!-- Clients CRM Section -->
