@@ -1,103 +1,214 @@
-index.js:485 [webpack-dev-server] Server started: Hot Module Replacement disabled, Live Reloading enabled, Progress disabled, Overlay enabled.
+polyfills.js:6155 [webpack-dev-server] Server started: Hot Module Replacement disabled, Live Reloading enabled, Progress disabled, Overlay enabled.
+index.js:489  [webpack-dev-server] Warnings while compiling.
+logger @ index.js:489
+(anonymous) @ index.js:634
+warn @ index.js:164
+warnings @ index.js:249
+(anonymous) @ socket.js:62
+client.onmessage @ WebSocketClient.js:45
+index.js:489  [webpack-dev-server] WARNING
+src/app/components/dashboard/dashboard.component.html:363:61 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+363                       <span>{{ annonceComments[annonce.id]?.length || 0 }}</span>
+                                                                ~~~~~~
+
+  src/app/components/dashboard/dashboard.component.ts:29:16
+    29   templateUrl: './dashboard.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component DashboardComponent.
+
+logger @ index.js:489
+(anonymous) @ index.js:634
+warn @ index.js:164
+warnings @ index.js:258
+(anonymous) @ socket.js:62
+client.onmessage @ WebSocketClient.js:45
+index.js:489  [webpack-dev-server] WARNING
+src/app/components/dashboard/dashboard.component.html:743:61 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+743                       <span>{{ annonceComments[annonce.id]?.length || 0 }}</span>
+                                                                ~~~~~~
+
+  src/app/components/dashboard/dashboard.component.ts:29:16
+    29   templateUrl: './dashboard.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component DashboardComponent.
+
+logger @ index.js:489
+(anonymous) @ index.js:634
+warn @ index.js:164
+warnings @ index.js:258
+(anonymous) @ socket.js:62
+client.onmessage @ WebSocketClient.js:45
+index.js:489  [webpack-dev-server] WARNING
+src/app/components/dashboard/dashboard.component.html:3026:73 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+3026               <h4>Commentaires ({{ annonceComments[selectedAnnonce.id]?.length || 0 }})</h4>
+                                                                             ~~~~~~
+
+  src/app/components/dashboard/dashboard.component.ts:29:16
+    29   templateUrl: './dashboard.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component DashboardComponent.
+
+logger @ index.js:489
+(anonymous) @ index.js:634
+warn @ index.js:164
+warnings @ index.js:258
+(anonymous) @ socket.js:62
+client.onmessage @ WebSocketClient.js:45
+index.js:489  [webpack-dev-server] WARNING
+src/app/components/dashboard/dashboard.component.html:3035:50 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+3035                         [disabled]="!newComment?.trim()"
+                                                      ~~~~
+
+  src/app/components/dashboard/dashboard.component.ts:29:16
+    29   templateUrl: './dashboard.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component DashboardComponent.
+
+logger @ index.js:489
+(anonymous) @ index.js:634
+warn @ index.js:164
+warnings @ index.js:258
+(anonymous) @ socket.js:62
+client.onmessage @ WebSocketClient.js:45
+index.js:493  [webpack-dev-server] Errors while compiling. Reload prevented.
+logger @ index.js:493
+(anonymous) @ index.js:634
+error @ index.js:156
+errors @ index.js:280
+(anonymous) @ socket.js:62
+client.onmessage @ WebSocketClient.js:45
+index.js:493  [webpack-dev-server] ERROR
+src/app/components/dashboard/dashboard.component.html:339:38 - error TS2339: Property 'openCommentModal' does not exist on type 'DashboardComponent'.
+
+339                             (click)="openCommentModal(annonce)">
+                                         ~~~~~~~~~~~~~~~~
+
+  src/app/components/dashboard/dashboard.component.ts:29:16
+    29   templateUrl: './dashboard.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component DashboardComponent.
+
+logger @ index.js:493
+(anonymous) @ index.js:634
+error @ index.js:156
+errors @ index.js:289
+(anonymous) @ socket.js:62
+client.onmessage @ WebSocketClient.js:45
+index.js:493  [webpack-dev-server] ERROR
+src/app/components/dashboard/dashboard.component.html:372:44 - error TS2339: Property 'formatDate' does not exist on type 'DashboardComponent'.
+
+372                     <span class="value">{{ formatDate(annonce.dateCreation) }}</span>
+                                               ~~~~~~~~~~
+
+  src/app/components/dashboard/dashboard.component.ts:29:16
+    29   templateUrl: './dashboard.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component DashboardComponent.
+
+logger @ index.js:493
+(anonymous) @ index.js:634
+error @ index.js:156
+errors @ index.js:289
+(anonymous) @ socket.js:62
+client.onmessage @ WebSocketClient.js:45
+index.js:493  [webpack-dev-server] ERROR
+src/app/components/dashboard/dashboard.component.html:620:61 - error TS2339: Property 'toggleFavorite' does not exist on type 'DashboardComponent'.
+
+620                       <button class="btn-favorite" (click)="toggleFavorite(annonce); $event.stopPropagation()">
+                                                                ~~~~~~~~~~~~~~
+
+  src/app/components/dashboard/dashboard.component.ts:29:16
+    29   templateUrl: './dashboard.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component DashboardComponent.
+
+logger @ index.js:493
+(anonymous) @ index.js:634
+error @ index.js:156
+errors @ index.js:289
+(anonymous) @ socket.js:62
+client.onmessage @ WebSocketClient.js:45
+index.js:493  [webpack-dev-server] ERROR
+src/app/components/dashboard/dashboard.component.html:720:62 - error TS2339: Property 'openCommentModal' does not exist on type 'DashboardComponent'.
+
+720                     <button class="btn btn-primary" (click)="openCommentModal(annonce)">
+                                                                 ~~~~~~~~~~~~~~~~
+
+  src/app/components/dashboard/dashboard.component.ts:29:16
+    29   templateUrl: './dashboard.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component DashboardComponent.
+
+logger @ index.js:493
+(anonymous) @ index.js:634
+error @ index.js:156
+errors @ index.js:289
+(anonymous) @ socket.js:62
+client.onmessage @ WebSocketClient.js:45
+index.js:493  [webpack-dev-server] ERROR
+src/app/components/dashboard/dashboard.component.html:725:76 - error TS2345: Argument of type 'AnnonceSummary' is not assignable to parameter of type 'number'.
+
+725                     <button class="btn btn-secondary" (click)="editAnnonce(annonce)">
+                                                                               ~~~~~~~
+
+  src/app/components/dashboard/dashboard.component.ts:29:16
+    29   templateUrl: './dashboard.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component DashboardComponent.
+
+logger @ index.js:493
+(anonymous) @ index.js:634
+error @ index.js:156
+errors @ index.js:289
+(anonymous) @ socket.js:62
+client.onmessage @ WebSocketClient.js:45
+index.js:493  [webpack-dev-server] ERROR
+src/app/components/dashboard/dashboard.component.html:752:44 - error TS2339: Property 'formatDate' does not exist on type 'DashboardComponent'.
+
+752                     <span class="value">{{ formatDate(annonce.dateCreation) }}</span>
+                                               ~~~~~~~~~~
+
+  src/app/components/dashboard/dashboard.component.ts:29:16
+    29   templateUrl: './dashboard.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component DashboardComponent.
+
+logger @ index.js:493
+(anonymous) @ index.js:634
+error @ index.js:156
+errors @ index.js:289
+(anonymous) @ socket.js:62
+client.onmessage @ WebSocketClient.js:45
+index.js:493  [webpack-dev-server] ERROR
+src/app/components/dashboard/dashboard.component.html:756:44 - error TS2339: Property 'formatDate' does not exist on type 'DashboardComponent'.
+
+756                     <span class="value">{{ formatDate(annonce.dateMiseAJour) }}</span>
+                                               ~~~~~~~~~~
+
+  src/app/components/dashboard/dashboard.component.ts:29:16
+    29   templateUrl: './dashboard.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component DashboardComponent.
+
+logger @ index.js:493
+(anonymous) @ index.js:634
+error @ index.js:156
+errors @ index.js:289
+(anonymous) @ socket.js:62
+client.onmessage @ WebSocketClient.js:45
+auth.service.ts:80 Token validation: {tokenExists: true, expiresAt: Thu Sep 04 2025 18:12:02 GMT+0100 (heure normale d’Afrique de l’Ouest), currentTime: Wed Sep 03 2025 18:22:33 GMT+0100 (heure normale d’Afrique de l’Ouest), isValid: true, timeUntilExpiry: 85769}
 core.mjs:26656 Angular is running in development mode.
-auth.service.ts:80 Token validation: Object
-auth.service.ts:80 Token validation: Object
-auth.service.ts:80 Token validation: Object
-dashboard.component.ts:243 🏠 [DASHBOARD] Loading agency-specific data...
-dashboard.component.ts:606 📋 [DASHBOARD] Loading my annonces for page: 0
-auth.service.ts:80 Token validation: Object
-annonce.service.ts:77 🔄 [ANNONCE-SERVICE] Getting my annonces - page: 0 size: 20
-dashboard.component.ts:642 📊 [DASHBOARD] Loading annonce statistics...
-auth.service.ts:80 Token validation: Object
-auth.service.ts:80 Token validation: Object
-dashboard.component.ts:125 🎯 [DEBUG] MyAnnonces data: null
-dashboard.component.ts:126 🎯 [DEBUG] MyAnnonces content length: undefined
-dashboard.component.ts:127 🎯 [DEBUG] Active section: overview
-dashboard.component.ts:128 🎯 [DEBUG] User type: AGENCE_IMMOBILIERE
-dashboard.component.ts:129 🎯 [DEBUG] Is agency: true
-dashboard.component.ts:130 🎯 [DEBUG] Is loading annonces: true
-dashboard:1 [Intervention] Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: https://fonts.gstatic.com/s/materialicons/v143/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2
-dashboard.component.ts:588 Analytics data loaded: Object
-dashboard.component.ts:616 ✅ [DASHBOARD] My annonces loaded successfully: Object
-dashboard.component.ts:617 🎯 [DEBUG] Data content array: undefined
-dashboard.component.ts:618 🎯 [DEBUG] Content length: undefined
-dashboard.component.ts:619 🎯 [DEBUG] Total elements: 5
-dashboard.component.ts:651 ✅ [DASHBOARD] Annonce statistics loaded: Object
-dashboard.component.ts:625 🎯 [DEBUG] After loading - MyAnnonces: Object
-dashboard.component.ts:626 🎯 [DEBUG] After loading - Content exists: false
-dashboard.component.ts:627 🎯 [DEBUG] After loading - Content length: undefined
-auth.service.ts:80 Token validation: Object
-auth.service.ts:80 Token validation: Object
-auth.service.ts:80 Token validation: Object
-dashboard.component.ts:243 🏠 [DASHBOARD] Loading agency-specific data...
-dashboard.component.ts:606 📋 [DASHBOARD] Loading my annonces for page: 0
-auth.service.ts:80 Token validation: Object
-annonce.service.ts:77 🔄 [ANNONCE-SERVICE] Getting my annonces - page: 0 size: 20
-dashboard.component.ts:642 📊 [DASHBOARD] Loading annonce statistics...
-auth.service.ts:80 Token validation: Object
-auth.service.ts:80 Token validation: Object
-dashboard.component.ts:125 🎯 [DEBUG] MyAnnonces data: null
-dashboard.component.ts:126 🎯 [DEBUG] MyAnnonces content length: undefined
-dashboard.component.ts:127 🎯 [DEBUG] Active section: properties
-dashboard.component.ts:128 🎯 [DEBUG] User type: AGENCE_IMMOBILIERE
-dashboard.component.ts:129 🎯 [DEBUG] Is agency: true
-dashboard.component.ts:130 🎯 [DEBUG] Is loading annonces: true
-dashboard.component.ts:588 Analytics data loaded: Object
-dashboard.component.ts:616 ✅ [DASHBOARD] My annonces loaded successfully: Object
-dashboard.component.ts:617 🎯 [DEBUG] Data content array: undefined
-dashboard.component.ts:618 🎯 [DEBUG] Content length: undefined
-dashboard.component.ts:619 🎯 [DEBUG] Total elements: 5
-dashboard.component.ts:651 ✅ [DASHBOARD] Annonce statistics loaded: Object
-dashboard.component.ts:625 🎯 [DEBUG] After loading - MyAnnonces: Object
-dashboard.component.ts:626 🎯 [DEBUG] After loading - Content exists: false
-dashboard.component.ts:627 🎯 [DEBUG] After loading - Content length: undefined
-dashboard.component.ts:706 🏗️ [DASHBOARD] Navigating to annonce creation...
-auth.service.ts:80 Token validation: Object
-auth.service.ts:80 Token validation: Object
-dashboard.component.ts:243 🏠 [DASHBOARD] Loading agency-specific data...
-dashboard.component.ts:606 📋 [DASHBOARD] Loading my annonces for page: 0
-auth.service.ts:80 Token validation: Object
-annonce.service.ts:77 🔄 [ANNONCE-SERVICE] Getting my annonces - page: 0 size: 20
-dashboard.component.ts:642 📊 [DASHBOARD] Loading annonce statistics...
-auth.service.ts:80 Token validation: Object
-auth.service.ts:80 Token validation: Object
-dashboard.component.ts:125 🎯 [DEBUG] MyAnnonces data: null
-dashboard.component.ts:126 🎯 [DEBUG] MyAnnonces content length: undefined
-dashboard.component.ts:127 🎯 [DEBUG] Active section: overview
-dashboard.component.ts:128 🎯 [DEBUG] User type: AGENCE_IMMOBILIERE
-dashboard.component.ts:129 🎯 [DEBUG] Is agency: true
-dashboard.component.ts:130 🎯 [DEBUG] Is loading annonces: true
-dashboard.component.ts:588 Analytics data loaded: Object
-dashboard.component.ts:616 ✅ [DASHBOARD] My annonces loaded successfully: Object
-dashboard.component.ts:617 🎯 [DEBUG] Data content array: undefined
-dashboard.component.ts:618 🎯 [DEBUG] Content length: undefined
-dashboard.component.ts:619 🎯 [DEBUG] Total elements: 5
-dashboard.component.ts:651 ✅ [DASHBOARD] Annonce statistics loaded: Object
-dashboard.component.ts:625 🎯 [DEBUG] After loading - MyAnnonces: Object
-dashboard.component.ts:626 🎯 [DEBUG] After loading - Content exists: false
-dashboard.component.ts:627 🎯 [DEBUG] After loading - Content length: undefined
-auth.service.ts:80 Token validation: Object
-auth.service.ts:80 Token validation: Object
-auth.service.ts:80 Token validation: Object
-dashboard.component.ts:243 🏠 [DASHBOARD] Loading agency-specific data...
-dashboard.component.ts:606 📋 [DASHBOARD] Loading my annonces for page: 0
-auth.service.ts:80 Token validation: Object
-annonce.service.ts:77 🔄 [ANNONCE-SERVICE] Getting my annonces - page: 0 size: 20
-dashboard.component.ts:642 📊 [DASHBOARD] Loading annonce statistics...
-auth.service.ts:80 Token validation: Object
-auth.service.ts:80 Token validation: Object
-dashboard.component.ts:125 🎯 [DEBUG] MyAnnonces data: null
-dashboard.component.ts:126 🎯 [DEBUG] MyAnnonces content length: undefined
-dashboard.component.ts:127 🎯 [DEBUG] Active section: properties
-dashboard.component.ts:128 🎯 [DEBUG] User type: AGENCE_IMMOBILIERE
-dashboard.component.ts:129 🎯 [DEBUG] Is agency: true
-dashboard.component.ts:130 🎯 [DEBUG] Is loading annonces: true
-dashboard.component.ts:588 Analytics data loaded: Object
-dashboard.component.ts:651 ✅ [DASHBOARD] Annonce statistics loaded: Object
-dashboard.component.ts:616 ✅ [DASHBOARD] My annonces loaded successfully: Object
-dashboard.component.ts:617 🎯 [DEBUG] Data content array: undefined
-dashboard.component.ts:618 🎯 [DEBUG] Content length: undefined
-dashboard.component.ts:619 🎯 [DEBUG] Total elements: 5
-dashboard.component.ts:625 🎯 [DEBUG] After loading - MyAnnonces: Object
-dashboard.component.ts:626 🎯 [DEBUG] After loading - Content exists: false
-dashboard.component.ts:627 🎯 [DEBUG] After loading - Content length: undefined
+auth.service.ts:80 Token validation: {tokenExists: true, expiresAt: Thu Sep 04 2025 18:12:02 GMT+0100 (heure normale d’Afrique de l’Ouest), currentTime: Wed Sep 03 2025 18:22:33 GMT+0100 (heure normale d’Afrique de l’Ouest), isValid: true, timeUntilExpiry: 85769}
+auth.service.ts:80 Token validation: {tokenExists: true, expiresAt: Thu Sep 04 2025 18:12:02 GMT+0100 (heure normale d’Afrique de l’Ouest), currentTime: Wed Sep 03 2025 18:22:33 GMT+0100 (heure normale d’Afrique de l’Ouest), isValid: true, timeUntilExpiry: 85769}
+dashboard.component.ts:334 Loading client-specific data...
+auth.service.ts:80 Token validation: {tokenExists: true, expiresAt: Thu Sep 04 2025 18:12:02 GMT+0100 (heure normale d’Afrique de l’Ouest), currentTime: Wed Sep 03 2025 18:22:34 GMT+0100 (heure normale d’Afrique de l’Ouest), isValid: true, timeUntilExpiry: 85768}
+dashboard.component.ts:152 🎯 [DEBUG] MyAnnonces data: null
+dashboard.component.ts:153 🎯 [DEBUG] MyAnnonces content length: undefined
+dashboard.component.ts:154 🎯 [DEBUG] Active section: overview
+dashboard.component.ts:155 🎯 [DEBUG] User type: CLIENT_ABONNE
+dashboard.component.ts:156 🎯 [DEBUG] Is agency: false
+dashboard.component.ts:157 🎯 [DEBUG] Is loading annonces: false

@@ -106,6 +106,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     CLIENT_ABONNE: [
       { section: 'overview', label: 'Vue d\'ensemble', icon: 'dashboard', description: 'Tableau de bord principal' },
       { section: 'properties', label: 'Parcourir les Biens', icon: 'home', description: 'Recherche avancée des annonces' },
+      { section: 'mes-annonces', label: 'Mes Annonces', icon: 'apartment', description: 'Gérer mes annonces immobilières' },
       { section: 'subscription', label: 'Mon Abonnement', icon: 'star', description: 'Gérer votre abonnement' },
       { section: 'searches', label: 'Mes Recherches', icon: 'search', description: 'Historique et alertes' },
       { section: 'analytics', label: 'Mes Statistiques', icon: 'analytics', description: 'Analyse de vos activités' },
@@ -317,7 +318,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private loadAgencyData(): void {
-    console.log('🏠 [DASHBOARD] Loading agency-specific data...');
+    console.log('🏢 [DASHBOARD] Loading agency-specific data...');
     
     // Load analytics data for agency
     this.loadAnalytics();
@@ -401,6 +402,12 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
       case 'properties':
         if (this.userType === 'UTILISATEUR' || this.userType === 'CLIENT_ABONNE') {
           this.loadPublicAnnonces();
+        }
+        break;
+      case 'mes-annonces':
+        if (this.userType === 'CLIENT_ABONNE') {
+          this.loadMyAnnonces();
+          this.loadAnnonceStats();
         }
         break;
       default:
@@ -685,7 +692,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   loadMyAnnonces(page: number = 0): void {
     console.log('📋 [DASHBOARD] Loading my annonces for page:', page);
     
-    if (!this.authService.isAuthenticated || !this.isAgency()) {
+    if (!this.authService.isAuthenticated || (!this.isAgency() && !this.isClientAbonne())) {
       console.log('❌ [DASHBOARD] Not authorized to load annonces');
       return;
     }
@@ -737,7 +744,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   loadAnnonceStats(): void {
     console.log('📊 [DASHBOARD] Loading annonce statistics...');
     
-    if (!this.authService.isAuthenticated || !this.isAgency()) {
+    if (!this.authService.isAuthenticated || (!this.isAgency() && !this.isClientAbonne())) {
       console.log('❌ [DASHBOARD] Not authorized to load annonce stats');
       return;
     }
@@ -803,7 +810,8 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     this.router.navigate(['/annonce-create']);
   }
 
-  editAnnonce(annonceId: number): void {
+  editAnnonce(annonceOrId: number | AnnonceSummary): void {
+    const annonceId = typeof annonceOrId === 'number' ? annonceOrId : annonceOrId.id;
     console.log('✏️ [DASHBOARD] Editing annonce:', annonceId);
     this.router.navigate(['/annonce-edit', annonceId]);
   }
@@ -879,7 +887,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onFilterChange(): void {
-    console.log('🎛️ [DASHBOARD] Filter changed - Type:', this.selectedTypeBien, 'Transaction:', this.selectedTypeTransaction, 'Status:', this.selectedStatus);
+    console.log('🔧 [DASHBOARD] Filter changed - Type:', this.selectedTypeBien, 'Transaction:', this.selectedTypeTransaction, 'Status:', this.selectedStatus);
     // Trigger immediate search when filters change
     this.searchAnnonces();
   }
@@ -917,7 +925,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Public Annonces methods for users and subscribers
   loadPublicAnnonces(page: number = 0): void {
-    console.log('🏠 [DASHBOARD] Loading public annonces for page:', page);
+    console.log('🏢 [DASHBOARD] Loading public annonces for page:', page);
     
     if (!this.authService.isAuthenticated) {
       console.log('❌ [DASHBOARD] Not authenticated, cannot load annonces');
@@ -1076,5 +1084,24 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   getMaxVisibleAnnonces(): number {
     // Regular users see limited annonces, subscribers see more
     return this.isClientAbonne() ? 50 : 10;
+  }
+
+  // Missing methods that are called in the template
+  openCommentModal(annonce: AnnonceSummary): void {
+    console.log('💬 [MODAL] Opening comment modal for annonce:', annonce.id);
+    // TODO: Implement comment modal functionality
+    // For now, just use the existing comment system
+    this.viewAnnonceDetails(annonce);
+  }
+
+  formatDate(dateString: string): string {
+    // Reuse existing date formatting method
+    return this.formatAnnonceDate(dateString);
+  }
+
+  toggleFavorite(annonce: AnnonceSummary): void {
+    console.log('❤️ [FAVORITE] Toggling favorite for annonce:', annonce.id);
+    // TODO: Implement API call when backend is ready
+    alert('Fonctionnalité de favoris en développement');
   }
 }
