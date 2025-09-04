@@ -426,3 +426,275 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+/* Uniformisation des boutons avec le thème dashboard */
+.annonce-view-container {
+  .btn {
+    border-radius: 8px;
+    padding: 0.6rem 1.2rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    cursor: pointer;
+
+    &.btn-outline {
+      background: transparent;
+      border: 2px solid #3b82f6;
+      color: #3b82f6;
+
+      &:hover {
+        background: #3b82f6;
+        color: white;
+      }
+    }
+
+    &.btn-secondary {
+      background: #f3f4f6;
+      color: #374151;
+
+      &:hover {
+        background: #e5e7eb;
+      }
+    }
+
+    &.btn-primary {
+      background: #3b82f6;
+      color: white;
+      border: none;
+
+      &:hover {
+        background: #2563eb;
+        transform: translateY(-1px);
+      }
+    }
+  }
+
+  /* Améliorer les sections comme des cartes */
+  .features-section, .amenities-section, .contact-section, .metadata-section {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  }
+
+  .features-section .feature-item,
+  .amenities-section .amenity-item {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+  }
+}
+
+/* === Rating Section === */
+.rating-submission {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+
+  h5 {
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1e293b;
+  }
+
+  .rating-input {
+    display: flex;
+    gap: 0.5rem;
+
+    .rating-star {
+      font-size: 2rem;
+      color: #d1d5db;
+      cursor: pointer;
+      transition: color 0.2s, transform 0.2s;
+
+      &.filled {
+        color: #fbbf24; /* jaune étoile */
+      }
+
+      &:hover {
+        transform: scale(1.2);
+      }
+    }
+  }
+}
+
+/* === Comments Section === */
+.comments-section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+
+  h5 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #1e293b;
+  }
+
+  .comment-item {
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .author {
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 0.25rem;
+    }
+
+    .content {
+      font-size: 0.95rem;
+      color: #4b5563;
+    }
+  }
+
+  .comment-form {
+    margin-top: 1rem;
+
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 1rem;
+      margin-bottom: 0.75rem;
+      resize: vertical;
+
+      &:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+      }
+    }
+
+    .btn-submit {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0.6rem 1.2rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+
+      &:hover {
+        background: #2563eb;
+      }
+    }
+  }
+}
+
+/* Cartes génériques */
+.card-section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+
+  h5 {
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 1rem;
+  }
+}
+
+/* Rating input */
+.rating-submission {
+  .rating-input {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+
+    .rating-star {
+      font-size: 2rem;
+      color: #d1d5db;
+      cursor: pointer;
+      transition: transform 0.2s, color 0.2s;
+
+      &.filled {
+        color: #fbbf24; /* jaune */
+      }
+
+      &:hover {
+        transform: scale(1.2);
+      }
+    }
+  }
+
+  .submit-rating {
+    margin-top: 0.5rem;
+  }
+}
+
+
+/* Comments Section */
+.comments-section {
+  .comment-form {
+    margin-bottom: 1.5rem;
+
+    textarea {
+      width: 100%;
+      min-height: 80px;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      padding: 0.75rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+
+      &:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+      }
+    }
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+  }
+
+  .comment-item {
+    border-bottom: 1px solid #e5e7eb;
+    padding: 1rem 0;
+
+    .author {
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .date {
+      font-size: 0.8rem;
+      color: #6b7280;
+      margin-bottom: 0.5rem;
+    }
+
+    .rating .material-icons {
+      font-size: 1.2rem;
+      color: #fbbf24;
+    }
+
+    .content {
+      color: #4b5563;
+      font-size: 0.95rem;
+      margin-top: 0.25rem;
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+}

@@ -3,13 +3,15 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AnnonceService } from '../../services/annonce.service';
 import { Annonce } from '../../core/models';
+import { ViewEncapsulation } from '@angular/core';
 
 @Component({
   selector: 'app-annonce-view',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './annonce-view.component.html',
-  styleUrls: ['./annonce-view.component.scss']
+  styleUrls: ['./annonce-view.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class AnnonceViewComponent implements OnInit {
   annonce: Annonce | null = null;

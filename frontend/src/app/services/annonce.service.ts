@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
+import { tap, catchError } from 'rxjs/operators';
 import { 
   Annonce, 
   AnnonceSummary, 
@@ -116,6 +117,51 @@ export class AnnonceService {
     statusAnnonce: StatusAnnonce[]
   }> {
     return this.http.get<any>(`${BASE_URL}/types`);
+  }
+
+  // Comment methods
+  createComment(annonceId: number, commentData: { content: string; rating: number }): Observable<any> {
+    console.log('📝 [ANNONCE-SERVICE] Creating comment for annonce:', annonceId, commentData);
+    return this.http.post<any>(`http://localhost:8080/api/comments/annonce/${annonceId}`, commentData).pipe(
+      tap(response => console.log('✅ [ANNONCE-SERVICE] Comment created:', response)),
+      catchError(error => {
+        console.error('❌ [ANNONCE-SERVICE] Error creating comment:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  getCommentsByAnnonce(annonceId: number): Observable<any[]> {
+    console.log('💬 [ANNONCE-SERVICE] Loading comments for annonce:', annonceId);
+    return this.http.get<any[]>(`http://localhost:8080/api/comments/annonce/${annonceId}`).pipe(
+      tap(response => console.log('✅ [ANNONCE-SERVICE] Comments loaded:', response)),
+      catchError(error => {
+        console.error('❌ [ANNONCE-SERVICE] Error loading comments:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  getAnnonceCommentStats(annonceId: number): Observable<{ averageRating: number; commentCount: number }> {
+    console.log('📊 [ANNONCE-SERVICE] Loading comment stats for annonce:', annonceId);
+    return this.http.get<{ averageRating: number; commentCount: number }>(`http://localhost:8080/api/comments/annonce/${annonceId}/stats`).pipe(
+      tap(response => console.log('✅ [ANNONCE-SERVICE] Comment stats loaded:', response)),
+      catchError(error => {
+        console.error('❌ [ANNONCE-SERVICE] Error loading comment stats:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  getCommentsForMyAnnonces(page: number = 0, size: number = 10): Observable<any> {
+    console.log('📋 [ANNONCE-SERVICE] Loading comments for my annonces');
+    return this.http.get<any>(`http://localhost:8080/api/comments/my-annonces?page=${page}&size=${size}`).pipe(
+      tap(response => console.log('✅ [ANNONCE-SERVICE] My annonce comments loaded:', response)),
+      catchError(error => {
+        console.error('❌ [ANNONCE-SERVICE] Error loading my annonce comments:', error);
+        return throwError(() => error);
+      })
+    );
   }
 
   // Helper methods for display values

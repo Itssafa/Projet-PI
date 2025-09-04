@@ -2057,6 +2057,93 @@
             </div>
           </div>
         </div>
+        <!-- Comments Management Section for Agencies -->
+        <div *ngIf="activeSection === 'comments'" class="section-content">
+          <div class="comments-management-header">
+            <h2>Commentaires sur vos Annonces</h2>
+            <p>Gérez les commentaires et évaluations reçus sur vos propriétés</p>
+            <button class="btn btn-primary" (click)="loadCommentsForMyAnnonces()">
+              <span class="material-icons">refresh</span>
+              Actualiser
+            </button>
+          </div>
+
+          <!-- Loading State -->
+          <div *ngIf="isLoadingMyComments" class="loading-container">
+            <div class="spinner"></div>
+            <p>Chargement des commentaires...</p>
+          </div>
+
+          <!-- Comments List -->
+          <div *ngIf="!isLoadingMyComments && myAnnonceComments" class="comments-management">
+            <div class="comments-stats">
+              <div class="stat-card">
+                <div class="stat-icon">
+                  <span class="material-icons">comment</span>
+                </div>
+                <div class="stat-content">
+                  <div class="stat-number">{{ myAnnonceComments?.totalElements || 0 }}</div>
+                  <div class="stat-label">Total commentaires</div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon">
+                  <span class="material-icons">star</span>
+                </div>
+                <div class="stat-content">
+                  <div class="stat-number">4.2</div>
+                  <div class="stat-label">Note moyenne</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="comments-list">
+              <div *ngFor="let comment of myAnnonceComments?.content" class="comment-management-item">
+                <div class="comment-header">
+                  <div class="comment-author">
+                    <div class="author-avatar">{{ comment.userName.charAt(0) }}</div>
+                    <div class="author-info">
+                      <div class="author-name">{{ comment.userName }}</div>
+                      <div class="comment-date">{{ comment.createdAt | date:'short' }}</div>
+                    </div>
+                  </div>
+                  <div class="comment-rating">
+                    <span *ngFor="let star of [1,2,3,4,5]" 
+                          class="material-icons rating-star"
+                          [class.filled]="star <= comment.rating">
+                      star
+                    </span>
+                  </div>
+                </div>
+                <div class="comment-content">
+                  <div class="comment-text">{{ comment.content }}</div>
+                  <div class="comment-annonce">
+                    Annonce: <strong>{{ comment.annonceTitle || 'Annonce #' + comment.annonceId }}</strong>
+                  </div>
+                </div>
+                <div class="comment-actions">
+                  <button class="btn btn-sm btn-outline" (click)="viewAnnonce(comment.annonceId)">
+                    <span class="material-icons">visibility</span>
+                    Voir l'annonce
+                  </button>
+                  <button class="btn btn-sm btn-primary">
+                    <span class="material-icons">reply</span>
+                    Répondre
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- No Comments State -->
+            <div *ngIf="myAnnonceComments?.content?.length === 0" class="no-comments">
+              <div class="no-comments-content">
+                <span class="material-icons">comment</span>
+                <h3>Aucun commentaire pour le moment</h3>
+                <p>Vos annonces n'ont pas encore reçu de commentaires.</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <!-- Verification Section -->
         <div *ngIf="activeSection === 'verification'" class="section-content">

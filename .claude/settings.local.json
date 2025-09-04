@@ -3,7 +3,8 @@
     "allow": [
       "*",
       "Read(/C:\\Users\\EliteBook\\Desktop\\Pi\\frontend\\src\\app\\components\\dashboard/**)",
-      "Read(/C:\\Users\\EliteBook\\Desktop\\Pi\\frontend\\src\\app\\components\\dashboard/**)"
+      "Read(/C:\\Users\\EliteBook\\Desktop\\Pi\\frontend\\src\\app\\components\\dashboard/**)",
+      "Bash(powershell:*)"
     ],
     "deny": [],
     "ask": [],

@@ -115,6 +115,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     AGENCE_IMMOBILIERE: [
       { section: 'overview', label: 'Vue d\'ensemble', icon: 'dashboard', description: 'Tableau de bord agence' },
       { section: 'properties', label: 'Mes Annonces', icon: 'home', description: 'Gestion des annonces' },
+      { section: 'comments', label: 'Commentaires', icon: 'comment', description: 'Commentaires reçus' },
       { section: 'clients', label: 'CRM Clients', icon: 'people', description: 'Relation client' },
       { section: 'team', label: 'Mon Équipe', icon: 'group', description: 'Gestion des collaborateurs' },
       { section: 'analytics', label: 'Analytics', icon: 'analytics', description: 'Performance et rapports' },
@@ -1010,59 +1011,121 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     this.selectedAnnonce = null;
   }
 
-  // Ratings and Comments methods
   loadAnnonceRatings(annonceId: number): void {
-    // TODO: Implement when backend API is ready
     console.log('⭐ [RATINGS] Loading ratings for annonce:', annonceId);
     this.isLoadingRatings = true;
-    // Mock rating for now
-    setTimeout(() => {
-      this.annonceRatings[annonceId] = 4.2;
-      this.isLoadingRatings = false;
-    }, 500);
+    
+    const ratingSub = this.annonceService.getAnnonceCommentStats(annonceId).subscribe({
+      next: (stats) => {
+        console.log('✅ [RATINGS] Rating stats loaded:', stats);
+        this.annonceRatings[annonceId] = stats.averageRating;
+        this.isLoadingRatings = false;
+      },
+      error: (error) => {
+        console.error('❌ [RATINGS] Error loading ratings:', error);
+        this.isLoadingRatings = false;
+      }
+    });
+    
+    this.subscriptions.push(ratingSub);
   }
 
-  loadAnnonceComments(annonceId: number): void {
-    // TODO: Implement when backend API is ready
+loadAnnonceComments(annonceId: number): void {
     console.log('💬 [COMMENTS] Loading comments for annonce:', annonceId);
     this.isLoadingComments = true;
-    // Mock comments for now
-    setTimeout(() => {
-      this.annonceComments[annonceId] = [
-        {
-          id: 1,
-          userId: 1,
-          userName: 'Marie Dupont',
-          userType: 'CLIENT_ABONNE',
-          comment: 'Très bel appartement, bien situé!',
-          rating: 5,
-          dateCreation: new Date().toISOString()
-        },
-        {
-          id: 2,
-          userId: 2,
-          userName: 'Jean Martin',
-          userType: 'UTILISATEUR',
-          comment: 'Intéressant, mais le prix me semble un peu élevé.',
-          rating: 3,
-          dateCreation: new Date(Date.now() - 86400000).toISOString()
-        }
-      ];
-      this.isLoadingComments = false;
-    }, 700);
+    
+    const commentsSub = this.annonceService.getCommentsByAnnonce(annonceId).subscribe({
+      next: (comments) => {
+        console.log('✅ [COMMENTS] Comments loaded:', comments);
+        this.annonceComments[annonceId] = comments;
+        this.isLoadingComments = false;
+      },
+      error: (error) => {
+        console.error('❌ [COMMENTS] Error loading comments:', error);
+        this.isLoadingComments = false;
+        // Set empty array on error
+        this.annonceComments[annonceId] = [];
+      }
+    });
+    
+    this.subscriptions.push(commentsSub);
   }
 
   submitRating(annonceId: number, rating: number): void {
     console.log('⭐ [RATING] Submitting rating:', rating, 'for annonce:', annonceId);
-    // TODO: Implement API call when backend is ready
-    alert(`Merci pour votre évaluation de ${rating} étoiles !`);
+    
+    if (!this.newComment.trim()) {
+      alert('Veuillez ajouter un commentaire avec votre évaluation.');
+      return;
+    }
+    
+    const commentData = {
+      content: this.newComment.trim(),
+      rating: rating
+    };
+    
+    const ratingSub = this.annonceService.createComment(annonceId, commentData).subscribe({
+      next: (response) => {
+        console.log('✅ [RATING] Comment and rating submitted successfully:', response);
+        alert('Merci pour votre évaluation et commentaire !');
+        
+        // Clear the form
+        this.selectedRating = 0;
+        this.newComment = '';
+        
+        // Reload comments and ratings
+        this.loadAnnonceComments(annonceId);
+        this.loadAnnonceRatings(annonceId);
+      },
+      error: (error) => {
+        console.error('❌ [RATING] Error submitting comment:', error);
+        const errorMessage = error.error?.message || 'Erreur lors de l\'ajout du commentaire';
+        alert(errorMessage);
+      }
+    });
+    
+    this.subscriptions.push(ratingSub);
   }
 
   submitComment(annonceId: number, comment: string): void {
     console.log('💬 [COMMENT] Submitting comment:', comment, 'for annonce:', annonceId);
-    // TODO: Implement API call when backend is ready
-    alert('Merci pour votre commentaire !');
-    this.newComment = ''; // Clear the input after submission
+    
+    if (!comment.trim()) {
+      alert('Veuillez saisir un commentaire.');
+      return;
+    }
+    
+    if (this.selectedRating === 0) {
+      alert('Veuillez donner une note avant de publier votre commentaire.');
+      return;
+    }
+    
+    const commentData = {
+      content: comment.trim(),
+      rating: this.selectedRating
+    };
+    
+    const commentSub = this.annonceService.createComment(annonceId, commentData).subscribe({
+      next: (response) => {
+        console.log('✅ [COMMENT] Comment submitted successfully:', response);
+        alert('Merci pour votre commentaire !');
+        
+        // Clear the form
+        this.newComment = '';
+        this.selectedRating = 0;
+        
+        // Reload comments and ratings
+        this.loadAnnonceComments(annonceId);
+        this.loadAnnonceRatings(annonceId);
+      },
+      error: (error) => {
+        console.error('❌ [COMMENT] Error submitting comment:', error);
+        const errorMessage = error.error?.message || 'Erreur lors de l\'ajout du commentaire';
+        alert(errorMessage);
+      }
+    });
+    
+    this.subscriptions.push(commentSub);
   }
 
   // Feature restriction methods
@@ -1103,5 +1166,29 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     console.log('❤️ [FAVORITE] Toggling favorite for annonce:', annonce.id);
     // TODO: Implement API call when backend is ready
     alert('Fonctionnalité de favoris en développement');
+  }
+  // Agency comment management
+  myAnnonceComments: any = null;
+  isLoadingMyComments = false;
+
+  loadCommentsForMyAnnonces(): void {
+    if (!this.isAgency() && !this.isClientAbonne()) return;
+    
+    console.log('📋 [AGENCY-COMMENTS] Loading comments for my annonces...');
+    this.isLoadingMyComments = true;
+    
+    const commentsSub = this.annonceService.getCommentsForMyAnnonces(0, 20).subscribe({
+      next: (data) => {
+        console.log('✅ [AGENCY-COMMENTS] Comments loaded:', data);
+        this.myAnnonceComments = data;
+        this.isLoadingMyComments = false;
+      },
+      error: (error) => {
+        console.error('❌ [AGENCY-COMMENTS] Error loading comments:', error);
+        this.isLoadingMyComments = false;
+      }
+    });
+    
+    this.subscriptions.push(commentsSub);
   }
 }
