@@ -109,6 +109,12 @@ export class AuthService {
   get token(): string | null {
     return localStorage.getItem(this.TOKEN_KEY);
   }
+  /**
+   * Get JWT token for API requests
+   */
+  getToken(): string | null {
+    return this.token;
+  }
 
   get currentUser(): AuthUser | null {
     return this._currentUser$.value;

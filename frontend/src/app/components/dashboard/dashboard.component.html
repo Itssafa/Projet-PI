@@ -2121,7 +2121,10 @@
                   </div>
                 </div>
                 <div class="comment-content">
-                  <div class="comment-text">{{ comment.content }}</div>
+                  <div class="comment-text" *ngIf="comment.content && comment.content.trim()">{{ comment.content }}</div>
+                  <div class="comment-text" *ngIf="!comment.content || !comment.content.trim()" style="font-style: italic; color: #94a3b8;">
+                    Commentaire sans texte (évaluation uniquement)
+                  </div>
                   <div class="comment-annonce">
                     Annonce: <strong>{{ comment.annonceTitle || 'Annonce #' + comment.annonceId }}</strong>
                   </div>
@@ -3459,9 +3462,9 @@
                     </div>
                     <div class="author-info">
                       <div class="author-name">{{ comment.userName }}</div>
-                      <div class="comment-date">{{ comment.dateCreation | date:'short' }}</div>
+                      <div class="comment-date">{{ comment.createdAt | date:'short' }}</div>
                     </div>
-                    <div class="comment-rating" *ngIf="comment.rating">
+                    <div class="comment-rating" *ngIf="comment.rating && comment.rating > 0">
                       <span *ngFor="let star of [1,2,3,4,5]" 
                             class="material-icons rating-star small"
                             [class.filled]="star <= comment.rating">
@@ -3469,7 +3472,30 @@
                       </span>
                     </div>
                   </div>
-                  <div class="comment-text">{{ comment.comment }}</div>
+                  <div class="comment-text" *ngIf="comment.content && comment.content.trim()">
+                    {{ comment.content }}
+                  </div>
+                  <div class="comment-text no-content" *ngIf="!comment.content || !comment.content.trim()">
+                    <em style="color: #94a3b8;">Évaluation sans commentaire</em>
+                  </div>
+                  
+                  <!-- Display Replies if any -->
+                  <div class="comment-replies" *ngIf="comment.replies && comment.replies.length > 0">
+                    <div class="reply-item" *ngFor="let reply of comment.replies">
+                      <div class="reply-author">
+                        <div class="author-avatar agency">
+                          <span class="material-icons">business</span>
+                        </div>
+                        <div class="author-info">
+                          <div class="author-name">{{ reply.userName }} 
+                            <span class="agency-badge">Agence</span>
+                          </div>
+                          <div class="reply-date">{{ reply.createdAt | date:'short' }}</div>
+                        </div>
+                      </div>
+                      <div class="reply-content">{{ reply.content }}</div>
+                    </div>
+                  </div>
                 </div>
               </div>
 

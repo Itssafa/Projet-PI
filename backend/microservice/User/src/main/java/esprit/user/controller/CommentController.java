@@ -169,7 +169,15 @@ public class CommentController {
         Map<String, Object> response = new HashMap<>();
         
         try {
+            // ADD DEBUGGING LOGS
+            System.out.println("🔍 [DEBUG] Reply attempt:");
+            System.out.println("  - User: " + (authentication != null ? authentication.getName() : "null"));
+            System.out.println("  - Comment ID: " + parentCommentId);
+            System.out.println("  - Request body: " + request);
+            System.out.println("  - Authentication present: " + (authentication != null));
+            
             if (authentication == null || authentication.getName() == null) {
+                System.out.println("❌ [DEBUG] Authentication missing or invalid");
                 response.put("success", false);
                 response.put("message", "Authentification requise");
                 return ResponseEntity.status(401).body(response);
@@ -177,25 +185,30 @@ public class CommentController {
             
             String replyContent = request.get("content");
             if (replyContent == null || replyContent.trim().isEmpty()) {
+                System.out.println("❌ [DEBUG] Reply content missing or empty");
                 response.put("success", false);
                 response.put("message", "Le contenu de la réponse est requis");
                 return ResponseEntity.status(400).body(response);
             }
             
+            System.out.println("✅ [DEBUG] All validations passed, calling service...");
             CommentResponse reply = commentService.createReply(parentCommentId, replyContent, authentication.getName());
             
             response.put("success", true);
             response.put("message", "Réponse ajoutée avec succès");
             response.put("reply", reply);
             
+            System.out.println("✅ [DEBUG] Reply created successfully");
             return ResponseEntity.status(201).body(response);
             
         } catch (IllegalArgumentException e) {
+            System.out.println("❌ [DEBUG] IllegalArgumentException: " + e.getMessage());
             response.put("success", false);
             response.put("message", e.getMessage());
             return ResponseEntity.status(400).body(response);
             
         } catch (RuntimeException e) {
+            System.out.println("❌ [DEBUG] RuntimeException: " + e.getMessage());
             String message = e.getMessage();
             if (message.contains("non trouvé")) {
                 response.put("success", false);
@@ -208,6 +221,8 @@ public class CommentController {
             }
             
         } catch (Exception e) {
+            System.out.println("❌ [DEBUG] General Exception: " + e.getMessage());
+            e.printStackTrace();
             response.put("success", false);
             response.put("message", "Erreur interne du serveur");
             return ResponseEntity.status(500).body(response);

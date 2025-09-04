@@ -15,8 +15,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+import esprit.user.entity.UserType;
 
 @Service
 @Transactional
@@ -146,45 +148,51 @@ public class CommentService {
     }
 
     public CommentResponse createReply(Long parentCommentId, String replyContent, String userEmail) {
-        try {
-            // Validate input
-            if (parentCommentId == null || parentCommentId <= 0) {
-                throw new IllegalArgumentException("ID du commentaire parent invalide");
-            }
-            
-            if (replyContent == null || replyContent.trim().isEmpty()) {
-                throw new IllegalArgumentException("Le contenu de la réponse est requis");
-            }
-            
-            // Find the parent comment
-            Comment parentComment = commentRepository.findById(parentCommentId)
-                .orElseThrow(() -> new RuntimeException("Commentaire parent non trouvé avec l'ID: " + parentCommentId));
-            
-            // Find the user
-            User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'email: " + userEmail));
-            
-            // Validate that user can reply (must be the annonce owner for replies)
-            if (!parentComment.getAnnonce().getCreateur().getId().equals(user.getId())) {
-                throw new RuntimeException("Seul le propriétaire de l'annonce peut répondre aux commentaires");
-            }
-            
-            // Create the reply (rating is 0 for replies)
-            Comment reply = new Comment(replyContent.trim(), 0, parentComment.getAnnonce(), user);
-            reply.setParentComment(parentComment);
-            Comment savedReply = commentRepository.save(reply);
-            
-            // Send notification to the original commenter
-            try {
-                notificationService.notifyNewComment(parentComment.getUser(), parentComment.getAnnonce(), savedReply);
-            } catch (Exception e) {
-                // Log error but don't fail the reply creation
-                System.err.println("Failed to send reply notification: " + e.getMessage());
-            }
-            
-            return new CommentResponse(savedReply);
-        } catch (Exception e) {
-            throw new RuntimeException("Erreur lors de la création de la réponse: " + e.getMessage(), e);
-        }
+    System.out.println("🔍 [CommentService] Creating reply - parentCommentId: " + parentCommentId + ", userEmail: " + userEmail);
+    
+    // Find parent comment
+    Comment parentComment = commentRepository.findById(parentCommentId)
+        .orElseThrow(() -> new RuntimeException("Commentaire parent non trouvé"));
+    
+    System.out.println("✅ [CommentService] Parent comment found: " + parentComment.getId());
+    
+    // Find user
+    User user = userRepository.findByEmail(userEmail)
+        .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+    
+    System.out.println("✅ [CommentService] User found: " + user.getEmail() + " (" + user.getUserType() + ")");
+    
+    // Get the annonce from parent comment
+    Annonce annonce = parentComment.getAnnonce();
+    System.out.println("✅ [CommentService] Annonce found: " + annonce.getId() + ", owner: " + annonce.getCreateur().getEmail());
+    
+    // Check if user can reply (must be annonce owner OR admin)
+    boolean canReply = annonce.getCreateur().getId().equals(user.getId()) ||
+                       user.getUserType() == UserType.ADMINISTRATEUR;
+    
+    System.out.println("🔐 [CommentService] Permission check - canReply: " + canReply);
+    System.out.println("    - User ID: " + user.getId() + ", Annonce owner ID: " + annonce.getCreateur().getId());
+    System.out.println("    - Is same user: " + annonce.getCreateur().getId().equals(user.getId()));
+    System.out.println("    - Is admin: " + (user.getUserType() == UserType.ADMINISTRATEUR));
+    
+    if (!canReply) {
+        throw new RuntimeException("Seul le propriétaire de l'annonce peut répondre aux commentaires");
     }
+    
+    // Create reply comment (without rating validation)
+    Comment reply = new Comment();
+    reply.setContent(replyContent);
+    reply.setUser(user);
+    reply.setAnnonce(annonce);
+    reply.setParentComment(parentComment);
+    reply.setRating(0); // Set 0 for replies (no rating)
+    reply.setCreatedAt(LocalDateTime.now());
+    reply.setUpdatedAt(LocalDateTime.now());
+    
+    System.out.println("💾 [CommentService] Saving reply...");
+    reply = commentRepository.save(reply);
+    System.out.println("✅ [CommentService] Reply saved with ID: " + reply.getId());
+    
+    return new CommentResponse(reply);
+}
 }

@@ -73,6 +73,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/users/status/**").hasRole("ADMINISTRATEUR")
                 .requestMatchers("/api/users/paginated").hasRole("ADMINISTRATEUR")
                 .requestMatchers("/api/users").hasRole("ADMINISTRATEUR")
+                // Comment routes
+                .requestMatchers("/api/comments/**").authenticated()
                 // Routes authentifiées
                 .requestMatchers("/api/users/**").authenticated()
                 .anyRequest().authenticated()

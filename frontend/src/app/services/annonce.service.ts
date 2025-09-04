@@ -166,10 +166,31 @@ export class AnnonceService {
 
   createReply(parentCommentId: number, replyContent: string): Observable<any> {
     console.log('💬 [ANNONCE-SERVICE] Creating reply for comment:', parentCommentId, replyContent);
-    return this.http.post<any>(`http://localhost:8080/api/comments/reply/${parentCommentId}`, { content: replyContent }).pipe(
+    
+    // Ensure proper headers with JWT token
+    const token = localStorage.getItem('jwt_token');
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    };
+    
+    console.log('🔑 [ANNONCE-SERVICE] Sending reply with token:', !!token);
+    console.log('📝 [ANNONCE-SERVICE] Request payload:', { content: replyContent });
+    
+    return this.http.post<any>(`http://localhost:8080/api/comments/reply/${parentCommentId}`, 
+      { content: replyContent }, 
+      { headers }
+    ).pipe(
       tap(response => console.log('✅ [ANNONCE-SERVICE] Reply created:', response)),
       catchError(error => {
         console.error('❌ [ANNONCE-SERVICE] Error creating reply:', error);
+        console.error('❌ [ANNONCE-SERVICE] Error details:', {
+          status: error.status,
+          statusText: error.statusText,
+          message: error.error?.message,
+          parentCommentId: parentCommentId,
+          hasToken: !!token
+        });
         return throwError(() => error);
       })
     );
