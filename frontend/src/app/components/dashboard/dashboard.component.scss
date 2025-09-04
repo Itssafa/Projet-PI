@@ -427,6 +427,37 @@
       line-height: 1.3;
       transition: color 0.2s ease;
     }
+
+    // Notification badge for nav items
+    .notification-badge {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background: linear-gradient(45deg, #ef4444, #dc2626);
+      color: white;
+      border-radius: 50%;
+      width: 1.5rem;
+      height: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+      z-index: 2;
+      box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+      animation: badgePulse 2s infinite;
+      
+      @keyframes badgePulse {
+        0%, 100% {
+          transform: scale(1);
+          box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+        }
+        50% {
+          transform: scale(1.05);
+          box-shadow: 0 4px 12px rgba(239, 68, 68, 0.6);
+        }
+      }
+    }
   }
 }
 
@@ -5789,6 +5820,485 @@ button:focus-visible {
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
+  }
+}
+
+/* Agency Comments Management Section */
+.comments-management {
+  margin-top: 2rem;
+  
+  .comments-management-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    
+    h2 {
+      margin: 0;
+      font-size: 1.875rem;
+      font-weight: 700;
+    }
+    
+    p {
+      margin: 0.5rem 0 0 0;
+      opacity: 0.9;
+      font-size: 1rem;
+    }
+    
+    .btn {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: translateY(-2px);
+      }
+    }
+  }
+  
+  .comments-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    padding: 2rem;
+    background: white;
+    
+    .stat-card {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+        border-color: var(--primary-300);
+      }
+      
+      .stat-icon {
+        background: var(--primary-gradient);
+        color: white;
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+      }
+      
+      .stat-content {
+        .stat-number {
+          font-size: 2rem;
+          font-weight: 700;
+          color: var(--primary-700);
+          line-height: 1;
+        }
+        
+        .stat-label {
+          font-size: 0.875rem;
+          color: #64748b;
+          margin-top: 0.25rem;
+        }
+      }
+    }
+  }
+  
+  .comments-list {
+    background: white;
+    border-radius: 0 0 16px 16px;
+    
+    .comment-management-item {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 2rem;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        background: #f8fafc;
+      }
+      
+      &:last-child {
+        border-bottom: none;
+        border-radius: 0 0 16px 16px;
+      }
+      
+      .comment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+        
+        .comment-author {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          
+          .author-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 600;
+            
+            &.agency {
+              background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            }
+          }
+          
+          .author-info {
+            .author-name {
+              font-size: 1.125rem;
+              font-weight: 600;
+              color: #1f2937;
+              margin-bottom: 0.25rem;
+              
+              .agency-badge {
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                color: white;
+                padding: 0.125rem 0.5rem;
+                border-radius: 6px;
+                font-size: 0.75rem;
+                font-weight: 500;
+                margin-left: 0.5rem;
+              }
+            }
+            
+            .comment-date {
+              color: #64748b;
+              font-size: 0.875rem;
+            }
+          }
+        }
+        
+        .comment-rating {
+          display: flex;
+          gap: 0.25rem;
+          
+          .rating-star {
+            font-size: 1.25rem;
+            color: #d1d5db;
+            transition: color 0.2s ease;
+            
+            &.filled {
+              color: #fbbf24;
+            }
+          }
+        }
+      }
+      
+      .comment-content {
+        margin-bottom: 1.5rem;
+        
+        .comment-text {
+          color: #374151;
+          line-height: 1.7;
+          font-size: 1rem;
+          margin-bottom: 1rem;
+          padding: 1rem;
+          background: #f8fafc;
+          border-radius: 12px;
+          border-left: 4px solid var(--primary-500);
+        }
+        
+        .comment-annonce {
+          color: #6b7280;
+          font-size: 0.875rem;
+          
+          strong {
+            color: var(--primary-600);
+          }
+        }
+      }
+      
+      .comment-actions {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        
+        .btn {
+          padding: 0.5rem 1rem;
+          font-size: 0.875rem;
+          border-radius: 8px;
+          transition: all 0.3s ease;
+          
+          &.btn-outline {
+            background: white;
+            border: 2px solid #e5e7eb;
+            color: #374151;
+            
+            &:hover {
+              border-color: var(--primary-400);
+              color: var(--primary-600);
+              transform: translateY(-1px);
+            }
+          }
+          
+          &.btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            
+            &:hover {
+              transform: translateY(-2px);
+              box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+            }
+            
+            &:disabled {
+              opacity: 0.6;
+              transform: none;
+              box-shadow: none;
+            }
+          }
+        }
+      }
+      
+      // Reply Form Styles
+      .reply-form {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border: 2px solid #bae6fd;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-top: 1rem;
+        animation: slideDown 0.3s ease;
+        
+        .reply-header {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-bottom: 1rem;
+          color: var(--primary-700);
+          font-weight: 600;
+          
+          .material-icons {
+            font-size: 1.25rem;
+          }
+        }
+        
+        .reply-input-container {
+          margin-bottom: 1rem;
+          
+          .reply-textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e0f2fe;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: vertical;
+            transition: all 0.3s ease;
+            
+            &:focus {
+              outline: none;
+              border-color: var(--primary-400);
+              background: white;
+              box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            }
+            
+            &:disabled {
+              background: #f1f5f9;
+              color: #64748b;
+            }
+          }
+        }
+        
+        .reply-actions {
+          display: flex;
+          justify-content: flex-end;
+          gap: 1rem;
+          
+          .btn {
+            padding: 0.75rem 1.5rem;
+            font-size: 0.875rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            
+            &.btn-secondary {
+              background: white;
+              color: #64748b;
+              border: 2px solid #e2e8f0;
+              
+              &:hover {
+                border-color: #cbd5e1;
+                color: #475569;
+                transform: translateY(-1px);
+              }
+            }
+            
+            &.btn-primary {
+              background: var(--primary-gradient);
+              color: white;
+              border: none;
+              
+              &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+              }
+              
+              &:disabled {
+                opacity: 0.6;
+                transform: none;
+                box-shadow: none;
+              }
+            }
+            
+            .rotating {
+              animation: rotate 1s linear infinite;
+            }
+          }
+        }
+      }
+      
+      // Replies Section Styles
+      .replies-section {
+        margin-top: 1.5rem;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-radius: 16px;
+        border-left: 4px solid #10b981;
+        
+        .replies-header {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-bottom: 1rem;
+          color: #059669;
+          font-weight: 600;
+          font-size: 0.875rem;
+          
+          .material-icons {
+            font-size: 1rem;
+          }
+        }
+        
+        .reply-item {
+          background: white;
+          border-radius: 12px;
+          padding: 1.5rem;
+          border: 2px solid #e5e7eb;
+          margin-bottom: 1rem;
+          
+          &:last-child {
+            margin-bottom: 0;
+          }
+          
+          .reply-author {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            
+            .author-avatar {
+              width: 40px;
+              height: 40px;
+              border-radius: 50%;
+              background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+              color: white;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 1rem;
+            }
+            
+            .author-info {
+              .author-name {
+                font-size: 1rem;
+                font-weight: 600;
+                color: #1f2937;
+                margin-bottom: 0.25rem;
+                
+                .agency-badge {
+                  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                  color: white;
+                  padding: 0.125rem 0.5rem;
+                  border-radius: 6px;
+                  font-size: 0.75rem;
+                  font-weight: 500;
+                  margin-left: 0.5rem;
+                }
+              }
+              
+              .reply-date {
+                color: #64748b;
+                font-size: 0.8rem;
+              }
+            }
+          }
+          
+          .reply-content {
+            color: #374151;
+            line-height: 1.6;
+            font-size: 0.95rem;
+          }
+        }
+      }
+    }
+  }
+  
+  // No Comments State
+  .no-comments {
+    background: white;
+    border-radius: 0 0 16px 16px;
+    padding: 4rem 2rem;
+    text-align: center;
+    
+    .no-comments-content {
+      .material-icons {
+        font-size: 4rem;
+        color: #cbd5e1;
+        margin-bottom: 1rem;
+      }
+      
+      h3 {
+        color: #64748b;
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+      }
+      
+      p {
+        color: #94a3b8;
+        font-size: 1rem;
+      }
+    }
+  }
+}
+
+// Animations
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 

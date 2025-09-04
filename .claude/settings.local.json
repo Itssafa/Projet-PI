@@ -4,7 +4,9 @@
       "*",
       "Read(/C:\\Users\\EliteBook\\Desktop\\Pi\\frontend\\src\\app\\components\\dashboard/**)",
       "Read(/C:\\Users\\EliteBook\\Desktop\\Pi\\frontend\\src\\app\\components\\dashboard/**)",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(npm start)",
+      "Bash(.mvnw.cmd clean compile)"
     ],
     "deny": [],
     "ask": [],

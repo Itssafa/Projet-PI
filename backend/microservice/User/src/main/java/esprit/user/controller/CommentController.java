@@ -159,4 +159,58 @@ public class CommentController {
             return ResponseEntity.status(500).body(response);
         }
     }
+
+    @PostMapping("/reply/{parentCommentId}")
+    public ResponseEntity<Map<String, Object>> createReply(
+            @PathVariable Long parentCommentId,
+            @RequestBody Map<String, String> request,
+            Authentication authentication) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            if (authentication == null || authentication.getName() == null) {
+                response.put("success", false);
+                response.put("message", "Authentification requise");
+                return ResponseEntity.status(401).body(response);
+            }
+            
+            String replyContent = request.get("content");
+            if (replyContent == null || replyContent.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "Le contenu de la réponse est requis");
+                return ResponseEntity.status(400).body(response);
+            }
+            
+            CommentResponse reply = commentService.createReply(parentCommentId, replyContent, authentication.getName());
+            
+            response.put("success", true);
+            response.put("message", "Réponse ajoutée avec succès");
+            response.put("reply", reply);
+            
+            return ResponseEntity.status(201).body(response);
+            
+        } catch (IllegalArgumentException e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(400).body(response);
+            
+        } catch (RuntimeException e) {
+            String message = e.getMessage();
+            if (message.contains("non trouvé")) {
+                response.put("success", false);
+                response.put("message", message);
+                return ResponseEntity.status(404).body(response);
+            } else {
+                response.put("success", false);
+                response.put("message", message);
+                return ResponseEntity.status(403).body(response);
+            }
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Erreur interne du serveur");
+            return ResponseEntity.status(500).body(response);
+        }
+    }
 }

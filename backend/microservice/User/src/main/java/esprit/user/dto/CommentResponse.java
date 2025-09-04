@@ -2,6 +2,8 @@ package esprit.user.dto;
 
 import esprit.user.entity.Comment;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class CommentResponse {
     private Long id;
@@ -13,6 +15,8 @@ public class CommentResponse {
     private String userType;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Long parentCommentId;
+    private List<CommentResponse> replies;
     
     // Constructors
     public CommentResponse() {}
@@ -27,6 +31,10 @@ public class CommentResponse {
         this.userType = comment.getUser().getUserType().toString();
         this.createdAt = comment.getCreatedAt();
         this.updatedAt = comment.getUpdatedAt();
+        this.parentCommentId = comment.getParentComment() != null ? comment.getParentComment().getId() : null;
+        this.replies = comment.getReplies().stream()
+            .map(CommentResponse::new)
+            .collect(Collectors.toList());
     }
     
     // Getters and Setters
@@ -56,4 +64,10 @@ public class CommentResponse {
     
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    
+    public Long getParentCommentId() { return parentCommentId; }
+    public void setParentCommentId(Long parentCommentId) { this.parentCommentId = parentCommentId; }
+    
+    public List<CommentResponse> getReplies() { return replies; }
+    public void setReplies(List<CommentResponse> replies) { this.replies = replies; }
 }

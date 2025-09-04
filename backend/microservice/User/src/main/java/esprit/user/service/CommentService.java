@@ -83,7 +83,7 @@ public class CommentService {
             throw new IllegalArgumentException("ID de l'annonce invalide");
         }
         
-        List<Comment> comments = commentRepository.findByAnnonceIdOrderByCreatedAtDesc(annonceId);
+        List<Comment> comments = commentRepository.findByAnnonceIdAndParentCommentIsNullOrderByCreatedAtDesc(annonceId);
         return comments.stream()
             .map(CommentResponse::new)
             .collect(Collectors.toList());
@@ -103,7 +103,7 @@ public class CommentService {
         }
         
         Pageable pageable = PageRequest.of(page, size);
-        Page<Comment> comments = commentRepository.findByAnnonceIdOrderByCreatedAtDesc(annonceId, pageable);
+        Page<Comment> comments = commentRepository.findByAnnonceIdAndParentCommentIsNullOrderByCreatedAtDesc(annonceId, pageable);
         return comments.map(CommentResponse::new);
     }
     
@@ -143,5 +143,48 @@ public class CommentService {
         Pageable pageable = PageRequest.of(page, size);
         Page<Comment> comments = commentRepository.findCommentsForUserAnnonces(user.getId(), pageable);
         return comments.map(CommentResponse::new);
+    }
+
+    public CommentResponse createReply(Long parentCommentId, String replyContent, String userEmail) {
+        try {
+            // Validate input
+            if (parentCommentId == null || parentCommentId <= 0) {
+                throw new IllegalArgumentException("ID du commentaire parent invalide");
+            }
+            
+            if (replyContent == null || replyContent.trim().isEmpty()) {
+                throw new IllegalArgumentException("Le contenu de la réponse est requis");
+            }
+            
+            // Find the parent comment
+            Comment parentComment = commentRepository.findById(parentCommentId)
+                .orElseThrow(() -> new RuntimeException("Commentaire parent non trouvé avec l'ID: " + parentCommentId));
+            
+            // Find the user
+            User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'email: " + userEmail));
+            
+            // Validate that user can reply (must be the annonce owner for replies)
+            if (!parentComment.getAnnonce().getCreateur().getId().equals(user.getId())) {
+                throw new RuntimeException("Seul le propriétaire de l'annonce peut répondre aux commentaires");
+            }
+            
+            // Create the reply (rating is 0 for replies)
+            Comment reply = new Comment(replyContent.trim(), 0, parentComment.getAnnonce(), user);
+            reply.setParentComment(parentComment);
+            Comment savedReply = commentRepository.save(reply);
+            
+            // Send notification to the original commenter
+            try {
+                notificationService.notifyNewComment(parentComment.getUser(), parentComment.getAnnonce(), savedReply);
+            } catch (Exception e) {
+                // Log error but don't fail the reply creation
+                System.err.println("Failed to send reply notification: " + e.getMessage());
+            }
+            
+            return new CommentResponse(savedReply);
+        } catch (Exception e) {
+            throw new RuntimeException("Erreur lors de la création de la réponse: " + e.getMessage(), e);
+        }
     }
 }

@@ -197,6 +197,191 @@
           </div>
         </div>
 
+        <!-- Rating and Comments Section -->
+        <div class="comments-section">
+          <h2><span class="material-icons">chat_bubble</span> Évaluations et Commentaires</h2>
+          
+          <!-- Rating Summary -->
+          <div class="rating-summary" *ngIf="commentStats">
+            <div class="average-rating">
+              <div class="rating-stars">
+                <span 
+                  *ngFor="let star of [1, 2, 3, 4, 5]" 
+                  class="material-icons star" 
+                  [ngClass]="{'filled': star <= getAverageRatingRounded()}">
+                  star
+                </span>
+              </div>
+              <span class="rating-text">
+                {{ commentStats.averageRating | number:'1.1-1' }} / 5.0
+                ({{ commentStats.commentCount }} 
+                {{ commentStats.commentCount === 1 ? 'évaluation' : 'évaluations' }})
+              </span>
+            </div>
+          </div>
+
+          <!-- Add Comment Form (for authenticated users) -->
+          <div class="add-comment-form" *ngIf="canComment()">
+            <h3>Laisser un commentaire</h3>
+            <div class="rating-input">
+              <label>Note :</label>
+              <div class="rating-stars-input">
+                <span 
+                  *ngFor="let star of [1, 2, 3, 4, 5]" 
+                  class="material-icons star-input" 
+                  [ngClass]="{'selected': star <= selectedRating}"
+                  (click)="setRating(star)">
+                  star
+                </span>
+              </div>
+            </div>
+            
+            <div class="comment-input">
+              <label for="commentText">Commentaire :</label>
+              <textarea 
+                id="commentText"
+                [(ngModel)]="newComment"
+                placeholder="Partagez votre expérience..."
+                maxlength="1000"
+                rows="4">
+              </textarea>
+              <div class="char-count">{{ newComment?.length || 0 }}/1000</div>
+            </div>
+            
+            <div class="form-actions">
+              <button 
+                class="btn btn-primary"
+                (click)="submitComment()"
+                [disabled]="!canSubmitComment()"
+                [class.loading]="isSubmittingComment">
+                <span class="material-icons" *ngIf="!isSubmittingComment">send</span>
+                <span class="material-icons spinning" *ngIf="isSubmittingComment">refresh</span>
+                {{ isSubmittingComment ? 'Envoi en cours...' : 'Publier' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Debug Information (remove in production) -->
+          <div class="debug-info" *ngIf="authService.isAuthenticated" style="background: #f0f0f0; padding: 1rem; margin: 1rem 0; border-radius: 8px; font-size: 0.85rem;">
+            <strong>Debug Info:</strong><br>
+            - User authenticated: {{ authService.isAuthenticated }}<br>
+            - User type: {{ authService.currentUser?.userType }}<br>
+            - Can comment: {{ canComment() }}<br>
+            - Comments loaded: {{ comments?.length || 0 }}<br>
+            - Loading comments: {{ isLoadingComments }}<br>
+            - Should show comments: {{ shouldShowComments() }}
+          </div>
+
+          <!-- Loading State -->
+          <div *ngIf="isLoadingComments" class="comments-loading">
+            <div class="loading-spinner"></div>
+            <p>Chargement des commentaires...</p>
+          </div>
+
+          <!-- Comments List -->
+          <div class="comments-list" *ngIf="!isLoadingComments && comments && comments.length > 0">
+            <h3>Commentaires ({{ comments.length }})</h3>
+            <div class="comment-item" *ngFor="let comment of comments; trackBy: trackByCommentId">
+              <div class="comment-header">
+                <div class="comment-author">
+                  <span class="material-icons">account_circle</span>
+                  <span class="author-name">{{ comment.userName }}</span>
+                  <span class="author-type" [class]="comment.userType.toLowerCase()">{{ getUserTypeDisplay(comment.userType) }}</span>
+                </div>
+                <div class="comment-rating" *ngIf="comment.rating > 0">
+                  <span 
+                    *ngFor="let star of [1, 2, 3, 4, 5]" 
+                    class="material-icons star-small" 
+                    [ngClass]="{'filled': star <= comment.rating}">
+                    star
+                  </span>
+                </div>
+              </div>
+              <div class="comment-content">
+                <div class="comment-text">{{ comment.content }}</div>
+                <div class="comment-meta">
+                  <span class="comment-date">{{ formatDate(comment.createdAt) }}</span>
+                  <span class="comment-rating" *ngIf="comment.rating > 0">
+                    Note: {{ comment.rating }}/5
+                  </span>
+                </div>
+              </div>
+              <div class="comment-footer">
+                <!-- Reply Button for Agencies (only if they own the annonce) -->
+                <button 
+                  *ngIf="canReply()" 
+                  class="btn-reply" 
+                  (click)="startReply(comment.id)"
+                  [disabled]="isSubmittingReply">
+                  <span class="material-icons">reply</span>
+                  Répondre
+                </button>
+                
+                <!-- Reply Form -->
+                <div *ngIf="replyingToComment === comment.id" class="reply-form">
+                  <div class="reply-header">
+                    <span class="material-icons">reply</span>
+                    <span>Répondre à {{ comment.userName }}</span>
+                  </div>
+                  <div class="reply-input-container">
+                    <textarea 
+                      [(ngModel)]="replyContent"
+                      placeholder="Écrivez votre réponse..."
+                      class="reply-textarea"
+                      rows="3"
+                      [disabled]="isSubmittingReply">
+                    </textarea>
+                  </div>
+                  <div class="reply-actions">
+                    <button class="btn btn-sm btn-secondary" 
+                            (click)="cancelReply()"
+                            [disabled]="isSubmittingReply">
+                      <span class="material-icons">close</span>
+                      Annuler
+                    </button>
+                    <button class="btn btn-sm btn-primary" 
+                            (click)="submitReply(comment.id)"
+                            [disabled]="!replyContent?.trim() || isSubmittingReply">
+                      <span class="material-icons" *ngIf="!isSubmittingReply">send</span>
+                      <span class="material-icons rotating" *ngIf="isSubmittingReply">refresh</span>
+                      {{ isSubmittingReply ? 'Envoi...' : 'Envoyer' }}
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Show replies if any -->
+                <div class="replies-section" *ngIf="comment.replies && comment.replies.length > 0">
+                  <div class="replies-header">
+                    <span class="material-icons">subdirectory_arrow_right</span>
+                    <span>{{ comment.replies.length }} réponse(s)</span>
+                  </div>
+                  <div *ngFor="let reply of comment.replies" class="reply-item">
+                    <div class="reply-author">
+                      <span class="material-icons">business</span>
+                      <span class="author-name">{{ reply.userName }}</span>
+                      <span class="agency-badge">Agence</span>
+                    </div>
+                    <p class="reply-content">{{ reply.content }}</p>
+                    <p class="reply-date">{{ formatDate(reply.createdAt) }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- No Comments Message -->
+          <div class="no-comments" *ngIf="comments && comments.length === 0">
+            <span class="material-icons">chat_bubble_outline</span>
+            <p>Aucun commentaire pour le moment. Soyez le premier à donner votre avis !</p>
+          </div>
+
+          <!-- Loading Comments -->
+          <div class="loading-comments" *ngIf="isLoadingComments">
+            <div class="loading-spinner-small"></div>
+            <p>Chargement des commentaires...</p>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>

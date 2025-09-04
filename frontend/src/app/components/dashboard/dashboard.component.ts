@@ -329,6 +329,9 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     
     // Load annonce statistics
     this.loadAnnonceStats();
+    
+    // Load comments for notification badge
+    this.loadCommentsForMyAnnonces();
   }
 
   private loadClientData(): void {
@@ -409,6 +412,11 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
         if (this.userType === 'CLIENT_ABONNE') {
           this.loadMyAnnonces();
           this.loadAnnonceStats();
+        }
+        break;
+      case 'comments':
+        if (this.userType === 'AGENCE_IMMOBILIERE') {
+          this.loadCommentsForMyAnnonces();
         }
         break;
       default:
@@ -1170,6 +1178,11 @@ loadAnnonceComments(annonceId: number): void {
   // Agency comment management
   myAnnonceComments: any = null;
   isLoadingMyComments = false;
+  
+  // Reply functionality
+  replyingToComment: number | null = null;
+  replyContent = '';
+  isSubmittingReply = false;
 
   loadCommentsForMyAnnonces(): void {
     if (!this.isAgency() && !this.isClientAbonne()) return;
@@ -1190,5 +1203,58 @@ loadAnnonceComments(annonceId: number): void {
     });
     
     this.subscriptions.push(commentsSub);
+  }
+
+  getCommentNotificationCount(): number {
+    if (!this.myAnnonceComments || !this.myAnnonceComments.content) {
+      return 0;
+    }
+    return this.myAnnonceComments.totalElements || this.myAnnonceComments.content.length || 0;
+  }
+
+  // Reply functionality methods
+  startReply(commentId: number): void {
+    console.log('💬 [REPLY] Starting reply to comment:', commentId);
+    this.replyingToComment = commentId;
+    this.replyContent = '';
+  }
+
+  cancelReply(): void {
+    console.log('❌ [REPLY] Cancelling reply');
+    this.replyingToComment = null;
+    this.replyContent = '';
+  }
+
+  submitReply(commentId: number): void {
+    if (!this.replyContent.trim()) {
+      alert('Veuillez saisir votre réponse');
+      return;
+    }
+
+    console.log('📝 [REPLY] Submitting reply to comment:', commentId, 'Content:', this.replyContent);
+    
+    this.isSubmittingReply = true;
+    const replySub = this.annonceService.createReply(commentId, this.replyContent.trim()).subscribe({
+      next: (response) => {
+        console.log('✅ [REPLY] Reply submitted successfully:', response);
+        alert('Réponse envoyée avec succès !');
+        
+        // Clear reply form
+        this.replyingToComment = null;
+        this.replyContent = '';
+        this.isSubmittingReply = false;
+        
+        // Reload comments to show the new reply
+        this.loadCommentsForMyAnnonces();
+      },
+      error: (error) => {
+        console.error('❌ [REPLY] Error submitting reply:', error);
+        const errorMessage = error.error?.message || 'Erreur lors de l\'envoi de la réponse';
+        alert(errorMessage);
+        this.isSubmittingReply = false;
+      }
+    });
+
+    this.subscriptions.push(replySub);
   }
 }

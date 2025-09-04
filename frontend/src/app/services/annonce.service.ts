@@ -164,6 +164,17 @@ export class AnnonceService {
     );
   }
 
+  createReply(parentCommentId: number, replyContent: string): Observable<any> {
+    console.log('💬 [ANNONCE-SERVICE] Creating reply for comment:', parentCommentId, replyContent);
+    return this.http.post<any>(`http://localhost:8080/api/comments/reply/${parentCommentId}`, { content: replyContent }).pipe(
+      tap(response => console.log('✅ [ANNONCE-SERVICE] Reply created:', response)),
+      catchError(error => {
+        console.error('❌ [ANNONCE-SERVICE] Error creating reply:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
   // Helper methods for display values
   getTypeBienDisplayName(type: TypeBien): string {
     const displayNames: { [key in TypeBien]: string } = {

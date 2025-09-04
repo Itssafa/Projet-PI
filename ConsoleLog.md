@@ -1,214 +1,82 @@
-polyfills.js:6155 [webpack-dev-server] Server started: Hot Module Replacement disabled, Live Reloading enabled, Progress disabled, Overlay enabled.
-index.js:489  [webpack-dev-server] Warnings while compiling.
-logger @ index.js:489
-(anonymous) @ index.js:634
-warn @ index.js:164
-warnings @ index.js:249
-(anonymous) @ socket.js:62
-client.onmessage @ WebSocketClient.js:45
-index.js:489  [webpack-dev-server] WARNING
-src/app/components/dashboard/dashboard.component.html:363:61 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+Of course. Here is a distilled list of only the errors from the console log, categorized for clarity.
 
-363                       <span>{{ annonceComments[annonce.id]?.length || 0 }}</span>
-                                                                ~~~~~~
+### Compilation Errors (Blocking the Build)
 
-  src/app/components/dashboard/dashboard.component.ts:29:16
-    29   templateUrl: './dashboard.component.html',
-                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Error occurs in the template of component DashboardComponent.
+These are TypeScript errors that prevent the application from recompiling and reloading.
 
-logger @ index.js:489
-(anonymous) @ index.js:634
-warn @ index.js:164
-warnings @ index.js:258
-(anonymous) @ socket.js:62
-client.onmessage @ WebSocketClient.js:45
-index.js:489  [webpack-dev-server] WARNING
-src/app/components/dashboard/dashboard.component.html:743:61 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+#### In `AnnonceViewComponent`
+The template references missing properties and methods in the component class (`annonce-view.component.ts`).
 
-743                       <span>{{ annonceComments[annonce.id]?.length || 0 }}</span>
-                                                                ~~~~~~
+1.  **`commentStats` does not exist:**
+    *   `*ngIf="commentStats"`
+    *   `{{ commentStats.averageRating | number:'1.1-1' }}`
+    *   `{{ commentStats.commentCount }}`
+    *   `{{ commentStats.commentCount === 1 ? 'évaluation' : 'évaluations' }})`
 
-  src/app/components/dashboard/dashboard.component.ts:29:16
-    29   templateUrl: './dashboard.component.html',
-                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Error occurs in the template of component DashboardComponent.
+2.  **`getAverageRatingRounded` does not exist:**
+    *   `[ngClass]="{'filled': star <= getAverageRatingRounded()}"`
 
-logger @ index.js:489
-(anonymous) @ index.js:634
-warn @ index.js:164
-warnings @ index.js:258
-(anonymous) @ socket.js:62
-client.onmessage @ WebSocketClient.js:45
-index.js:489  [webpack-dev-server] WARNING
-src/app/components/dashboard/dashboard.component.html:3026:73 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+3.  **`canComment` does not exist:**
+    *   `*ngIf="canComment()"`
 
-3026               <h4>Commentaires ({{ annonceComments[selectedAnnonce.id]?.length || 0 }})</h4>
-                                                                             ~~~~~~
+4.  **`selectedRating` does not exist:**
+    *   `[ngClass]="{'selected': star <= selectedRating}"`
 
-  src/app/components/dashboard/dashboard.component.ts:29:16
-    29   templateUrl: './dashboard.component.html',
-                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Error occurs in the template of component DashboardComponent.
+5.  **`setRating` does not exist:**
+    *   `(click)="setRating(star)"`
 
-logger @ index.js:489
-(anonymous) @ index.js:634
-warn @ index.js:164
-warnings @ index.js:258
-(anonymous) @ socket.js:62
-client.onmessage @ WebSocketClient.js:45
-index.js:489  [webpack-dev-server] WARNING
-src/app/components/dashboard/dashboard.component.html:3035:50 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+6.  **`newComment` does not exist:**
+    *   `[(ngModel)]="newComment"`
+    *   `{{ newComment?.length || 0 }}/1000`
 
-3035                         [disabled]="!newComment?.trim()"
-                                                      ~~~~
+7.  **`submitComment` does not exist:**
+    *   `(click)="submitComment()"`
 
-  src/app/components/dashboard/dashboard.component.ts:29:16
-    29   templateUrl: './dashboard.component.html',
-                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Error occurs in the template of component DashboardComponent.
+8.  **`canSubmitComment` does not exist:**
+    *   `[disabled]="!canSubmitComment()"`
 
-logger @ index.js:489
-(anonymous) @ index.js:634
-warn @ index.js:164
-warnings @ index.js:258
-(anonymous) @ socket.js:62
-client.onmessage @ WebSocketClient.js:45
-index.js:493  [webpack-dev-server] Errors while compiling. Reload prevented.
-logger @ index.js:493
-(anonymous) @ index.js:634
-error @ index.js:156
-errors @ index.js:280
-(anonymous) @ socket.js:62
-client.onmessage @ WebSocketClient.js:45
-index.js:493  [webpack-dev-server] ERROR
-src/app/components/dashboard/dashboard.component.html:339:38 - error TS2339: Property 'openCommentModal' does not exist on type 'DashboardComponent'.
+9.  **`isSubmittingComment` does not exist:**
+    *   `[class.loading]="isSubmittingComment"`
+    *   `*ngIf="!isSubmittingComment"`
+    *   `*ngIf="isSubmittingComment"`
+    *   `{{ isSubmittingComment ? 'Envoi en cours...' : 'Publier' }}`
 
-339                             (click)="openCommentModal(annonce)">
-                                         ~~~~~~~~~~~~~~~~
+10. **`comments` does not exist:**
+    *   `*ngIf="comments && comments.length > 0"`
+    *   `*ngFor="let comment of comments"`
+    *   `*ngIf="comments && comments.length === 0"`
 
-  src/app/components/dashboard/dashboard.component.ts:29:16
-    29   templateUrl: './dashboard.component.html',
-                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Error occurs in the template of component DashboardComponent.
+11. **`isLoadingComments` does not exist:**
+    *   `*ngIf="isLoadingComments"`
 
-logger @ index.js:493
-(anonymous) @ index.js:634
-error @ index.js:156
-errors @ index.js:289
-(anonymous) @ socket.js:62
-client.onmessage @ WebSocketClient.js:45
-index.js:493  [webpack-dev-server] ERROR
-src/app/components/dashboard/dashboard.component.html:372:44 - error TS2339: Property 'formatDate' does not exist on type 'DashboardComponent'.
+12. **`getUserTypeDisplay` does not exist:**
+    *   `{{ getUserTypeDisplay(comment.userType) }}`
 
-372                     <span class="value">{{ formatDate(annonce.dateCreation) }}</span>
-                                               ~~~~~~~~~~
+13. **`ngModel` is not a known property:**
+    *   `Can't bind to 'ngModel' since it isn't a known property of 'textarea'.` (Likely missing the `FormsModule` import).
 
-  src/app/components/dashboard/dashboard.component.ts:29:16
-    29   templateUrl: './dashboard.component.html',
-                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Error occurs in the template of component DashboardComponent.
+14. **`isLoggedIn` does not exist on `AuthService`:**
+    *   `return this.authService.isLoggedIn();` (Error in `annonce-view.component.ts` line 162).
 
-logger @ index.js:493
-(anonymous) @ index.js:634
-error @ index.js:156
-errors @ index.js:289
-(anonymous) @ socket.js:62
-client.onmessage @ WebSocketClient.js:45
-index.js:493  [webpack-dev-server] ERROR
-src/app/components/dashboard/dashboard.component.html:620:61 - error TS2339: Property 'toggleFavorite' does not exist on type 'DashboardComponent'.
+#### In `DashboardComponent`
+A method is being called that does not exist in the component class.
 
-620                       <button class="btn-favorite" (click)="toggleFavorite(annonce); $event.stopPropagation()">
-                                                                ~~~~~~~~~~~~~~
+15. **`loadMyAnnonceComments` does not exist:**
+    *   `this.loadMyAnnonceComments();` (Error in `dashboard.component.ts` at lines 334, 416, and 419). The compiler suggests the correct method name is `loadAnnonceComments`.
 
-  src/app/components/dashboard/dashboard.component.ts:29:16
-    29   templateUrl: './dashboard.component.html',
-                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Error occurs in the template of component DashboardComponent.
+---
 
-logger @ index.js:493
-(anonymous) @ index.js:634
-error @ index.js:156
-errors @ index.js:289
-(anonymous) @ socket.js:62
-client.onmessage @ WebSocketClient.js:45
-index.js:493  [webpack-dev-server] ERROR
-src/app/components/dashboard/dashboard.component.html:720:62 - error TS2339: Property 'openCommentModal' does not exist on type 'DashboardComponent'.
+### Runtime Errors (API & Network Failures)
 
-720                     <button class="btn btn-primary" (click)="openCommentModal(annonce)">
-                                                                 ~~~~~~~~~~~~~~~~
+These are application errors that occurred during execution after a successful compilation.
 
-  src/app/components/dashboard/dashboard.component.ts:29:16
-    29   templateUrl: './dashboard.component.html',
-                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Error occurs in the template of component DashboardComponent.
+1.  **HTTP 500 Internal Server Error:**
+    *   `GET http://...:8080/api/comments/annonce/16/stats` - Failed to load resource.
+    *   `GET http://...:8080/api/comments/annonce/16` - Failed to load resource (multiple times).
+    *   `POST http://...:8080/api/comments/annonce/16` - Failed to load resource (multiple times). This caused comments and ratings to fail to submit.
 
-logger @ index.js:493
-(anonymous) @ index.js:634
-error @ index.js:156
-errors @ index.js:289
-(anonymous) @ socket.js:62
-client.onmessage @ WebSocketClient.js:45
-index.js:493  [webpack-dev-server] ERROR
-src/app/components/dashboard/dashboard.component.html:725:76 - error TS2345: Argument of type 'AnnonceSummary' is not assignable to parameter of type 'number'.
+2.  **Connection Refused:**
+    *   `POST http://...:8080/api/auth/login` - `net::ERR_CONNECTION_REFUSED`. The authentication server was unreachable at one point.
 
-725                     <button class="btn btn-secondary" (click)="editAnnonce(annonce)">
-                                                                               ~~~~~~~
-
-  src/app/components/dashboard/dashboard.component.ts:29:16
-    29   templateUrl: './dashboard.component.html',
-                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Error occurs in the template of component DashboardComponent.
-
-logger @ index.js:493
-(anonymous) @ index.js:634
-error @ index.js:156
-errors @ index.js:289
-(anonymous) @ socket.js:62
-client.onmessage @ WebSocketClient.js:45
-index.js:493  [webpack-dev-server] ERROR
-src/app/components/dashboard/dashboard.component.html:752:44 - error TS2339: Property 'formatDate' does not exist on type 'DashboardComponent'.
-
-752                     <span class="value">{{ formatDate(annonce.dateCreation) }}</span>
-                                               ~~~~~~~~~~
-
-  src/app/components/dashboard/dashboard.component.ts:29:16
-    29   templateUrl: './dashboard.component.html',
-                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Error occurs in the template of component DashboardComponent.
-
-logger @ index.js:493
-(anonymous) @ index.js:634
-error @ index.js:156
-errors @ index.js:289
-(anonymous) @ socket.js:62
-client.onmessage @ WebSocketClient.js:45
-index.js:493  [webpack-dev-server] ERROR
-src/app/components/dashboard/dashboard.component.html:756:44 - error TS2339: Property 'formatDate' does not exist on type 'DashboardComponent'.
-
-756                     <span class="value">{{ formatDate(annonce.dateMiseAJour) }}</span>
-                                               ~~~~~~~~~~
-
-  src/app/components/dashboard/dashboard.component.ts:29:16
-    29   templateUrl: './dashboard.component.html',
-                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Error occurs in the template of component DashboardComponent.
-
-logger @ index.js:493
-(anonymous) @ index.js:634
-error @ index.js:156
-errors @ index.js:289
-(anonymous) @ socket.js:62
-client.onmessage @ WebSocketClient.js:45
-auth.service.ts:80 Token validation: {tokenExists: true, expiresAt: Thu Sep 04 2025 18:12:02 GMT+0100 (heure normale d’Afrique de l’Ouest), currentTime: Wed Sep 03 2025 18:22:33 GMT+0100 (heure normale d’Afrique de l’Ouest), isValid: true, timeUntilExpiry: 85769}
-core.mjs:26656 Angular is running in development mode.
-auth.service.ts:80 Token validation: {tokenExists: true, expiresAt: Thu Sep 04 2025 18:12:02 GMT+0100 (heure normale d’Afrique de l’Ouest), currentTime: Wed Sep 03 2025 18:22:33 GMT+0100 (heure normale d’Afrique de l’Ouest), isValid: true, timeUntilExpiry: 85769}
-auth.service.ts:80 Token validation: {tokenExists: true, expiresAt: Thu Sep 04 2025 18:12:02 GMT+0100 (heure normale d’Afrique de l’Ouest), currentTime: Wed Sep 03 2025 18:22:33 GMT+0100 (heure normale d’Afrique de l’Ouest), isValid: true, timeUntilExpiry: 85769}
-dashboard.component.ts:334 Loading client-specific data...
-auth.service.ts:80 Token validation: {tokenExists: true, expiresAt: Thu Sep 04 2025 18:12:02 GMT+0100 (heure normale d’Afrique de l’Ouest), currentTime: Wed Sep 03 2025 18:22:34 GMT+0100 (heure normale d’Afrique de l’Ouest), isValid: true, timeUntilExpiry: 85768}
-dashboard.component.ts:152 🎯 [DEBUG] MyAnnonces data: null
-dashboard.component.ts:153 🎯 [DEBUG] MyAnnonces content length: undefined
-dashboard.component.ts:154 🎯 [DEBUG] Active section: overview
-dashboard.component.ts:155 🎯 [DEBUG] User type: CLIENT_ABONNE
-dashboard.component.ts:156 🎯 [DEBUG] Is agency: false
-dashboard.component.ts:157 🎯 [DEBUG] Is loading annonces: false
+3.  **Chrome Extension Error:**
+    *   `Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received` (in `content-scripts.js:2`). This is unrelated to the Angular app and is likely from a browser extension.

@@ -13,9 +13,9 @@ import java.util.List;
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
     
-    List<Comment> findByAnnonceIdOrderByCreatedAtDesc(Long annonceId);
+    List<Comment> findByAnnonceIdAndParentCommentIsNullOrderByCreatedAtDesc(Long annonceId);
     
-    Page<Comment> findByAnnonceIdOrderByCreatedAtDesc(Long annonceId, Pageable pageable);
+    Page<Comment> findByAnnonceIdAndParentCommentIsNullOrderByCreatedAtDesc(Long annonceId, Pageable pageable);
     
     @Query("SELECT AVG(c.rating) FROM Comment c WHERE c.annonce.id = :annonceId")
     Double getAverageRatingByAnnonceId(@Param("annonceId") Long annonceId);

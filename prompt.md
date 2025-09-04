@@ -1,320 +1,299 @@
-# FILES TO SEND TO CLAUDE AI
+# 🚨 URGENT: Fix 403 Forbidden Error in Comment Reply System
 
-**Send these exact files to Claude AI (copy full content of each file):**
+## 📋 PROBLEM SUMMARY
 
-1. `frontend/src/app/components/dashboard/dashboard.component.ts`
-2. `frontend/src/app/components/dashboard/dashboard.component.html` 
-3. `frontend/src/app/components/dashboard/dashboard.component.scss`
-4. `frontend/src/app/core/models.ts` (for AnnonceSummary interface)
-5. `frontend/src/app/services/annonce.service.ts` (for service methods)
+**Issue**: Agency users getting **HTTP 403 Forbidden** error when trying to reply to comments
+**Error Location**: `dashboard.component.ts:1251` in `submitReply()` method
+**API Endpoint**: `POST http://localhost:8080/api/comments/reply/6`
+**User Type**: AGENCE_IMMOBILIERE (Real Estate Agency)
 
----
+## 🔍 ERROR DETAILS
 
-# PROMPT FOR CLAUDE AI
-
-## Real Estate Platform - Dashboard Enhancement & Permissions Fix
-
-I need you to fix several critical issues in our Angular real estate platform dashboard component. The previous assistant made some progress but there are still significant styling and functionality issues that need to be resolved.
-
-### Current Status ✅
-- TypeScript compilation works without errors
-- All buttons (view, comment, edit) work without errors  
-- Agency users have "Ajouter une annonce" functionality restored
-- Basic annonce-card structure is in place
-
-### Issues That Need Immediate Attention 🚨
-
-#### 1. **Agency Card Styling Issues**
-- **Problem**: Agency annonce cards became rectangular with no border radius
-- **Fix Needed**: 
-  - Add proper border radius (12px minimum)
-  - Enhance visual appeal with iOS-style design elements
-  - Add smooth animations and transitions
-  - Maintain website's existing color theme
-  - Make cards visually appealing with proper shadows and hover effects
-
-#### 2. **Button Styling Missing**
-- **Problem**: Action buttons "Voir les détails", "Modifier", and "Supprimer" have no styling
-- **Fix Needed**:
-  - Add proper iOS-style button styling
-  - Use consistent color scheme with the website
-  - Add hover effects and transitions
-  - Ensure accessibility and proper spacing
-
-#### 3. **Detail Modal Styling Broken**
-- **Problem**: When clicking "details" on premium/normal user cards, the modal displays without proper styling
-- **Fix Needed**:
-  - Fix the property detail modal CSS classes
-  - Ensure responsive design
-  - Add proper animations for modal open/close
-  - Match the website's design theme
-
-#### 4. **User Permissions & CRUD Requirements**
-
-**Current Permission Structure Needed**:
-- **AGENCE_IMMOBILIERE**: Can CRUD their own annonces ✅ (already working)
-- **CLIENT_ABONNE**: Should be able to CRUD their own annonces (NEW REQUIREMENT)
-- **UTILISATEUR**: Can only read annonces (no create/edit/delete)
-- **ADMINISTRATEUR**: Can only read annonces (no create/edit/delete)
-
-**Additional Requirements**:
-- After creating annonce, display the creator's user type (agency or premium client)
-- Add "Mes Annonces" filter button for CLIENT_ABONNE users
-- CLIENT_ABONNE users can edit/delete only their own annonces
-- CLIENT_ABONNE users can only read (view) other users' annonces
-
-#### 5. **Missing Features to Implement**
-- Add "Mes Annonces" button/filter for CLIENT_ABONNE users
-- Enable annonce creation for CLIENT_ABONNE users  
-- Display annonce creator information (user type: agency/premium client)
-- Implement proper permission checks for edit/delete actions
-
-### Technical Requirements
-
-#### CSS/SCSS Styling Guidelines:
-- Use border-radius: 12px minimum for cards
-- Implement iOS-style design with subtle shadows
-- Add smooth transitions (300ms ease-in-out)
-- Use existing website color variables
-- Add proper hover states with transform effects
-- Ensure responsive design for mobile/tablet
-
-#### Component Logic Requirements:
-- Update navigation items for CLIENT_ABONNE to include "Mes Annonces"
-- Add permission checks in templates using `*ngIf`
-- Implement filtering logic for "my annonces" vs "all annonces"
-- Add user type display in annonce details
-
-#### Button Styling Specifications:
-```scss
-// Example button style you should implement
-.btn-action {
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  
-  &.btn-view { background: #3b82f6; color: white; }
-  &.btn-edit { background: #10b981; color: white; }  
-  &.btn-delete { background: #ef4444; color: white; }
-  
-  &:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
+### Frontend Error Stack:
+```
+❌ [REPLY] Error submitting reply: HttpErrorResponse {
+  headers: HttpHeaders, 
+  status: 403, 
+  statusText: 'OK', 
+  url: 'http://localhost:8080/api/comments/reply/6', 
+  ok: false
 }
 ```
 
-### What I Expect As Output:
+### Console Log Pattern:
+```
+❌ [ANNONCE-SERVICE] Error creating reply: [error]
+❌ [REPLY] Error submitting reply: [HttpErrorResponse]
+```
 
-1. **Fixed Agency Card Styling**: Beautiful iOS-style cards with proper border radius, shadows, and animations
-2. **Styled Action Buttons**: Professional-looking buttons with hover effects
-3. **Fixed Detail Modal**: Properly styled modal that matches the design theme  
-4. **CLIENT_ABONNE Permissions**: Can create, edit, delete their own annonces
-5. **"Mes Annonces" Feature**: Filter button for subscribed users to view only their annonces
-6. **Creator Info Display**: Show if annonce was created by agency or premium client
-7. **Proper Permission Checks**: Edit/delete buttons only shown for own annonces
+## 🎯 ROOT CAUSE ANALYSIS
 
-### Important Notes:
-- Follow the existing code patterns and naming conventions
-- Use the existing color variables and design system
-- Ensure all changes are responsive
-- Don't break existing functionality for other user types
-- Test that TypeScript compilation still works after changes
-- Maintain accessibility standards
+**HTTP 403 = Forbidden** means:
+1. **Authentication Issue**: JWT token might be invalid/expired
+2. **Authorization Issue**: User doesn't have permission to reply to this specific comment
+3. **Backend Permission Logic**: Server-side validation is rejecting the request
+4. **Request Format Issue**: Malformed request body or headers
 
-Please fix these issues systematically, starting with the styling problems, then implementing the permission and CRUD features. The goal is a polished, professional real estate platform with proper user permissions and beautiful UI.
+## 🔧 INVESTIGATION STEPS NEEDED
 
+### 1. **Check Backend Permission Logic**
+**Files to examine**:
+- `backend/microservice/User/src/main/java/esprit/user/controller/CommentController.java`
+- `backend/microservice/User/src/main/java/esprit/user/service/CommentService.java`
 
+**Look for**:
+```java
+// CommentService.createReply() method - line ~168
+if (!parentComment.getAnnonce().getCreateur().getId().equals(user.getId())) {
+    throw new RuntimeException("Seul le propriétaire de l'annonce peut répondre aux commentaires");
+}
+```
 
+### 2. **Verify Frontend Request Format**
+**File**: `frontend/src/app/components/dashboard/dashboard.component.ts`
+**Method**: `submitReply()` around line 1237
 
+**Check**:
+- Is JWT token being sent in Authorization header?
+- Is request body formatted correctly?
+- Is the comment ID valid and accessible?
 
-Second Prompt :
+### 3. **Validate User Permissions**
+**Requirements**:
+- Only **annonce owners** can reply to comments on their properties
+- Agency users should be able to reply to comments on **their own** annonces
+- Users cannot reply to comments on **other users'** annonces
 
-# 🏠 Real Estate Platform - Claude AI Assistant Guide
+## 🚨 CRITICAL QUESTIONS TO RESOLVE
 
-## 📋 PROJECT OVERVIEW
+### Backend Questions:
+1. **Permission Check**: Is the logged-in agency user the actual owner of the annonce that contains the comment being replied to?
+2. **Comment Ownership**: Does comment ID 6 belong to an annonce owned by the current agency user?
+3. **JWT Validation**: Is the JWT token valid and properly decoded on the backend?
 
-This is a **Real Estate Platform** built with:
-- **Frontend**: Angular 16 (localhost:4200)
-- **Backend**: Spring Boot 3.5.5 (localhost:8080)
-- **Database**: MySQL
+### Frontend Questions:
+1. **Request Headers**: Are Authorization headers properly set in the HTTP request?
+2. **Comment Context**: Is the reply being submitted for the correct comment/annonce combination?
+3. **User Context**: Is the current user's information properly retrieved and validated?
+
+## 🛠️ DEBUGGING TASKS
+
+### Task 1: Backend Debugging
+**Add logging to CommentController.createReply()**:
+```java
+@PostMapping("/reply/{parentCommentId}")
+public ResponseEntity<Map<String, Object>> createReply(
+        @PathVariable Long parentCommentId,
+        @RequestBody Map<String, String> request,
+        Authentication authentication) {
+    
+    // ADD DEBUGGING LOGS
+    System.out.println("🔍 [DEBUG] Reply attempt:");
+    System.out.println("  - User: " + authentication.getName());
+    System.out.println("  - Comment ID: " + parentCommentId);
+    System.out.println("  - Request body: " + request);
+    
+    // ... rest of method
+}
+```
+
+### Task 2: Frontend Debugging
+**Add logging to dashboard.component.ts submitReply()**:
+```typescript
+submitReply(commentId: number): void {
+  console.log('🔍 [DEBUG] Submit reply attempt:');
+  console.log('  - Comment ID:', commentId);
+  console.log('  - Reply content:', this.replyContent);
+  console.log('  - Current user:', this.authService.currentUser);
+  console.log('  - JWT token exists:', !!this.authService.getToken());
+  
+  // ... rest of method
+}
+```
+
+### Task 3: Permission Validation
+**Verify in backend logs**:
+1. Which user is trying to reply (email/user type)
+2. Which comment they're replying to
+3. Who owns the annonce containing that comment
+4. Whether the user has permission to reply
+
+## 🎯 EXPECTED FIXES
+
+### Fix 1: Backend Permission Logic
+If the issue is permission-based, update `CommentService.createReply()`:
+```java
+// Verify user can reply (must be annonce owner OR admin)
+User currentUser = userRepository.findByEmail(userEmail).orElseThrow(...);
+Annonce annonce = parentComment.getAnnonce();
+
+boolean canReply = annonce.getCreateur().getId().equals(currentUser.getId()) ||
+                   currentUser.getUserType() == UserType.ADMINISTRATEUR;
+
+if (!canReply) {
+    throw new RuntimeException("Vous n'avez pas l'autorisation de répondre à ce commentaire");
+}
+```
+
+### Fix 2: Frontend Error Handling
+Improve error handling in `dashboard.component.ts`:
+```typescript
+this.annonceService.createReply(commentId, { content: this.replyContent })
+  .subscribe({
+    next: (response) => {
+      // Success handling
+    },
+    error: (error) => {
+      console.error('❌ [REPLY] Error details:', error);
+      if (error.status === 403) {
+        this.showErrorMessage('Vous n\'avez pas l\'autorisation de répondre à ce commentaire');
+      } else {
+        this.showErrorMessage('Erreur lors de l\'envoi de la réponse');
+      }
+    }
+  });
+```
+
+### Fix 3: Request Validation
+Ensure proper request format in AnnonceService:
+```typescript
+createReply(commentId: number, replyData: any): Observable<any> {
+  const headers = {
+    'Authorization': `Bearer ${this.authService.getToken()}`,
+    'Content-Type': 'application/json'
+  };
+  
+  return this.http.post(`${this.apiUrl}/comments/reply/${commentId}`, replyData, { headers });
+}
+```
+
+Another problem : 
+
+When User Abonné make comment, and Evaluation, his comment does not display in comments-list in the comment-item, only his name is displayed, and the evaluation stars. But not its comment. I want the user's comment to be there, as well as agency comment responding , after fixing it.
+
+## 📋 FILES TO EXAMINE
+
+### Backend Files:
+1. `backend/microservice/User/src/main/java/esprit/user/controller/CommentController.java`
+2. `backend/microservice/User/src/main/java/esprit/user/service/CommentService.java`
+3. `backend/microservice/User/src/main/java/esprit/user/config/SecurityConfig.java`
+
+### Frontend Files:
+1. `frontend/src/app/components/dashboard/dashboard.component.ts` (around line 1237)
+2. `frontend/src/app/services/annonce.service.ts`
+3. `frontend/src/app/services/auth.service.ts`
+
+## 🎯 SUCCESS CRITERIA
+
+After fixing:
+1. ✅ Agency users can reply to comments on **their own** annonces
+2. ✅ Proper error messages for unauthorized reply attempts
+3. ✅ No more 403 errors for legitimate reply operations
+4. ✅ Backend logs show clear permission validation
+5. ✅ Frontend provides user-friendly error feedback
+
+## 🚨 PRIORITY
+
+**CRITICAL** - This breaks core functionality for agency users managing their property comments.
+
+---
+
+**Next Steps**: 
+1. Add debugging logs to both frontend and backend
+2. Analyze the permission flow for comment replies
+3. Fix the root cause (likely permission validation)
+4. Test with different user scenarios
+
+---
+
+## 📁 FILES TO SEND TO CLAUDE AI
+
+Since Claude AI doesn't know the project structure, send these **EXACT FILES** with their full content:
+
+### 🚀 **Backend Files (Required)**:
+```
+1. backend/microservice/User/src/main/java/esprit/user/controller/CommentController.java
+2. backend/microservice/User/src/main/java/esprit/user/service/CommentService.java
+3. backend/microservice/User/src/main/java/esprit/user/entity/Comment.java
+4. backend/microservice/User/src/main/java/esprit/user/dto/CommentResponse.java
+```
+
+### 🎯 **Frontend Files (Required)**:
+```
+5. frontend/src/app/components/dashboard/dashboard.component.ts
+6. frontend/src/app/services/annonce.service.ts
+7. frontend/src/app/services/auth.service.ts
+```
+
+### 📋 **Model/Entity Files (Optional but Helpful)**:
+```
+8. backend/microservice/User/src/main/java/esprit/user/entity/User.java
+9. backend/microservice/User/src/main/java/esprit/user/entity/Annonce.java
+10. frontend/src/app/core/models.ts
+```
+
+---
+
+## 🏗️ **PROJECT STRUCTURE TO TELL CLAUDE AI**
+
+```
+📂 Real Estate Platform
+├── 🖥️ Backend (Spring Boot 3.5.5) - Port 8080
+│   └── backend/microservice/User/src/main/java/esprit/user/
+│       ├── 🎮 controller/CommentController.java
+│       ├── 🔧 service/CommentService.java
+│       ├── 📊 entity/
+│       │   ├── User.java (UserType: AGENCE_IMMOBILIERE, CLIENT_ABONNE, etc.)
+│       │   ├── Annonce.java (Real estate listings)
+│       │   └── Comment.java (Comments on annonces)
+│       ├── 📝 dto/CommentResponse.java
+│       └── 🔒 config/SecurityConfig.java (JWT authentication)
+│
+├── 🌐 Frontend (Angular 16) - Port 4200/4201
+│   └── frontend/src/app/
+│       ├── 📱 components/dashboard/
+│       │   ├── dashboard.component.ts (Main dashboard logic)
+│       │   ├── dashboard.component.html (Template with reply forms)
+│       │   └── dashboard.component.scss (Styling)
+│       ├── 🔌 services/
+│       │   ├── annonce.service.ts (API calls for annonces/comments)
+│       │   └── auth.service.ts (JWT token management)
+│       └── 📋 core/models.ts (TypeScript interfaces)
+│
+└── 🗄️ Database: MySQL
+    └── Tables: users, annonces, comments
+```
+
+---
+
+## 🎯 **CONTEXT TO PROVIDE TO CLAUDE AI**
+
+### **System Overview**:
 - **Architecture**: Microservice with JWT authentication
+- **User Types**: AGENCE_IMMOBILIERE, CLIENT_ABONNE, UTILISATEUR, ADMINISTRATEUR
+- **Core Feature**: Real estate agencies can reply to comments on their property listings
+- **Current Issue**: 403 Forbidden when agencies try to reply to comments
 
-### 🎯 KEY USER TYPES & PERMISSIONS
-
-1. **AGENCE_IMMOBILIERE** (Real Estate Agency)
-   - ✅ Can CRUD their own annonces
-   - ✅ Has beautiful iOS-style dashboard
-   - ✅ CRM features for client management
-   - ✅ Analytics and statistics
-
-2. **CLIENT_ABONNE** (Premium Subscriber)  
-   - ✅ Can CRUD their own annonces
-   - ✅ Has "Mes Annonces" section
-   - ✅ Advanced search features
-   - ✅ Can view full property details
-
-3. **UTILISATEUR** (Regular User)
-   - ✅ Can browse annonces (limited)
-   - 🚨 **BROKEN**: "Voir Détails" modal has NO STYLING
-   - ❌ Cannot create/edit annonces
-   - ❌ Limited features
-
-4. **ADMINISTRATEUR** (Admin)
-   - ✅ User management
-   - ✅ Agency verification
-   - ✅ Platform statistics
-
----
-
-# 🚨 URGENT ISSUES FOR CLAUDE AI
-
-## CRITICAL TASK #1: Fix Regular User Modal Styling
-**PROBLEM**: When UTILISATEUR clicks "Voir Détails" button, modal appears but has **NO STYLING AT ALL**
-**REQUIREMENT**: Make it work exactly like agency account modal
-**FILES TO CHECK**: 
-- `frontend/src/app/components/dashboard/dashboard.component.scss` 
-- `frontend/src/app/components/dashboard/dashboard.component.html`
-**PRIORITY**: 🔴 CRITICAL
-
-## TASK #2: Enhanced Agency CRM
-**REQUIREMENT**: 
-- Display client reviews/comments in Agency CRM
-- Add notification system for client interactions
-- Real-time activity tracking
-**PRIORITY**: 🟠 HIGH
-
----
-
-# ✅ COMPLETED FEATURES (DO NOT BREAK)
-
-- ✅ Agency Card Styling (iOS-style, border-radius 12px+, animations)
-- ✅ Action Buttons (color-coded: blue=view, green=edit, red=delete)
-- ✅ CLIENT_ABONNE CRUD permissions & "Mes Annonces" section
-- ✅ Creator information display (Agency vs Premium Client badges)
-- ✅ Permission checks (edit/delete only own annonces)
-- ✅ Detail Modal for AGENCY accounts (works perfectly)
-
----
-
-# 📁 KEY FILES TO READ/EDIT
-
-## Frontend Files:
-1. `frontend/src/app/components/dashboard/dashboard.component.ts` - Main logic
-2. `frontend/src/app/components/dashboard/dashboard.component.html` - Template
-3. `frontend/src/app/components/dashboard/dashboard.component.scss` - Styles
-4. `frontend/src/app/core/models.ts` - TypeScript interfaces
-5. `frontend/src/app/services/annonce.service.ts` - API service
-
-## Project Files:
-- `todo.md` - Current urgent tasks
-- `.claude/settings.local.json` - Full permissions granted (*)
-- `CLAUDE.md` - Project documentation
-
-### Issues That Need Immediate Attention 🚨
-
-#### 1. **Agency Card Styling Issues**
-- **Problem**: Agency annonce cards became rectangular with no border radius
-- **Fix Needed**: 
-  - Add proper border radius (12px minimum)
-  - Enhance visual appeal with iOS-style design elements
-  - Add smooth animations and transitions
-  - Maintain website's existing color theme
-  - Make cards visually appealing with proper shadows and hover effects
-
-#### 2. **Button Styling Missing**
-- **Problem**: Action buttons "Voir les détails", "Modifier", and "Supprimer" have no styling
-- **Fix Needed**:
-  - Add proper iOS-style button styling
-  - Use consistent color scheme with the website
-  - Add hover effects and transitions
-  - Ensure accessibility and proper spacing
-
-#### 3. **Detail Modal Styling Broken**
-- **Problem**: When clicking "details" on premium/normal user cards, the modal displays without proper styling
-- **Fix Needed**:
-  - Fix the property detail modal CSS classes
-  - Ensure responsive design
-  - Add proper animations for modal open/close
-  - Match the website's design theme
-
-#### 4. **User Permissions & CRUD Requirements**
-
-**Current Permission Structure Needed**:
-- **AGENCE_IMMOBILIERE**: Can CRUD their own annonces ✅ (already working)
-- **CLIENT_ABONNE**: Should be able to CRUD their own annonces (NEW REQUIREMENT)
-- **UTILISATEUR**: Can only read annonces (no create/edit/delete)
-- **ADMINISTRATEUR**: Can only read annonces (no create/edit/delete)
-
-**Additional Requirements**:
-- After creating annonce, display the creator's user type (agency or premium client)
-- Add "Mes Annonces" filter button for CLIENT_ABONNE users
-- CLIENT_ABONNE users can edit/delete only their own annonces
-- CLIENT_ABONNE users can only read (view) other users' annonces
-
-#### 5. **Missing Features to Implement**
-- Add "Mes Annonces" button/filter for CLIENT_ABONNE users
-- Enable annonce creation for CLIENT_ABONNE users  
-- Display annonce creator information (user type: agency/premium client)
-- Implement proper permission checks for edit/delete actions
-
-### Technical Requirements
-
-#### CSS/SCSS Styling Guidelines:
-- Use border-radius: 12px minimum for cards
-- Implement iOS-style design with subtle shadows
-- Add smooth transitions (300ms ease-in-out)
-- Use existing website color variables
-- Add proper hover states with transform effects
-- Ensure responsive design for mobile/tablet
-
-#### Component Logic Requirements:
-- Update navigation items for CLIENT_ABONNE to include "Mes Annonces"
-- Add permission checks in templates using `*ngIf`
-- Implement filtering logic for "my annonces" vs "all annonces"
-- Add user type display in annonce details
-
-#### Button Styling Specifications:
-```scss
-// Example button style you should implement
-.btn-action {
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  
-  &.btn-view { background: #3b82f6; color: white; }
-  &.btn-edit { background: #10b981; color: white; }  
-  &.btn-delete { background: #ef4444; color: white; }
-  
-  &:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
+### **Permission Model**:
+```java
+// Only annonce owners can reply to comments on their properties
+if (!parentComment.getAnnonce().getCreateur().getId().equals(user.getId())) {
+    throw new RuntimeException("Seul le propriétaire de l'annonce peut répondre aux commentaires");
 }
 ```
 
-### What I Expect As Output:
+### **API Endpoints**:
+- `GET /api/comments/annonce/{annonceId}` - Get comments for an annonce ✅
+- `POST /api/comments/reply/{parentCommentId}` - Reply to a comment ❌ (403 Error)
 
-1. **Fixed Agency Card Styling**: Beautiful iOS-style cards with proper border radius, shadows, and animations
-2. **Styled Action Buttons**: Professional-looking buttons with hover effects
-3. **Fixed Detail Modal**: Properly styled modal that matches the design theme  
-4. **CLIENT_ABONNE Permissions**: Can create, edit, delete their own annonces
-5. **"Mes Annonces" Feature**: Filter button for subscribed users to view only their annonces
-6. **Creator Info Display**: Show if annonce was created by agency or premium client
-7. **Proper Permission Checks**: Edit/delete buttons only shown for own annonces
+### **Error Context**:
+- **User**: AGENCE_IMMOBILIERE trying to reply
+- **Endpoint**: POST /api/comments/reply/6
+- **Error**: HTTP 403 Forbidden
+- **Location**: dashboard.component.ts:1251 in submitReply() method
 
-### Important Notes:
-- Follow the existing code patterns and naming conventions
-- Use the existing color variables and design system
-- Ensure all changes are responsive
-- Don't break existing functionality for other user types
-- Test that TypeScript compilation still works after changes
-- Maintain accessibility standards
-
-Please fix these issues systematically, starting with the styling problems, then implementing the permission and CRUD features. The goal is a polished, professional real estate platform with proper user permissions and beautiful UI.
+### **Technology Stack**:
+- **Backend**: Java 17, Spring Boot 3.5.5, Spring Security, JPA/Hibernate
+- **Frontend**: Angular 16, TypeScript, RxJS
+- **Database**: MySQL with foreign key relationships
+- **Authentication**: JWT tokens with role-based permissions
