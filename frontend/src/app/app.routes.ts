@@ -71,17 +71,17 @@ export const routes: Routes = [
   // Annonce creation route
   { 
     path: 'annonce-create', 
-    canActivate: [AuthGuard, EmailVerificationGuard, AgencyVerificationGuard],
+    canActivate: [AuthGuard, EmailVerificationGuard, RoleGuard],
     loadComponent: () => import('./components/annonce-create/annonce-create.component').then(m => m.AnnonceCreateComponent),
-    data: { expectedRoles: ['AGENCE_IMMOBILIERE'], requiresVerification: true }
+    data: { expectedRoles: ['AGENCE_IMMOBILIERE', 'CLIENT_ABONNE'], requiresVerification: true }
   },
   
   // Annonce edit route
   { 
     path: 'annonce-edit/:id', 
-    canActivate: [AuthGuard, EmailVerificationGuard, AgencyVerificationGuard],
+    canActivate: [AuthGuard, EmailVerificationGuard, RoleGuard],
     loadComponent: () => import('./components/annonce-create/annonce-create.component').then(m => m.AnnonceCreateComponent),
-    data: { expectedRoles: ['AGENCE_IMMOBILIERE'], requiresVerification: true }
+    data: { expectedRoles: ['AGENCE_IMMOBILIERE', 'CLIENT_ABONNE'], requiresVerification: true }
   },
   
   // Annonce view route
