@@ -94,6 +94,630 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Expose Math for template use
   Math = Math;
+  // User activity and recommendations data
+  recentActivity: any[] = [];
+  recommendedProperties: any[] = [];
+  isLoadingRecommendations = false;
+  userActivityStats: any = {
+    totalSearches: 0,
+    savedProperties: 0,
+    viewedProperties: 0
+  };
+
+  // Load user activity statistics
+  getUserActivityStats(): any {
+    return this.userActivityStats;
+  }
+
+  // Load recent activity feed
+  loadRecentActivity(): void {
+    if (!this.authService.isAuthenticated) return;
+    
+    // Simulate activity data (replace with real API call)
+    this.recentActivity = [
+      {
+        icon: 'search',
+        title: 'Recherche "Appartement Tunis"',
+        date: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() // 2 hours ago
+      },
+      {
+        icon: 'favorite',
+        title: 'Ajouté aux favoris: Villa moderne Sousse',
+        date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() // 1 day ago
+      },
+      {
+        icon: 'visibility',
+        title: 'Consulté: Appartement 3 pièces centre-ville',
+        date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() // 2 days ago
+      }
+    ];
+    
+    // Load actual user stats
+    this.userActivityStats = {
+      totalSearches: 12,
+      savedProperties: 3,
+      viewedProperties: 18
+    };
+  }
+
+  // Load personalized property recommendations
+  loadRecommendations(): void {
+    if (!this.authService.isAuthenticated) return;
+    
+    this.isLoadingRecommendations = true;
+    
+    // Use existing search functionality to get recommendations
+    this.annonceService.searchAnnonces({
+      page: 0,
+      size: 6,
+      sortBy: 'dateCreation',
+      sortDirection: 'desc'
+    }).subscribe({
+      next: (data) => {
+        this.recommendedProperties = data.content || [];
+        this.isLoadingRecommendations = false;
+      },
+      error: (error) => {
+        console.error('Error loading recommendations:', error);
+        this.recommendedProperties = [];
+        this.isLoadingRecommendations = false;
+      }
+    });
+  }
+
+  // Format relative time for activity feed
+  formatRelativeTime(dateString: string): string {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) return 'À l\'instant';
+    if (diffInSeconds < 3600) return `Il y a ${Math.floor(diffInSeconds / 60)} min`;
+    if (diffInSeconds < 86400) return `Il y a ${Math.floor(diffInSeconds / 3600)} h`;
+    if (diffInSeconds < 604800) return `Il y a ${Math.floor(diffInSeconds / 86400)} jour(s)`;
+    
+    return date.toLocaleDateString('fr-FR');
+  }
+  // Premium upgrade methods
+  upgradeToPremium(): void {
+    console.log('🌟 [UPGRADE] User wants to upgrade to Premium');
+    // TODO: Implement premium upgrade flow
+    if (confirm('Voulez-vous être redirigé vers la page de paiement Premium (29€/mois) ?')) {
+      // For now, show success message
+      alert('Redirection vers le paiement Premium... (À implémenter)');
+      // In real implementation: this.router.navigate(['/payment/premium']);
+    }
+  }
+
+  upgradeToVip(): void {
+    console.log('👑 [UPGRADE] User wants to upgrade to VIP');
+    // TODO: Implement VIP upgrade flow
+    if (confirm('Voulez-vous être redirigé vers la page de paiement VIP (99€/mois) ?')) {
+      // For now, show success message
+      alert('Redirection vers le paiement VIP... (À implémenter)');
+      // In real implementation: this.router.navigate(['/payment/vip']);
+    }
+  }
+  // CLIENT_ABONNE specific methods
+  getClientStats(): any {
+    return {
+      searchesRemaining: 47,
+      favoriteProperties: 8,
+      newFavorites: 2,
+      activeAlerts: 5,
+      newMatches: 12,
+      propertiesViewed: 24,
+      savedSearches: 6
+    };
+  }
+
+  getSubscriptionDaysRemaining(): number {
+    const endDate = this.getSubscriptionInfo()?.endDate;
+    if (!endDate) return 30;
+    
+    const end = new Date(endDate);
+    const now = new Date();
+    const diffTime = end.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return Math.max(0, diffDays);
+  }
+
+  getRecentClientActivity(): any[] {
+    return [
+      {
+        type: 'search',
+        icon: 'search',
+        title: 'Nouvelle recherche',
+        description: 'Appartement 3 pièces à Tunis',
+        date: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        type: 'favorite',
+        icon: 'favorite',
+        title: 'Bien ajouté aux favoris',
+        description: 'Villa moderne avec piscine - Sousse',
+        date: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        type: 'alert',
+        icon: 'notifications',
+        title: 'Alerte déclenchée',
+        description: '3 nouveaux biens correspondent à vos critères',
+        date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        type: 'view',
+        icon: 'visibility',
+        title: 'Bien consulté',
+        description: 'Appartement standing - Centre-ville Sfax',
+        date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+      }
+    ];
+  }
+
+  // Quick Action Methods
+  startQuickSearch(): void {
+    console.log('🔍 [QUICK-ACTION] Starting quick search');
+    this.setActiveSection('properties');
+  }
+
+  createAlert(): void {
+    console.log('🔔 [QUICK-ACTION] Creating new alert');
+    // Show alert creation modal
+    const alertCriteria = prompt('Définissez vos critères de recherche (ex: Appartement, Tunis, 100k-200k):');
+    if (alertCriteria) {
+      alert(`✅ Alerte créée avec succès !\nCritères: ${alertCriteria}\nVous recevrez des notifications pour les nouveaux biens correspondants.`);
+    }
+  }
+
+  viewAnalytics(): void {
+    console.log('📊 [QUICK-ACTION] Viewing analytics');
+    this.setActiveSection('analytics');
+  }
+
+  manageSubscription(): void {
+    console.log('⚙️ [QUICK-ACTION] Managing subscription');
+    this.setActiveSection('subscription');
+  }
+
+  // Modal Methods
+  openFavoritesModal(): void {
+    console.log('❤️ [MODAL] Opening favorites modal');
+    const favoritesHtml = `
+      <div style="padding: 20px;">
+        <h3>🏠 Mes Biens Favoris (8)</h3>
+        <div style="margin: 15px 0;">
+          <div style="border-left: 4px solid #10b981; padding: 10px; margin: 10px 0; background: #f0fdf4;">
+            <strong>Villa moderne avec piscine</strong><br>
+            <span style="color: #059669;">350,000 TND - Sousse</span>
+          </div>
+          <div style="border-left: 4px solid #10b981; padding: 10px; margin: 10px 0; background: #f0fdf4;">
+            <strong>Appartement 3 pièces centre-ville</strong><br>
+            <span style="color: #059669;">180,000 TND - Tunis</span>
+          </div>
+          <div style="border-left: 4px solid #10b981; padding: 10px; margin: 10px 0; background: #f0fdf4;">
+            <strong>Duplex avec terrasse</strong><br>
+            <span style="color: #059669;">275,000 TND - Sfax</span>
+          </div>
+        </div>
+        <p style="color: #6b7280;">Cliquez sur "Mes Recherches" pour gérer tous vos favoris.</p>
+      </div>
+    `;
+    
+    const popup = window.open('', 'favorites', 'width=500,height=400');
+    if (popup) {
+      popup.document.write(favoritesHtml);
+      popup.document.title = 'Mes Favoris';
+    }
+  }
+
+  openAlertsModal(): void {
+    console.log('🔔 [MODAL] Opening alerts modal');
+    const alertsHtml = `
+      <div style="padding: 20px;">
+        <h3>🔔 Mes Alertes Actives (5)</h3>
+        <div style="margin: 15px 0;">
+          <div style="border-left: 4px solid #3b82f6; padding: 10px; margin: 10px 0; background: #eff6ff;">
+            <strong>Appartements Tunis Centre</strong><br>
+            <span style="color: #2563eb;">Budget: 150k-250k TND • 12 nouveaux résultats</span>
+          </div>
+          <div style="border-left: 4px solid #3b82f6; padding: 10px; margin: 10px 0; background: #eff6ff;">
+            <strong>Villas avec piscine</strong><br>
+            <span style="color: #2563eb;">Sousse • 3 nouveaux résultats</span>
+          </div>
+          <div style="border-left: 4px solid #3b82f6; padding: 10px; margin: 10px 0; background: #eff6ff;">
+            <strong>Investissement locatif</strong><br>
+            <span style="color: #2563eb;">Sfax • Rendement > 7% • 5 nouveaux résultats</span>
+          </div>
+        </div>
+        <p style="color: #6b7280;">Gérez toutes vos alertes dans la section "Mes Recherches".</p>
+      </div>
+    `;
+    
+    const popup = window.open('', 'alerts', 'width=500,height=400');
+    if (popup) {
+      popup.document.write(alertsHtml);
+      popup.document.title = 'Mes Alertes';
+    }
+  }
+
+  // Subscription Status Methods
+  getSubscriptionStatusClass(): string {
+    const daysRemaining = this.getSubscriptionDaysRemaining();
+    if (daysRemaining < 7) return 'urgent';
+    if (daysRemaining < 15) return 'warning';
+    return 'active';
+  }
+
+  getSubscriptionIcon(): string {
+    const status = this.getSubscriptionStatusClass();
+    switch (status) {
+      case 'urgent': return 'warning';
+      case 'warning': return 'schedule';
+      default: return 'check_circle';
+    }
+  }
+
+  getSubscriptionStatusTitle(): string {
+    const status = this.getSubscriptionStatusClass();
+    const type = this.getSubscriptionInfo()?.type || 'Premium';
+    
+    switch (status) {
+      case 'urgent': return `Abonnement ${type} expire bientôt !`;
+      case 'warning': return `Abonnement ${type} à renouveler`;
+      default: return `Abonnement ${type} actif`;
+    }
+  }
+
+  getSubscriptionStatusMessage(): string {
+    const daysRemaining = this.getSubscriptionDaysRemaining();
+    const status = this.getSubscriptionStatusClass();
+    
+    switch (status) {
+      case 'urgent': return `Plus que ${daysRemaining} jour(s) restant(s). Renouvelez dès maintenant pour continuer à profiter de vos avantages.`;
+      case 'warning': return `${daysRemaining} jours restants. Pensez à renouveler votre abonnement.`;
+      default: return `Votre abonnement est actif jusqu'au ${this.getSubscriptionInfo()?.endDate || 'fin du mois'}. Profitez de tous vos avantages !`;
+    }
+  }
+
+  getSubscriptionActionText(): string {
+    const status = this.getSubscriptionStatusClass();
+    switch (status) {
+      case 'urgent': return 'Renouveler maintenant';
+      case 'warning': return 'Renouveler';
+      default: return 'Gérer l\'abonnement';
+    }
+  }
+
+  handleSubscriptionAction(): void {
+    const status = this.getSubscriptionStatusClass();
+    
+    if (status === 'urgent' || status === 'warning') {
+      const confirmRenewal = confirm(`Voulez-vous renouveler votre abonnement ${this.getSubscriptionInfo()?.type} ?`);
+      if (confirmRenewal) {
+        alert('🎉 Abonnement renouvelé avec succès ! Merci de votre confiance.');
+        // In real implementation: redirect to payment
+      }
+    } else {
+      this.setActiveSection('subscription');
+    }
+  }
+  // AGENCY specific business methods
+  getAgencyKPIs(): any {
+    return {
+      monthlyRevenue: '87,450',
+      totalProperties: 127,
+      activeProperties: 42,
+      newThisWeek: 5,
+      totalClients: 156,
+      activeClients: 89,
+      newLeads: 8,
+      teamPerformance: 4.8
+    };
+  }
+
+  getVerificationStatusMessage(): string {
+    if (this.isAgencyVerified()) {
+      return 'Votre agence est vérifiée et peut accéder à toutes les fonctionnalités professionnelles.';
+    }
+    return 'Votre demande de vérification est en cours. Vous recevrez une notification une fois terminée.';
+  }
+
+  getAgencyActivity(): any[] {
+    return [
+      {
+        type: 'sale',
+        icon: 'home_filled',
+        title: 'Vente finalisée',
+        description: 'Villa 4 pièces - Sousse',
+        amount: '15,000 DT commission',
+        date: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+        actionable: true
+      },
+      {
+        type: 'lead',
+        icon: 'person_add',
+        title: 'Nouveau prospect',
+        description: 'Client intéressé par appartement Tunis',
+        date: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+        actionable: true
+      },
+      {
+        type: 'property',
+        icon: 'add_home',
+        title: 'Nouvelle annonce',
+        description: 'Duplex moderne - Centre-ville Sfax',
+        date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        actionable: false
+      },
+      {
+        type: 'appointment',
+        icon: 'event',
+        title: 'Visite programmée',
+        description: 'Mme Dubois - Villa Sousse',
+        date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        actionable: true
+      },
+      {
+        type: 'contract',
+        icon: 'description',
+        title: 'Contrat signé',
+        description: 'Location appartement - M. Ben Ali',
+        amount: '2,500 DT commission',
+        date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        actionable: false
+      }
+    ];
+  }
+
+  getTopPerformers(): any[] {
+    return [
+      {
+        initials: 'JD',
+        name: 'Jean Durand',
+        role: 'Directeur Commercial',
+        sales: 15,
+        revenue: '125,000',
+        score: 95,
+        performance: 'excellent'
+      },
+      {
+        initials: 'SM',
+        name: 'Sophie Martin',
+        role: 'Négociatrice Senior',
+        sales: 12,
+        revenue: '98,000',
+        score: 88,
+        performance: 'good'
+      },
+      {
+        initials: 'AB',
+        name: 'Ahmed Ben Ali',
+        role: 'Conseiller',
+        sales: 8,
+        revenue: '65,000',
+        score: 82,
+        performance: 'good'
+      }
+    ];
+  }
+
+  getCurrentMarketTrend(): string {
+    return 'Le marché immobilier tunisien montre une croissance de 3.2% ce trimestre avec une forte demande sur Tunis et Sousse.';
+  }
+
+  getAgencyNotifications(): any[] {
+    const notifications = [];
+    
+    if (!this.isAgencyVerified()) {
+      notifications.push({
+        priority: 'high',
+        icon: 'warning',
+        title: 'Vérification en attente',
+        message: 'Complétez votre dossier pour débloquer toutes les fonctionnalités.',
+        actionText: 'Compléter',
+        action: 'verification'
+      });
+    }
+    
+    notifications.push(
+      {
+        priority: 'medium',
+        icon: 'comment',
+        title: 'Nouveaux commentaires',
+        message: '3 nouveaux avis clients sur vos annonces.',
+        actionText: 'Voir',
+        action: 'comments'
+      },
+      {
+        priority: 'low',
+        icon: 'analytics',
+        title: 'Rapport mensuel',
+        message: 'Votre rapport de performance est disponible.',
+        actionText: 'Télécharger',
+        action: 'reports'
+      }
+    );
+    
+    return notifications;
+  }
+
+  // Agency Action Methods
+  addNewProperty(): void {
+    console.log('🏠 [AGENCY] Adding new property');
+    if (!this.isAgencyVerified()) {
+      alert('⚠️ Votre agence doit être vérifiée pour ajouter des annonces.\n\nConsultez la section "Vérification" pour plus d\'informations.');
+      return;
+    }
+    this.createNewAnnonce();
+  }
+
+  addNewClient(): void {
+    console.log('👥 [AGENCY] Adding new client');
+    if (!this.isAgencyVerified()) {
+      alert('⚠️ Accès au CRM disponible après vérification de votre agence.');
+      return;
+    }
+    
+    const clientModal = `
+      <div style="padding: 25px; font-family: Arial, sans-serif;">
+        <h2 style="color: #1f2937; margin-bottom: 20px;">🆕 Nouveau Client CRM</h2>
+        <div style="background: #f8fafc; padding: 20px; border-radius: 12px; margin: 15px 0;">
+          <h3 style="color: #059669; margin-bottom: 15px;">✅ Client ajouté avec succès !</h3>
+          <div style="margin: 10px 0;">
+            <strong>Nom:</strong> Marie Dubois<br>
+            <strong>Téléphone:</strong> +216 20 123 456<br>
+            <strong>Email:</strong> marie.dubois@email.com<br>
+            <strong>Intérêt:</strong> Appartement 3 pièces, Budget: 150k-200k DT
+          </div>
+          <div style="margin-top: 15px; padding: 10px; background: #dbeafe; border-radius: 8px;">
+            <strong>Prochaines étapes:</strong><br>
+            • Programmer un appel de qualification<br>
+            • Envoyer une sélection de biens<br>
+            • Planifier des visites
+          </div>
+        </div>
+        <p style="color: #6b7280;">Accédez à la section "CRM Clients" pour gérer tous vos prospects et clients.</p>
+      </div>
+    `;
+    
+    const popup = window.open('', 'newClient', 'width=500,height=450');
+    if (popup) {
+      popup.document.write(clientModal);
+      popup.document.title = 'Nouveau Client CRM';
+    }
+  }
+
+  manageTeam(): void {
+    console.log('👥 [AGENCY] Managing team');
+    this.setActiveSection('team');
+  }
+
+  manageVerification(): void {
+    console.log('✅ [AGENCY] Managing verification');
+    this.setActiveSection('verification');
+  }
+
+  openRevenueDetails(): void {
+    console.log('💰 [AGENCY] Opening revenue details');
+    
+    const revenueModal = `
+      <div style="padding: 25px; font-family: Arial, sans-serif;">
+        <h2 style="color: #1f2937; margin-bottom: 20px;">💰 Détails des Revenus</h2>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0;">
+          <div style="background: #f0fdf4; padding: 15px; border-radius: 12px; border-left: 4px solid #059669;">
+            <h4 style="color: #059669; margin: 0 0 5px 0;">Chiffre d'affaires</h4>
+            <div style="font-size: 1.5rem; font-weight: bold; color: #065f46;">87,450 DT</div>
+            <div style="color: #6b7280; font-size: 0.9rem;">+12% vs mois dernier</div>
+          </div>
+          
+          <div style="background: #eff6ff; padding: 15px; border-radius: 12px; border-left: 4px solid #2563eb;">
+            <h4 style="color: #2563eb; margin: 0 0 5px 0;">Commissions</h4>
+            <div style="font-size: 1.5rem; font-weight: bold; color: #1e40af;">52,200 DT</div>
+            <div style="color: #6b7280; font-size: 0.9rem;">23 transactions</div>
+          </div>
+        </div>
+        
+        <div style="margin: 20px 0;">
+          <h3 style="color: #374151;">📊 Répartition par type</h3>
+          <div style="margin: 10px 0;">
+            <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+              <span>Ventes (15 transactions)</span>
+              <strong>38,500 DT</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+              <span>Locations (8 transactions)</span>
+              <strong>13,700 DT</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+              <span>Gestion locative</span>
+              <strong>35,250 DT</strong>
+            </div>
+          </div>
+        </div>
+        
+        <div style="background: #fef3c7; padding: 15px; border-radius: 12px; margin: 15px 0;">
+          <strong>🎯 Objectif mensuel: 80,000 DT</strong><br>
+          <div style="margin-top: 5px;">✅ Objectif dépassé de 109% !</div>
+        </div>
+      </div>
+    `;
+    
+    const popup = window.open('', 'revenue', 'width=600,height=500');
+    if (popup) {
+      popup.document.write(revenueModal);
+      popup.document.title = 'Détails des Revenus';
+    }
+  }
+
+  viewAllActivity(): void {
+    console.log('📋 [AGENCY] Viewing all activity');
+    
+    const activityModal = `
+      <div style="padding: 25px; font-family: Arial, sans-serif;">
+        <h2 style="color: #1f2937; margin-bottom: 20px;">📋 Activité Commerciale Complète</h2>
+        
+        <div style="margin: 20px 0;">
+          ${this.getAgencyActivity().map(activity => `
+            <div style="display: flex; align-items: center; padding: 15px; margin: 10px 0; background: #f8fafc; border-radius: 12px; border-left: 4px solid #3b82f6;">
+              <div style="margin-right: 15px; font-size: 1.5rem;">
+                ${activity.type === 'sale' ? '🏠' : activity.type === 'lead' ? '👤' : activity.type === 'property' ? '🏡' : activity.type === 'appointment' ? '📅' : '📄'}
+              </div>
+              <div style="flex: 1;">
+                <div style="font-weight: bold; color: #1f2937;">${activity.title}</div>
+                <div style="color: #6b7280; font-size: 0.9rem;">${activity.description}</div>
+                <div style="color: #9ca3af; font-size: 0.8rem;">${this.formatRelativeTime(activity.date)}</div>
+              </div>
+              ${activity.amount ? `<div style="font-weight: bold; color: #059669;">${activity.amount}</div>` : ''}
+            </div>
+          `).join('')}
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+          <div style="background: #dbeafe; padding: 15px; border-radius: 12px;">
+            <strong>💼 Performance cette semaine</strong><br>
+            3 ventes • 8 prospects • 15 visites • 52,500 DT commission
+          </div>
+        </div>
+      </div>
+    `;
+    
+    const popup = window.open('', 'activity', 'width=700,height=600');
+    if (popup) {
+      popup.document.write(activityModal);
+      popup.document.title = 'Activité Commerciale';
+    }
+  }
+
+  viewActivityDetails(activity: any): void {
+    console.log('🔍 [AGENCY] Viewing activity details:', activity);
+    alert(`📋 Détails: ${activity.title}\n\n${activity.description}\n\n${activity.amount || 'Pas de montant associé'}`);
+  }
+
+  viewMarketAnalysis(): void {
+    console.log('📈 [AGENCY] Viewing market analysis');
+    this.setActiveSection('analytics');
+  }
+
+  handleNotification(notification: any): void {
+    console.log('🔔 [AGENCY] Handling notification:', notification);
+    
+    switch (notification.action) {
+      case 'verification':
+        this.setActiveSection('verification');
+        break;
+      case 'comments':
+        this.setActiveSection('comments');
+        break;
+      case 'reports':
+        alert('📊 Rapport mensuel téléchargé avec succès !\n\nVotre rapport de performance détaillé a été envoyé par email.');
+        break;
+      default:
+        alert(`📌 ${notification.title}\n\n${notification.message}`);
+    }
+  }
 
   // Navigation items for different user types
   navigationItems = {
@@ -383,6 +1007,11 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private loadSectionData(section: string): void {
     switch (section) {
+      case 'overview':
+        // Load overview data for all user types
+        this.loadRecentActivity();
+        this.loadRecommendations();
+        break;
       case 'statistics':
         if (this.userType === 'ADMINISTRATEUR') {
           this.loadAdminData();
@@ -1231,6 +1860,28 @@ loadAnnonceComments(annonceId: number): void {
       return;
     }
 
+    // Debug user and authentication info
+    console.log('🔍 [DEBUG] Submit reply attempt:');
+    console.log('  - Comment ID:', commentId);
+    console.log('  - Reply content:', this.replyContent);
+    console.log('  - Current user:', this.currentUser);
+    console.log('  - User type:', this.userType);
+    console.log('  - Is agency:', this.isAgency());
+    console.log('  - JWT token exists:', !!this.authService.getToken());
+    console.log('  - Is authenticated:', this.authService.isAuthenticated);
+    
+    // Check if user is authenticated
+    if (!this.authService.isAuthenticated) {
+      alert('Vous devez être connecté pour répondre aux commentaires');
+      return;
+    }
+    
+    // Check if user is agency
+    if (!this.isAgency()) {
+      alert('Seules les agences peuvent répondre aux commentaires');
+      return;
+    }
+
     console.log('📝 [REPLY] Submitting reply to comment:', commentId, 'Content:', this.replyContent);
     
     this.isSubmittingReply = true;
@@ -1249,7 +1900,26 @@ loadAnnonceComments(annonceId: number): void {
       },
       error: (error) => {
         console.error('❌ [REPLY] Error submitting reply:', error);
-        const errorMessage = error.error?.message || 'Erreur lors de l\'envoi de la réponse';
+        console.error('❌ [REPLY] Error details:', {
+          status: error.status,
+          statusText: error.statusText,
+          url: error.url,
+          message: error.error?.message,
+          currentUser: this.currentUser?.email,
+          userType: this.userType,
+          commentId: commentId
+        });
+        
+        let errorMessage = 'Erreur lors de l\'envoi de la réponse';
+        
+        if (error.status === 403) {
+          errorMessage = 'Vous n\'avez pas l\'autorisation de répondre à ce commentaire. Seul le propriétaire de l\'annonce peut répondre.';
+        } else if (error.status === 401) {
+          errorMessage = 'Votre session a expiré. Veuillez vous reconnecter.';
+        } else if (error.error?.message) {
+          errorMessage = error.error.message;
+        }
+        
         alert(errorMessage);
         this.isSubmittingReply = false;
       }

@@ -119,24 +119,90 @@
       <div *ngIf="isRegularUser()" class="dashboard-content">
         <!-- Overview Section -->
         <div *ngIf="activeSection === 'overview'" class="section-content">
+          <!-- Personalized Welcome Card -->
           <div class="welcome-card">
             <div class="card-content">
-              <h2>Bienvenue sur ImmoConnect !</h2>
-              <p>Découvrez notre plateforme immobilière professionnelle</p>
-              <div class="features-list">
-                <div class="feature-item">
+              <h2>Bienvenue {{ getUserDisplayName() }} !</h2>
+              <p>Votre compte {{ getUserRoleDisplay() }} sur ImmoConnect</p>
+              <div class="user-activity-summary">
+                <div class="activity-item">
                   <span class="material-icons">search</span>
-                  <span>Recherche de biens immobiliers</span>
+                  <div class="activity-content">
+                    <span class="activity-number">{{ getUserActivityStats().totalSearches || 0 }}</span>
+                    <span class="activity-label">Recherches effectuées</span>
+                  </div>
                 </div>
-                <div class="feature-item">
+                <div class="activity-item">
                   <span class="material-icons">favorite</span>
-                  <span>Sauvegarde de favoris</span>
+                  <div class="activity-content">
+                    <span class="activity-number">{{ getUserActivityStats().savedProperties || 0 }}</span>
+                    <span class="activity-label">Biens favoris</span>
+                  </div>
                 </div>
-                <div class="feature-item">
-                  <span class="material-icons">contact_mail</span>
-                  <span>Contact direct avec les agences</span>
+                <div class="activity-item">
+                  <span class="material-icons">visibility</span>
+                  <div class="activity-content">
+                    <span class="activity-number">{{ getUserActivityStats().viewedProperties || 0 }}</span>
+                    <span class="activity-label">Biens consultés</span>
+                  </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <!-- Recent Activity Feed -->
+          <div class="recent-activity-card">
+            <h3>Activité récente</h3>
+            <div class="activity-feed" *ngIf="recentActivity && recentActivity.length > 0">
+              <div class="activity-feed-item" *ngFor="let activity of recentActivity.slice(0, 5)">
+                <div class="activity-icon">
+                  <span class="material-icons">{{ activity.icon }}</span>
+                </div>
+                <div class="activity-details">
+                  <div class="activity-title">{{ activity.title }}</div>
+                  <div class="activity-time">{{ formatRelativeTime(activity.date) }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="no-activity" *ngIf="!recentActivity || recentActivity.length === 0">
+              <span class="material-icons">history</span>
+              <p>Aucune activité récente</p>
+            </div>
+          </div>
+
+          <!-- Personalized Property Recommendations -->
+          <div class="recommendations-card">
+            <h3>Recommandations pour vous</h3>
+            <div class="loading-recommendations" *ngIf="isLoadingRecommendations">
+              <div class="loading-spinner"></div>
+              <p>Chargement des recommandations...</p>
+            </div>
+            <div class="recommendations-grid" *ngIf="!isLoadingRecommendations && recommendedProperties && recommendedProperties.length > 0">
+              <div class="recommendation-item" *ngFor="let property of recommendedProperties.slice(0, 3)">
+                <div class="recommendation-image">
+                  <img *ngIf="property.premierImage" [src]="property.premierImage" [alt]="property.titre">
+                  <div *ngIf="!property.premierImage" class="default-image">
+                    <span class="material-icons">home</span>
+                  </div>
+                </div>
+                <div class="recommendation-info">
+                  <h4>{{ property.titre }}</h4>
+                  <p class="price">{{ formatPrice(property.prix) }} TND</p>
+                  <p class="location">{{ property.ville }}</p>
+                </div>
+                <button class="btn btn-sm btn-primary" (click)="viewAnnonceDetails(property)">
+                  <span class="material-icons">visibility</span>
+                  Voir
+                </button>
+              </div>
+            </div>
+            <div class="no-recommendations" *ngIf="!isLoadingRecommendations && (!recommendedProperties || recommendedProperties.length === 0)">
+              <span class="material-icons">explore</span>
+              <p>Explorez des biens pour recevoir des recommandations personnalisées</p>
+              <button class="btn btn-primary" (click)="setActiveSection('properties')">
+                <span class="material-icons">search</span>
+                Parcourir les biens
+              </button>
             </div>
           </div>
 
@@ -419,46 +485,255 @@
 
         <!-- Upgrade Section -->
         <div *ngIf="activeSection === 'upgrade'" class="section-content">
-          <div class="subscription-plans">
-            <div class="plan-card basic">
-              <h3>Basic</h3>
-              <div class="price">Gratuit</div>
-              <ul class="plan-features">
-                <li>Recherche de base</li>
-                <li>5 favoris maximum</li>
-                <li>Support email</li>
-              </ul>
-              <button class="btn btn-outline" disabled>Actuel</button>
+          <!-- Premium Hero Section -->
+          <div class="premium-hero">
+            <div class="hero-content">
+              <div class="hero-badge">
+                <span class="material-icons">auto_awesome</span>
+                <span>Débloquez votre potentiel</span>
+              </div>
+              <h1>Passez à Premium dès aujourd'hui</h1>
+              <p>Accédez à des fonctionnalités exclusives et transformez votre expérience immobilière</p>
+              <div class="hero-stats">
+                <div class="stat-item">
+                  <span class="stat-number">10,000+</span>
+                  <span class="stat-label">Biens exclusifs</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-number">95%</span>
+                  <span class="stat-label">Satisfaction client</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-number">24/7</span>
+                  <span class="stat-label">Support dédié</span>
+                </div>
+              </div>
             </div>
-            
-            <div class="plan-card premium">
-              <h3>Premium</h3>
-              <div class="price">29€<span>/mois</span></div>
-              <ul class="plan-features">
-                <li>Recherche avancée</li>
-                <li>50 alertes par mois</li>
-                <li>Support prioritaire</li>
-                <li>Statistiques détaillées</li>
-              </ul>
-              <button class="btn btn-premium">
-                <span class="material-icons">star</span>
-                Choisir Premium
-              </button>
+            <div class="hero-visual">
+              <div class="floating-cards">
+                <div class="feature-card card-1">
+                  <span class="material-icons">search</span>
+                  <span>Recherche Avancée</span>
+                </div>
+                <div class="feature-card card-2">
+                  <span class="material-icons">notifications</span>
+                  <span>Alertes Instantanées</span>
+                </div>
+                <div class="feature-card card-3">
+                  <span class="material-icons">analytics</span>
+                  <span>Analytics Pro</span>
+                </div>
+              </div>
             </div>
-            
-            <div class="plan-card vip">
-              <h3>VIP</h3>
-              <div class="price">99€<span>/mois</span></div>
-              <ul class="plan-features">
-                <li>Accès illimité</li>
-                <li>Alertes illimitées</li>
-                <li>Conseiller dédié</li>
-                <li>Support 24/7</li>
-              </ul>
-              <button class="btn btn-vip">
-                <span class="material-icons">diamond</span>
-                Choisir VIP
-              </button>
+          </div>
+
+          <!-- Comparison Table -->
+          <div class="plans-comparison">
+            <div class="comparison-header">
+              <h2>Choisissez votre plan</h2>
+              <p>Comparez les fonctionnalités et trouvez l'abonnement qui vous convient</p>
+            </div>
+
+            <div class="comparison-table">
+              <!-- Current Plan -->
+              <div class="plan-column current-plan">
+                <div class="plan-header">
+                  <div class="plan-icon">
+                    <span class="material-icons">person</span>
+                  </div>
+                  <h3>Gratuit</h3>
+                  <div class="plan-price">
+                    <span class="price">0€</span>
+                    <span class="period">/mois</span>
+                  </div>
+                  <div class="current-badge">Votre plan actuel</div>
+                </div>
+                
+                <div class="plan-features">
+                  <div class="feature-category">
+                    <h4>Recherche</h4>
+                    <ul>
+                      <li><span class="icon check">✓</span>Recherche de base</li>
+                      <li><span class="icon limited">⚠</span>10 annonces/jour max</li>
+                      <li><span class="icon cross">✗</span>Filtres avancés</li>
+                    </ul>
+                  </div>
+                  
+                  <div class="feature-category">
+                    <h4>Favoris & Alertes</h4>
+                    <ul>
+                      <li><span class="icon limited">⚠</span>5 favoris max</li>
+                      <li><span class="icon cross">✗</span>Alertes automatiques</li>
+                      <li><span class="icon cross">✗</span>Notifications push</li>
+                    </ul>
+                  </div>
+                  
+                  <div class="feature-category">
+                    <h4>Support</h4>
+                    <ul>
+                      <li><span class="icon check">✓</span>FAQ et guides</li>
+                      <li><span class="icon cross">✗</span>Support prioritaire</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Premium Plan -->
+              <div class="plan-column premium-plan popular">
+                <div class="popular-badge">
+                  <span class="material-icons">star</span>
+                  <span>Le plus populaire</span>
+                </div>
+                <div class="plan-header">
+                  <div class="plan-icon premium">
+                    <span class="material-icons">workspace_premium</span>
+                  </div>
+                  <h3>Premium</h3>
+                  <div class="plan-price">
+                    <span class="price">29€</span>
+                    <span class="period">/mois</span>
+                  </div>
+                  <div class="savings-badge">Économisez 20% en payant annuellement</div>
+                </div>
+                
+                <div class="plan-features">
+                  <div class="feature-category">
+                    <h4>Recherche</h4>
+                    <ul>
+                      <li><span class="icon check">✓</span>Recherche avancée illimitée</li>
+                      <li><span class="icon check">✓</span>Accès à toutes les annonces</li>
+                      <li><span class="icon check">✓</span>Filtres géographiques précis</li>
+                    </ul>
+                  </div>
+                  
+                  <div class="feature-category">
+                    <h4>Favoris & Alertes</h4>
+                    <ul>
+                      <li><span class="icon check">✓</span>Favoris illimités</li>
+                      <li><span class="icon check">✓</span>50 alertes automatiques</li>
+                      <li><span class="icon check">✓</span>Notifications en temps réel</li>
+                    </ul>
+                  </div>
+                  
+                  <div class="feature-category">
+                    <h4>Fonctionnalités exclusives</h4>
+                    <ul>
+                      <li><span class="icon check">✓</span>Statistiques détaillées</li>
+                      <li><span class="icon check">✓</span>Historique des prix</li>
+                      <li><span class="icon check">✓</span>Accès prioritaire aux nouveautés</li>
+                    </ul>
+                  </div>
+                  
+                  <div class="feature-category">
+                    <h4>Support</h4>
+                    <ul>
+                      <li><span class="icon check">✓</span>Support email prioritaire</li>
+                      <li><span class="icon check">✓</span>Chat en direct</li>
+                    </ul>
+                  </div>
+                </div>
+                
+                <button class="btn btn-premium-cta" (click)="upgradeToPremium()">
+                  <span class="material-icons">rocket_launch</span>
+                  Passer à Premium
+                  <span class="btn-arrow">→</span>
+                </button>
+              </div>
+
+              <!-- VIP Plan -->
+              <div class="plan-column vip-plan">
+                <div class="plan-header">
+                  <div class="plan-icon vip">
+                    <span class="material-icons">diamond</span>
+                  </div>
+                  <h3>VIP</h3>
+                  <div class="plan-price">
+                    <span class="price">99€</span>
+                    <span class="period">/mois</span>
+                  </div>
+                  <div class="enterprise-badge">Pour les professionnels</div>
+                </div>
+                
+                <div class="plan-features">
+                  <div class="feature-category">
+                    <h4>Tout Premium +</h4>
+                    <ul>
+                      <li><span class="icon check">✓</span>Alertes illimitées</li>
+                      <li><span class="icon check">✓</span>API access</li>
+                      <li><span class="icon check">✓</span>Rapports personnalisés</li>
+                    </ul>
+                  </div>
+                  
+                  <div class="feature-category">
+                    <h4>Service VIP</h4>
+                    <ul>
+                      <li><span class="icon check">✓</span>Conseiller personnel dédié</li>
+                      <li><span class="icon check">✓</span>Support téléphonique 24/7</li>
+                      <li><span class="icon check">✓</span>Assistance à la négociation</li>
+                    </ul>
+                  </div>
+                  
+                  <div class="feature-category">
+                    <h4>Analytics Pro</h4>
+                    <ul>
+                      <li><span class="icon check">✓</span>Tendances de marché exclusives</li>
+                      <li><span class="icon check">✓</span>Prévisions de prix IA</li>
+                      <li><span class="icon check">✓</span>Rapports d'investissement</li>
+                    </ul>
+                  </div>
+                </div>
+                
+                <button class="btn btn-vip-cta" (click)="upgradeToVip()">
+                  <span class="material-icons">crown</span>
+                  Passer à VIP
+                  <span class="btn-arrow">→</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Testimonials -->
+          <div class="testimonials-section">
+            <h3>Ils ont choisi Premium</h3>
+            <div class="testimonials-grid">
+              <div class="testimonial-card">
+                <div class="testimonial-content">
+                  <p>"Grâce à Premium, j'ai trouvé mon appartement idéal en seulement 2 semaines. Les alertes en temps réel font toute la différence !"</p>
+                </div>
+                <div class="testimonial-author">
+                  <div class="author-avatar">MD</div>
+                  <div class="author-info">
+                    <div class="author-name">Marie Dupont</div>
+                    <div class="author-role">Cliente Premium</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="testimonial-card">
+                <div class="testimonial-content">
+                  <p>"L'accès prioritaire aux nouvelles annonces m'a permis de négocier le meilleur prix pour ma villa à Sousse."</p>
+                </div>
+                <div class="testimonial-author">
+                  <div class="author-avatar">AB</div>
+                  <div class="author-info">
+                    <div class="author-name">Ahmed Ben Ali</div>
+                    <div class="author-role">Client VIP</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Money Back Guarantee -->
+          <div class="guarantee-section">
+            <div class="guarantee-content">
+              <div class="guarantee-icon">
+                <span class="material-icons">verified</span>
+              </div>
+              <div class="guarantee-text">
+                <h4>Garantie satisfait ou remboursé</h4>
+                <p>Pas satisfait dans les 30 premiers jours ? Nous vous remboursons intégralement, sans question.</p>
+              </div>
             </div>
           </div>
         </div>
@@ -468,65 +743,196 @@
       <div *ngIf="isClientAbonne()" class="dashboard-content">
         <!-- Overview Section -->
         <div *ngIf="activeSection === 'overview'" class="section-content">
-          <div class="stats-grid">
-            <div class="stat-card">
-              <div class="stat-icon">
+          <!-- Compact Stats Grid -->
+          <div class="compact-stats-grid">
+            <div class="compact-stat-card" (click)="setActiveSection('searches')">
+              <div class="stat-icon primary">
                 <span class="material-icons">search</span>
               </div>
               <div class="stat-content">
-                <div class="stat-number">{{ getSubscriptionInfo()?.searchLimit || 0 }}</div>
+                <div class="stat-number">{{ getClientStats().searchesRemaining || 47 }}</div>
                 <div class="stat-label">Recherches restantes</div>
+                <div class="stat-sublabel">sur {{ getSubscriptionInfo()?.searchLimit || 50 }}</div>
+              </div>
+              <div class="stat-action">
+                <span class="material-icons">arrow_forward</span>
               </div>
             </div>
             
-            <div class="stat-card">
-              <div class="stat-icon">
-                <span class="material-icons">star</span>
+            <div class="compact-stat-card" (click)="setActiveSection('subscription')">
+              <div class="stat-icon success">
+                <span class="material-icons">workspace_premium</span>
               </div>
               <div class="stat-content">
-                <div class="stat-number">{{ getSubscriptionInfo()?.type }}</div>
-                <div class="stat-label">Abonnement</div>
+                <div class="stat-number">{{ getSubscriptionInfo()?.type || 'Premium' }}</div>
+                <div class="stat-label">Abonnement actif</div>
+                <div class="stat-sublabel">{{ getSubscriptionDaysRemaining() }} jours restants</div>
+              </div>
+              <div class="stat-action">
+                <span class="material-icons">arrow_forward</span>
               </div>
             </div>
             
-            <div class="stat-card">
-              <div class="stat-icon">
+            <div class="compact-stat-card" (click)="openFavoritesModal()">
+              <div class="stat-icon warning">
                 <span class="material-icons">favorite</span>
               </div>
               <div class="stat-content">
-                <div class="stat-number">12</div>
+                <div class="stat-number">{{ getClientStats().favoriteProperties || 8 }}</div>
                 <div class="stat-label">Biens favoris</div>
+                <div class="stat-sublabel">{{ getClientStats().newFavorites || 2 }} nouveaux</div>
+              </div>
+              <div class="stat-action">
+                <span class="material-icons">arrow_forward</span>
               </div>
             </div>
             
-            <div class="stat-card">
-              <div class="stat-icon">
-                <span class="material-icons">notifications</span>
+            <div class="compact-stat-card" (click)="openAlertsModal()">
+              <div class="stat-icon info">
+                <span class="material-icons">notifications_active</span>
               </div>
               <div class="stat-content">
-                <div class="stat-number">3</div>
+                <div class="stat-number">{{ getClientStats().activeAlerts || 5 }}</div>
                 <div class="stat-label">Alertes actives</div>
+                <div class="stat-sublabel">{{ getClientStats().newMatches || 12 }} nouveaux résultats</div>
+              </div>
+              <div class="stat-action">
+                <span class="material-icons">arrow_forward</span>
               </div>
             </div>
           </div>
 
-          <div class="recent-activity">
-            <h3>Activité récente</h3>
-            <div class="activity-list">
-              <div class="activity-item">
-                <span class="activity-icon material-icons">search</span>
-                <div class="activity-content">
-                  <div class="activity-text">Recherche "Appartement Tunis"</div>
-                  <div class="activity-time">Il y a 2 heures</div>
+          <!-- Quick Actions Dashboard -->
+          <div class="quick-actions-dashboard">
+            <h3>Actions rapides</h3>
+            <div class="action-cards-grid">
+              <div class="action-card primary" (click)="startQuickSearch()">
+                <div class="action-icon">
+                  <span class="material-icons">search</span>
+                </div>
+                <div class="action-content">
+                  <h4>Recherche rapide</h4>
+                  <p>Trouvez votre bien idéal</p>
+                </div>
+                <div class="action-arrow">
+                  <span class="material-icons">play_arrow</span>
                 </div>
               </div>
-              <div class="activity-item">
-                <span class="activity-icon material-icons">favorite</span>
-                <div class="activity-content">
-                  <div class="activity-text">Bien ajouté aux favoris</div>
-                  <div class="activity-time">Hier</div>
+
+              <div class="action-card success" (click)="createAlert()">
+                <div class="action-icon">
+                  <span class="material-icons">add_alert</span>
+                </div>
+                <div class="action-content">
+                  <h4>Créer une alerte</h4>
+                  <p>Soyez notifié des nouveautés</p>
+                </div>
+                <div class="action-arrow">
+                  <span class="material-icons">play_arrow</span>
                 </div>
               </div>
+
+              <div class="action-card warning" (click)="viewAnalytics()">
+                <div class="action-icon">
+                  <span class="material-icons">analytics</span>
+                </div>
+                <div class="action-content">
+                  <h4>Mes statistiques</h4>
+                  <p>Analysez votre activité</p>
+                </div>
+                <div class="action-arrow">
+                  <span class="material-icons">play_arrow</span>
+                </div>
+              </div>
+
+              <div class="action-card info" (click)="manageSubscription()">
+                <div class="action-icon">
+                  <span class="material-icons">settings</span>
+                </div>
+                <div class="action-content">
+                  <h4>Gérer l'abonnement</h4>
+                  <p>Facturation et options</p>
+                </div>
+                <div class="action-arrow">
+                  <span class="material-icons">play_arrow</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Activity Feed -->
+          <div class="compact-activity-feed">
+            <div class="feed-header">
+              <h3>Activité récente</h3>
+              <button class="btn-link" (click)="setActiveSection('searches')">
+                Voir tout
+                <span class="material-icons">arrow_forward</span>
+              </button>
+            </div>
+            <div class="activity-timeline">
+              <div class="timeline-item" *ngFor="let activity of getRecentClientActivity().slice(0, 4)">
+                <div class="timeline-dot" [class]="activity.type">
+                  <span class="material-icons">{{ activity.icon }}</span>
+                </div>
+                <div class="timeline-content">
+                  <div class="timeline-title">{{ activity.title }}</div>
+                  <div class="timeline-subtitle">{{ activity.description }}</div>
+                  <div class="timeline-time">{{ formatRelativeTime(activity.date) }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recommended Properties Widget -->
+          <div class="recommendations-widget">
+            <div class="widget-header">
+              <h3>Recommandations personnalisées</h3>
+              <button class="btn-link" (click)="setActiveSection('properties')">
+                Voir plus
+                <span class="material-icons">arrow_forward</span>
+              </button>
+            </div>
+            <div class="compact-properties-grid" *ngIf="!isLoadingRecommendations && recommendedProperties?.length">
+              <div class="compact-property-card" 
+                   *ngFor="let property of recommendedProperties.slice(0, 3)"
+                   (click)="viewAnnonceDetails(property)">
+                <div class="property-image">
+                  <img *ngIf="property.premierImage" [src]="property.premierImage" [alt]="property.titre">
+                  <div *ngIf="!property.premierImage" class="default-image">
+                    <span class="material-icons">home</span>
+                  </div>
+                  <div class="property-badge">{{ getAnnonceTypeTransactionDisplay(property.typeTransaction) }}</div>
+                </div>
+                <div class="property-info">
+                  <h4>{{ property.titre | slice:0:35 }}{{ property.titre.length > 35 ? '...' : '' }}</h4>
+                  <div class="property-price">{{ formatPrice(property.prix) }} TND</div>
+                  <div class="property-location">
+                    <span class="material-icons">location_on</span>
+                    {{ property.ville }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="loading-recommendations" *ngIf="isLoadingRecommendations">
+              <div class="loading-spinner"></div>
+              <p>Chargement des recommandations...</p>
+            </div>
+          </div>
+
+          <!-- Subscription Status Banner -->
+          <div class="subscription-banner" [class]="getSubscriptionStatusClass()">
+            <div class="banner-content">
+              <div class="banner-icon">
+                <span class="material-icons">{{ getSubscriptionIcon() }}</span>
+              </div>
+              <div class="banner-text">
+                <h4>{{ getSubscriptionStatusTitle() }}</h4>
+                <p>{{ getSubscriptionStatusMessage() }}</p>
+              </div>
+              <button class="banner-action" (click)="handleSubscriptionAction()">
+                {{ getSubscriptionActionText() }}
+                <span class="material-icons">arrow_forward</span>
+              </button>
             </div>
           </div>
         </div>
@@ -1389,54 +1795,265 @@
       <div *ngIf="isAgency()" class="dashboard-content">
         <!-- Overview Section -->
         <div *ngIf="activeSection === 'overview'" class="section-content">
-          <div class="agency-header">
-            <h2>{{ getAgencyInfo()?.nomAgence }}</h2>
-            <div class="agency-status">
-              <span class="status-badge" [class]="isAgencyVerified() ? 'verified' : 'pending'">
-                <span class="material-icons">{{ isAgencyVerified() ? 'verified' : 'schedule' }}</span>
-                {{ isAgencyVerified() ? 'Agence Vérifiée' : 'Vérification en attente' }}
-              </span>
+          <!-- Agency Business Header -->
+          <div class="business-header">
+            <div class="business-info">
+              <div class="agency-logo">
+                <span class="material-icons">business</span>
+              </div>
+              <div class="agency-details">
+                <h1>{{ getAgencyInfo()?.nomAgence || 'Mon Agence Immobilière' }}</h1>
+                <p>{{ getAgencyInfo()?.zonesCouverture || 'Tunis, Sousse, Sfax' }}</p>
+                <div class="agency-meta">
+                  <span class="meta-item">
+                    <span class="material-icons">badge</span>
+                    Licence: {{ getAgencyInfo()?.numeroLicence || 'TN-2024-001' }}
+                  </span>
+                  <span class="meta-item" *ngIf="getAgencyInfo()?.siteWeb">
+                    <span class="material-icons">language</span>
+                    {{ getAgencyInfo()?.siteWeb }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="verification-status">
+              <div class="status-card" [class]="isAgencyVerified() ? 'verified' : 'pending'">
+                <div class="status-icon">
+                  <span class="material-icons">{{ isAgencyVerified() ? 'verified' : 'schedule' }}</span>
+                </div>
+                <div class="status-content">
+                  <h3>{{ isAgencyVerified() ? 'Agence Vérifiée' : 'Vérification en cours' }}</h3>
+                  <p>{{ getVerificationStatusMessage() }}</p>
+                  <button class="status-action" (click)="manageVerification()" *ngIf="!isAgencyVerified()">
+                    Voir le statut
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div class="stats-grid">
-            <div class="stat-card">
-              <div class="stat-icon">
-                <span class="material-icons">home</span>
+          <!-- Business KPI Dashboard -->
+          <div class="business-kpi-grid">
+            <div class="kpi-card revenue" (click)="openRevenueDetails()">
+              <div class="kpi-header">
+                <div class="kpi-icon">
+                  <span class="material-icons">trending_up</span>
+                </div>
+                <div class="kpi-trend positive">
+                  <span class="material-icons">arrow_upward</span>
+                  +12%
+                </div>
               </div>
-              <div class="stat-content">
-                <div class="stat-number">127</div>
-                <div class="stat-label">Biens gérés</div>
-              </div>
-            </div>
-            
-            <div class="stat-card">
-              <div class="stat-icon">
-                <span class="material-icons">people</span>
-              </div>
-              <div class="stat-content">
-                <div class="stat-number">89</div>
-                <div class="stat-label">Clients actifs</div>
+              <div class="kpi-content">
+                <div class="kpi-number">{{ getAgencyKPIs().monthlyRevenue || '87,450' }} DT</div>
+                <div class="kpi-label">Chiffre d'affaires</div>
+                <div class="kpi-subtitle">Ce mois</div>
               </div>
             </div>
-            
-            <div class="stat-card">
-              <div class="stat-icon">
-                <span class="material-icons">euro</span>
+
+            <div class="kpi-card properties" (click)="setActiveSection('properties')">
+              <div class="kpi-header">
+                <div class="kpi-icon">
+                  <span class="material-icons">home</span>
+                </div>
+                <div class="kpi-trend">
+                  <span class="kpi-badge active">{{ getAgencyKPIs().activeProperties || 42 }} actifs</span>
+                </div>
               </div>
-              <div class="stat-content">
-                <div class="stat-number">45.6k DT</div>
-                <div class="stat-label">CA mensuel</div>
+              <div class="kpi-content">
+                <div class="kpi-number">{{ getAgencyKPIs().totalProperties || 127 }}</div>
+                <div class="kpi-label">Biens gérés</div>
+                <div class="kpi-subtitle">{{ getAgencyKPIs().newThisWeek || 5 }} nouveaux cette semaine</div>
               </div>
             </div>
-            
-            <div class="stat-card">
-              <div class="stat-icon">
-                <span class="material-icons">group</span>
+
+            <div class="kpi-card clients" (click)="setActiveSection('clients')">
+              <div class="kpi-header">
+                <div class="kpi-icon">
+                  <span class="material-icons">people</span>
+                </div>
+                <div class="kpi-trend">
+                  <span class="kpi-badge leads">{{ getAgencyKPIs().newLeads || 8 }} leads</span>
+                </div>
               </div>
-              <div class="stat-content">
-                <div class="stat-number">{{ getAgencyInfo()?.nombreEmployes || 0 }}</div>
-                <div class="stat-label">Employés</div>
+              <div class="kpi-content">
+                <div class="kpi-number">{{ getAgencyKPIs().totalClients || 156 }}</div>
+                <div class="kpi-label">Clients</div>
+                <div class="kpi-subtitle">{{ getAgencyKPIs().activeClients || 89 }} actifs</div>
+              </div>
+            </div>
+
+            <div class="kpi-card team" (click)="setActiveSection('team')">
+              <div class="kpi-header">
+                <div class="kpi-icon">
+                  <span class="material-icons">group</span>
+                </div>
+                <div class="kpi-trend positive">
+                  <span class="material-icons">star</span>
+                  4.8
+                </div>
+              </div>
+              <div class="kpi-content">
+                <div class="kpi-number">{{ getAgencyInfo()?.nombreEmployes || 12 }}</div>
+                <div class="kpi-label">Équipe</div>
+                <div class="kpi-subtitle">Performance excellente</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Business Actions -->
+          <div class="business-actions">
+            <h3>Actions rapides</h3>
+            <div class="action-buttons-grid">
+              <button class="action-btn primary" (click)="addNewProperty()">
+                <div class="btn-icon">
+                  <span class="material-icons">add_home</span>
+                </div>
+                <div class="btn-content">
+                  <h4>Nouvelle annonce</h4>
+                  <p>Ajouter un bien</p>
+                </div>
+              </button>
+
+              <button class="action-btn success" (click)="addNewClient()">
+                <div class="btn-icon">
+                  <span class="material-icons">person_add</span>
+                </div>
+                <div class="btn-content">
+                  <h4>Nouveau client</h4>
+                  <p>Ajouter au CRM</p>
+                </div>
+              </button>
+
+              <button class="action-btn warning" (click)="viewAnalytics()">
+                <div class="btn-icon">
+                  <span class="material-icons">analytics</span>
+                </div>
+                <div class="btn-content">
+                  <h4>Analytics</h4>
+                  <p>Voir rapports</p>
+                </div>
+              </button>
+
+              <button class="action-btn info" (click)="manageTeam()">
+                <div class="btn-icon">
+                  <span class="material-icons">manage_accounts</span>
+                </div>
+                <div class="btn-content">
+                  <h4>Gérer équipe</h4>
+                  <p>RH et performance</p>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Business Activity Timeline -->
+          <div class="business-timeline">
+            <div class="timeline-header">
+              <h3>Activité commerciale</h3>
+              <button class="btn-link" (click)="viewAllActivity()">
+                Tout voir
+                <span class="material-icons">arrow_forward</span>
+              </button>
+            </div>
+            <div class="timeline-list">
+              <div class="timeline-item" *ngFor="let activity of getAgencyActivity().slice(0, 5)">
+                <div class="timeline-dot" [class]="activity.type">
+                  <span class="material-icons">{{ activity.icon }}</span>
+                </div>
+                <div class="timeline-content">
+                  <div class="timeline-title">{{ activity.title }}</div>
+                  <div class="timeline-subtitle">{{ activity.description }}</div>
+                  <div class="timeline-meta">
+                    <span class="timeline-time">{{ formatRelativeTime(activity.date) }}</span>
+                    <span class="timeline-amount" *ngIf="activity.amount">{{ activity.amount }}</span>
+                  </div>
+                </div>
+                <button class="timeline-action" (click)="viewActivityDetails(activity)" *ngIf="activity.actionable">
+                  <span class="material-icons">arrow_forward</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Team Performance Preview -->
+          <div class="team-preview" *ngIf="isAgencyVerified()">
+            <div class="preview-header">
+              <h3>Performance équipe</h3>
+              <button class="btn-link" (click)="setActiveSection('team')">
+                Gérer l'équipe
+                <span class="material-icons">arrow_forward</span>
+              </button>
+            </div>
+            <div class="team-members-grid">
+              <div class="member-card" *ngFor="let member of getTopPerformers().slice(0, 3)">
+                <div class="member-avatar">
+                  {{ member.initials }}
+                </div>
+                <div class="member-info">
+                  <h4>{{ member.name }}</h4>
+                  <p>{{ member.role }}</p>
+                  <div class="member-stats">
+                    <span class="stat">{{ member.sales }} ventes</span>
+                    <span class="stat">{{ member.revenue }} DT</span>
+                  </div>
+                </div>
+                <div class="member-score" [class]="member.performance">
+                  {{ member.score }}%
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Market Insights Widget -->
+          <div class="market-insights">
+            <div class="insights-header">
+              <div class="insights-icon">
+                <span class="material-icons">trending_up</span>
+              </div>
+              <div class="insights-content">
+                <h3>Tendances du marché</h3>
+                <p>{{ getCurrentMarketTrend() }}</p>
+              </div>
+              <button class="insights-action" (click)="viewMarketAnalysis()">
+                <span class="material-icons">analytics</span>
+                Analyser
+              </button>
+            </div>
+            <div class="insights-stats">
+              <div class="insight-item">
+                <span class="insight-label">Prix m² moyen</span>
+                <span class="insight-value">2,450 DT</span>
+                <span class="insight-change positive">+3.2%</span>
+              </div>
+              <div class="insight-item">
+                <span class="insight-label">Temps de vente</span>
+                <span class="insight-value">67 jours</span>
+                <span class="insight-change negative">-8 jours</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notification Center -->
+          <div class="notification-center" *ngIf="getAgencyNotifications().length > 0">
+            <div class="notification-header">
+              <h3>Notifications importantes</h3>
+              <span class="notification-count">{{ getAgencyNotifications().length }}</span>
+            </div>
+            <div class="notification-list">
+              <div class="notification-item" 
+                   *ngFor="let notification of getAgencyNotifications().slice(0, 3)"
+                   [class]="notification.priority">
+                <div class="notification-icon">
+                  <span class="material-icons">{{ notification.icon }}</span>
+                </div>
+                <div class="notification-content">
+                  <div class="notification-title">{{ notification.title }}</div>
+                  <div class="notification-message">{{ notification.message }}</div>
+                </div>
+                <button class="notification-action" (click)="handleNotification(notification)">
+                  {{ notification.actionText }}
+                </button>
               </div>
             </div>
           </div>
